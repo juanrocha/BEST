@@ -1,5 +1,9 @@
 ### BEST Analysis
-# This script explores the data of the BEST project: games with thresholds in 4 fishing communitites in the Colombian Caribeean coast. The first part summarizes and plot the data in different ways. The second takes ideas from StrategicNetworks.R to explore if is possible to understand strategic behaviour of humans from a data oriented prespective.
+# This script explores the data of the BEST project: games with thresholds in 4 
+# fishing communitites in the Colombian Caribeean coast. The first part summarizes 
+# and plot the data in different ways. The second takes ideas from StrategicNetworks.R
+# to explore if is possible to understand strategic behaviour of humans from a 
+# data oriented prespective.
 # Raw data was processed with script ExtractDataBEST.R
 
 # by Juan Carlos Rocha
