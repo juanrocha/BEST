@@ -1,0 +1,41 @@
+---
+title: "BEST exploratory analysis"
+author: "Juan Carlos Rocha"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(ggplot2)
+require(network)
+require(sna)
+require(dplyr)
+require(RColorBrewer)
+require(GGally)
+library(vegan)
+library(cluster)
+library(NbClust);library(kohonen)
+library(mclust); library(clValid)
+```
+
+## BEST: Behavioural Economics for Social-Ecological Systems with Thresholds
+
+The **BEST** project aims to understand what are the behavioural responses of people who rely on natural resources for their livelihood, and whose resources could potentially present threshold like dynamics, aka. *"regime shifts"*. For this study we designed a game played with fishermen in four communities of the Colombian caribbean. Here I present a short exploration of the game data and survey.
+
+### 
+
+You can include R code in the document as follows:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

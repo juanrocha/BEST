@@ -43,14 +43,35 @@ levels(dat$Treatment)[c(2,7)] <- 'Risk'
 levels(dat$Treatment)[c(3,5)] <- 'Base line'
 levels(dat$Treatment)[c(4,5)] <- 'Threshold'
 
+# Correct date, session, player as factor
+dat$Date <- as.factor(dat$Date)
+levels(dat$Date) <- c('2016-02-09', '2016-02-01', '2016-02-02','2016-02-03','2016-02-04','2016-02-05','2016-02-10','2016-02-12') # standard dates
+levels(dat$Session) <- c('am','pm')
+levels(dat$Player) <- c('1','2','3','4')
+
 dat$part <- dat$Round >6
+
+# Create player ID's as in Surveys.R
+dat <- transform (dat, ID_player = interaction(Date, Treatment, Session, Player, drop = TRUE))
+
+# check that ID's are equal in both datasets
+levels(dat$ID_player) %in% levels(surv.dat$ID_player)
+levels(surv.dat$ID_player) %in% levels(dat$ID_player)
+
+# Now you can join them and use both datasets for stats!!
+full <- full_join(dat, surv.dat, by= c('ID_player' = 'ID_player', 'Session' = 'Session', 
+                                        'Date' = 'date', 'Place' = 'locationName', 'Round'='round'))
+str(full)
+
 
 # Time series
 
 g <- ggplot(data=dat, aes(x=Round, y=NewStockSize)) + geom_line(stat='smooth', aes(color=Place, group=Place))
 g + facet_grid(Treatment ~ part)
 
-g2 <- g + stat_summary(fun.data='mean_cl_boot', geom='smooth') + ggtitle('Treatments in Colombia \n Second part of the game') + theme(text= element_text(family='Helvetica', size=10))  # working but with lots of warnings.
+g2 <- g + stat_summary(fun.data='mean_cl_boot', geom='smooth') 
+        + ggtitle('Treatments in Colombia \n Second part of the game') 
+        + theme(text= element_text(family='Helvetica', size=10))  # working but with lots of warnings.
 
 # Matrix of treatment per place, smooth over player decisions
 
@@ -59,7 +80,7 @@ g <- ggplot(dat=dat, aes(x=Round, y=value)) +
 		stat_summary(fun.data='mean_cl_boot', geom='smooth') +
 		facet_grid(Treatment ~ Place) 
 
-	#should be equivalent but is not. Prefer the one above.
+#should be equivalent but is not. Prefer the one above.
 g <- ggplot(dat=dat, aes(x=Round, y=value)) + 
 		geom_smooth(stat='smooth', method='loess', span=0.2) +
 		facet_grid(Treatment ~ Place)
@@ -71,7 +92,8 @@ g <- ggplot(dat=dat, aes(x=Round, y=value)) +
 		facet_grid(Treatment ~ Place)
 
 ## Only players of one place, per day 
-g <- ggplot(dat=subset(dat, dat$Place == 'Las Flores' ), aes(x=Round, y=value), group=Player) + 
+g <- ggplot(dat=subset(dat, dat$Place == 'Las Flores' ),
+            aes(x=Round, y=value), group=Player) + 
 		geom_line(stat='identity', aes(color=Player)) +
 		geom_point(stat='identity', aes(color=Player), alpha=0.5)+
 		#geom_jitter(stat='identity', aes(color=Player), alpha=0.5)+
@@ -146,20 +168,28 @@ library(plot3D)
 
 
 
-pm <- ggpairs(data=dat, columns=c('StockSizeBegining', 'NewStockSize', 'Treatment','Place'), mapping=aes(color= Treatment, alpha=0.5)) + theme(text= element_text(family='Helvetica', size=8))
+pm <- ggpairs(data=dat, columns=c('StockSizeBegining', 'NewStockSize', 'Treatment','Place'),
+              mapping=aes(color= Treatment, alpha=0.5))+ 
+              theme(text= element_text(family='Helvetica', size=8))
 
-ggpairs(data=dat, columns=c('StockSizeBegining', 'NewStockSize', 'value'), mapping=aes(color= Place, alpha=0.5))
+ggpairs(data=dat, columns=c('StockSizeBegining', 'NewStockSize', 'value'), 
+        mapping=aes(color= Place, alpha=0.5))
 
 ggpairs(data=dat, columns=c('Treatment', 'value', 'Place'), mapping=aes(color= Place))
 
-pm <- ggpairs(data=subset(dat, dat$part == T), columns=c('StockSizeBegining', 'NewStockSize', 'Treatment','Place'), upper= list(continuous='density'), lower=list(continuous='points'), mapping=aes(color= Place, alpha=0.5), title='Color by treatment, second part') + theme(text= element_text(family='Helvetica', size=8)) 
+pm <- ggpairs(data=subset(dat, dat$part == T), 
+              columns=c('StockSizeBegining', 'NewStockSize', 'Treatment','Place'), 
+              upper= list(continuous='density'), lower=list(continuous='points'), 
+              mapping=aes(color= Place, alpha=0.5), title='Color by treatment, second part') 
+          + theme(text= element_text(family='Helvetica', size=8)) 
 
 # quartz.save('GeneralSummary_ColTreatment_2part.png', type='png')
 
 
 ## Contours works fine for stability landscapes for now.
 
-c <- ggplot(data=dat, aes(y=NewStockSize, x=StockSizeBegining), group=Session) + geom_density_2d(aes(color=part)) + facet_grid( Treatment ~ Place)
+c <- ggplot(data=dat, aes(y=NewStockSize, x=StockSizeBegining), group=Session) + 
+        geom_density_2d(aes(color=part)) + facet_grid( Treatment ~ Place)
 
 # quartz.save('GeneralSummary_contours_treatment.png', type='png')
 
@@ -197,7 +227,10 @@ group <- reshape::cast(dat, ID_player ~  Group)[,-1]
 treat <- reshape::cast(dat, ID_player ~  Treatment)[,-1]
 context <- cbind(place,treat) # don't use group yet, maybe for aes
 
-## PCA & MDS: running pca or mds creates an error because of missing values. An alternative to deal with them is setting NA to zeroes and adding a column on the context dataset indicating that there were missing values. Missing values on the dataset means collapse of the resource (except for a group on the first dat)
+## PCA & MDS: running pca or mds creates an error because of missing values. 
+# An alternative to deal with them is setting NA to zeroes and adding a column 
+# on the context dataset indicating that there were missing values.
+# Missing values on the dataset means collapse of the resource (except for a group on the first dat)
 
 
 # Identify where the NA are
