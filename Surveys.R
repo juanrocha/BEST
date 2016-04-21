@@ -9,6 +9,7 @@ rm(list=ls())
 require (ggplot2)
 require (dplyr)
 require(gdata)
+require(GGally)
 
 # load data
 
@@ -61,36 +62,48 @@ g <- ggplot(data = aggregate(X2..lifeSatisfaction ~ ID_player + locationName, da
 g
 
 # question is a function that speed up the steps above
+
 question <- function(dat, q1, q2, q3, fun){ # dat = survey, q = is the colname of the question
   a0 <- select(dat, col1=q1, col2=q2, place=q3)
   g <- ggplot(data = aggregate(col2 ~ col1 + place, data=a0, FUN= fun ), aes (x=col2, fill=place))+
-    geom_bar(stat='count', na.rm=TRUE)
+    geom_bar(stat='count', na.rm=TRUE) + theme_minimal(base_size = 10, base_family = "Helvetica")
   return (g)
 }
 #q1 is the column number of ID_player, and q2 = X2..lifeSatisfaction
-question (surv, q1=372, q2=25, q3=2, fun=mean) + ggtitle('Life satisfaction\n 1= very satisfied : 4 = very unsatisfied')
+q1 <- question (surv, q1=372, q2=25, q3=2, fun=mean) + ggtitle('Life satisfaction\n 1= very satisfied : 4 = very unsatisfied')
 
 # have participated in economic experiments before?
-question (surv, q1=372, q2=26, q3 = 2, fun=mean) + ggtitle('Have you participated in economic experiments before?')
+q2 <- question (surv, q1=372, q2=26, q3 = 2, fun=mean) + ggtitle('Have you participated in economic experiments before?')
 # what are the rows with 2!! It should be binary 1/0
 surv[surv[,26] == 2, 1:30]
 
 # did you played with any of your fishing partners?
-question (surv, q1=372, q2=27, q3 = 2, fun=mean)  + ggtitle('Did you played with any of your fishing partners?')
+q3 <- question (surv, q1=372, q2=27, q3 = 2, fun=mean)  + ggtitle('Did you played with any of your fishing partners?')
 
-question (surv, q1=372, q2=28, q3 = 2, fun=mean)  + ggtitle('Were you surprised at the end?')
+q4 <- question (surv, q1=372, q2=28, q3 = 2, fun=mean)  + ggtitle('Were you surprised at the end?')
 
-question (surv, q1=372, q2=29, q3 = 2, fun=mean)  + ggtitle('How many extra rounds were you expecting?\n 0 = none; 1 = <5; 2 = >5')
+q5 <- question (surv, q1=372, q2=29, q3 = 2, fun=mean)  + ggtitle('How many extra rounds were you expecting?\n 0 = none; 1 = <5; 2 = >5')
 
-question (surv, q1=372, q2=31, q3 = 2, fun=mean)  + ggtitle('How old did you start fishing?')
+pm <- ggmatrix(
+  plots = list(q1,q2,q3,q5,q5),
+  nrow = 2, ncol = 3,
+  showAxisPlotLabels = T, showStrips = TRUE
+  
+)
+pm  + theme_minimal(base_size = 10, base_family = "Helvetica")
+# the nice layout with titles can be plotted using gridExtra::grid.arrange() I used in report.
 
-g<- question (surv, q1=372, q2=32, q3 = 2, fun=mean)  + ggtitle('Do you fish most of the time?') # error here on player 2016-02-01.Base line.pm.3    Taganga 0.0625
+
+
+question (surv, q1=372, q2=31, q3 = 2, fun=mean)  + ggtitle('7. How old did you start fishing?')
+
+g<- question (surv, q1=372, q2=32, q3 = 2, fun=mean)  + ggtitle('8. Do you fish most of the time?') # error here on player 2016-02-01.Base line.pm.3    Taganga 0.0625
 # cell (206,32) in excel file
 g$data
 
-question (surv, q1=372, q2=33, q3 = 2, fun=mean)  + ggtitle('Have you been fishing here since you started?')
+question (surv, q1=372, q2=33, q3 = 2, fun=mean)  + ggtitle('9. Have you been fishing here since you started?')
 
-question (surv, q1=372, q2=35, q3 = 2, fun=mean)  + ggtitle('Last year, there were months when you have not fished?')
+question (surv, q1=372, q2=35, q3 = 2, fun=mean)  + ggtitle('10. Last year, there were months when you have not fished?')
 # error in cell ()
 
 question (surv, q1=372, q2=36, q3 = 2, fun=mean)  + ggtitle('Did not fish in January')
@@ -111,7 +124,7 @@ question (surv, q1=372, q2=53, q3 = 2, fun=mean)  + ggtitle('Kg of fish in a goo
 question (surv, q1=372, q2=56, q3 = 2, fun=mean)  + ggtitle('Earnings Col$ in a bad day') # error in distribution
 table(surv[,56])/16
 
-question (surv, q1=372, q2=56, q3 = 2, fun=mean)  + ggtitle('Earnings Col$ in a bad day')
+question (surv, q1=372, q2=56, q3 = 2, fun=mean) + geom_histogram(aes(alpha=0.2))  + ggtitle('Earnings Col$ in a bad day')
 
 question (surv, q1=372, q2=57, q3 = 2, fun=mean)  + ggtitle('How often do you have a bad day?\n 1 = 1/year, 2 = 1/month, 3 = 1/week, 4 = n/week')
 
@@ -119,7 +132,7 @@ question (surv, q1=372, q2=58, q3 = 2, fun=mean)  + ggtitle('Do you fish with so
 
 question (surv, q1=372, q2=59, q3 = 2, fun=mean)  + ggtitle('How often?\n 1=rare, 2=1/2times, 3=most, 4=always')
 
-question (surv, q1=372, q2=60, q3 = 2, fun=mean)  + ggtitle('How many are you?') # repeat this plot with density
+question (surv, q1=372, q2=60, q3 = 2, fun=mean)  + ggtitle('How many are you?') # repeat this plot with density and there is error on raw data
 table(surv[,60])/16
 
 question (surv, q1=372, q2=61, q3 = 2, fun=mean)  + ggtitle('Same crew?')

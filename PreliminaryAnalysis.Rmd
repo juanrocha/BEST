@@ -1,41 +1,199 @@
 ---
-title: "BEST exploratory analysis"
-author: "Juan Carlos Rocha"
-output: github_document
+title: "BEST: Behavioural Economics for Social-Ecological Systems with Thresholds"
+author: "by Juan Carlos Rocha"
+output: 
+  html_document:
+    self_contained: true
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    fig_width: 5
+    fig_height: 5
+    dev: png
+    code_folding: hide
+  github_document:
+    fig_width: 5
+    fig_height: 5
+    dev: png
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-require(ggplot2)
-require(network)
-require(sna)
-require(dplyr)
-require(RColorBrewer)
-require(GGally)
-library(vegan)
-library(cluster)
-library(NbClust);library(kohonen)
-library(mclust); library(clValid)
+library(ggplot2)
+# require(network)
+# require(sna)
+library(dplyr)
+library(RColorBrewer)
+library(GGally)
+# library(vegan)
+# library(cluster)
+# library(NbClust);library(kohonen)
+# library(mclust); library(clValid)
+library(ggmap)
+library(animation)
+library(gridExtra)
 ```
 
-## BEST: Behavioural Economics for Social-Ecological Systems with Thresholds
+## BEST: Exploratory analysis
 
 The **BEST** project aims to understand what are the behavioural responses of people who rely on natural resources for their livelihood, and whose resources could potentially present threshold like dynamics, aka. *"regime shifts"*. For this study we designed a game played with fishermen in four communities of the Colombian caribbean. Here I present a short exploration of the game data and survey.
 
-### 
+### Where?
 
-You can include R code in the document as follows:
+The game was performed in four coastal communities of the Colombian Caribbean. Taganga is traditional fishing town that in the last decades has become more of a turistic hub for backpackers. Fishing is still important in the area and is mainly done in the sea, sometimes on the marine territory of Tayrona National Park. Tasajeras is a small fishing community located on the road that communicates Santa Marta and Barranquilla, two major cities. Their location favors fishing both in the sea and inside the Cienaga Grande de Santa Marta, a wetland complex of brakish water, mangroves and a very special ecosystem that depends on the exchange of salt water from the sea and fresh water from the Magdalena river. The inhabitants of Buenavista literally live on the Cienaga. Their houses stand just above water on an area of the Cienaga that is flooded all year round. They are the poorest community we visited and they depend completely on explotation of natural resources for survival. Las Flores, in contrast, is actually a neighbourhood of Barranquilla located in the outskirts of the city. They fish on the Magdalena river's mouth with very special techniques that use wind and kites to fish on the sea. They also exploit resources in neigbouring wetlands formed by the delta.
 
-```{r cars}
-summary(cars)
+We designed the experiment to test for differences on treatment, but also to test for difference on ecological conditions, expecting that communities who rely more strongly on the Cienaga (a closed system that has undergone regime shifts in the past) would behave differently that communities exposed more to oceanic conditions; where variability has perhaps masked/buffered regime shifts.
+
+```{r map}
+load('~/Documents/Projects/BEST - Beijer/BEST/mapBEST.RData')
+ggmap(map) + 
+  geom_point(aes(x=lon, y=lat, colour='Orange', size=2), data=coords, alpha=0.5, 
+             show.legend = F) +
+  geom_text(aes(x=lon, y=lat), data= coords ,
+            label=c('Taganga', 'Tasajeras', 'Buenavista', 'Las Flores'), 
+            size=4, colour='blue', nudge_y = 0.03) + ggtitle('Study area')
+
+
 ```
 
-## Including Plots
+## A graphical exploration of the survey data
 
-You can also embed plots, for example:
+We ran a survey with each of the 256 participants of our fishing game. The 56 questions of the survey are grouped around five topics:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+1. the game
+2. fishing activities
+3. changes in resources and traditional ecological knowledge
+4. cooperation and community activities
+5. demographic information at household level
+
+For each section I present a series of graphic summaries for questions whose answer was binary or numeric. Later I elaborate on more detailed information for text data. The version of this graphical summary is a lazy version. I've written a function that works on any question of the survey but does not modified the x-axis labels for any figure. This allow us to identify preliminary problems with data, e.g. wether it has been errors on digitalizing the raw data. However, unless is explicitely said on the figure label, 0 means *no* and 1 means *yes*. 
+
+```{r set_data, echo=FALSE, include=FALSE}
+# This chunk import the data and set it up for analysis. I also load the function 'question' for later ploting
+surv <- read.csv2(file='~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_.csv', header=T, na.strings = '.')
+surv <- filter(surv, round >0) 
+levels(surv$date) <- as.factor(as.Date(levels(surv$date), format='%d/%m/%Y')[c(7,12:16,7,9,9,11,11, 12:16)])
+surv$Session <- as.factor (ifelse(surv$am == 1, 'am', 'pm'))
+levels(surv$treatmentName) <- c('Base line', 'Base line', 'Risk', 'Risk', 'Threshold', 'Threshold','Threshold', 'Uncertainty', 'Uncertainty') # unify spelling
+surv$playerNo <- as.factor(surv$playerNo)
+surv <- transform (surv, ID_player = interaction(date, treatmentName, Session, playerNo, drop = TRUE))
+
+question <- function(dat, q1, q2, q3, fun){ # dat = survey, q = is the colname of the question
+  a0 <- select(dat, col1=q1, col2=q2, place=q3)
+  g <- ggplot(data = aggregate(col2 ~ col1 + place, data=a0, FUN= fun ), aes (x=col2, fill=place))+
+    geom_bar(stat='count', na.rm=TRUE)+ theme_minimal(base_size = 8, base_family = "Helvetica")
+  return (g)
+}
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### 1. The game
+Note that Q3 has an error, it should be binary 1/0 and has values of 2. Most people was not expecting the end of the game and wanted to play at least 5 more rounds. That's good as control for *end of game* effect.
+
+```{r game_opinion, fig.height=7, fig.width=10, collapse=TRUE, fig.align='left', fig.show='hold'} 
+q1 <- question (surv, q1=372, q2=25, q3=2, fun=mean) + ggtitle('Q2. Life satisfaction\n 1= very satisfied : 4 = very unsatisfied')
+q2 <- question (surv, q1=372, q2=26, q3 = 2, fun=mean) + ggtitle('Q3. Have you participated in economic\n experiments before?')
+q3 <- question (surv, q1=372, q2=27, q3 = 2, fun=mean)  + ggtitle('Q4. Did you played with any of your\n fishing partners?')
+q4 <- question (surv, q1=372, q2=28, q3 = 2, fun=mean)  + ggtitle('Q5. Were you surprised at the end?')
+q5 <- question (surv, q1=372, q2=29, q3 = 2, fun=mean)  + ggtitle('Q6. How many extra rounds were you expecting?\n 0 = none; 1 = <5; 2 = >5')
+grid.arrange(q1,q2,q3,q4,q5, nrow=2, ncol=3)
+```
+
+### 2. Fishing activities
+Most people started fishing as teenager, however it varies depending of place. For future analysis a density plot might better reveal such differences. We have errors on data input for questions 8 & 10. Most people have been fishermen all then time since they started, and most of them have also been fishing on the same community. For less than half of our sample, people stop fishing at least a month last year (2015)
+```{r fishing_1,fig.height=5.5, fig.width=5.5, collapse=TRUE, fig.align='center', fig.show='hold'}
+grid.arrange(
+  question (surv, q1=372, q2=31, q3 = 2, fun=mean)  + ggtitle('7. How old did you start fishing?'),
+  question (surv, q1=372, q2=32, q3 = 2, fun=mean)  + ggtitle('8. Do you fish most of the time?'),
+  question (surv, q1=372, q2=33, q3 = 2, fun=mean)  + ggtitle('9. Have you been fishing here\n since you started?'),
+  question (surv, q1=372, q2=35, q3 = 2, fun=mean)  + ggtitle('10. Last year, there were months\n when you have not fished?'),
+  nrow=2, ncol=2
+)
+```
+I'd like to get a cleaner version of the fishing calendar (e.g. a heatmap), but for now the figure below summarizes when were people non-fishing last year. Note is a crappy graph, not all plots are on the same scale... but aesthetics apart, one can see that not surprisingly the month when people stop fishing more often is December, probably also due to festivities. 
+
+```{r fishing_calendar, fig.height=4, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold'}
+grid.arrange(
+  question (surv, q1=372, q2=36, q3 = 2, fun=mean)  + ggtitle('January'),
+  question (surv, q1=372, q2=37, q3 = 2, fun=mean)  + ggtitle('Februrary'),
+  question (surv, q1=372, q2=38, q3 = 2, fun=mean)  + ggtitle('March'),
+  question (surv, q1=372, q2=39, q3 = 2, fun=mean)  + ggtitle('April'),
+  question (surv, q1=372, q2=40, q3 = 2, fun=mean)  + ggtitle('May'),
+  question (surv, q1=372, q2=41, q3 = 2, fun=mean)  + ggtitle('June'),
+  question (surv, q1=372, q2=42, q3 = 2, fun=mean)  + ggtitle('July'),
+  question (surv, q1=372, q2=43, q3 = 2, fun=mean)  + ggtitle('August'),
+  question (surv, q1=372, q2=44, q3 = 2, fun=mean)  + ggtitle('September'),
+  question (surv, q1=372, q2=45, q3 = 2, fun=mean)  + ggtitle('October'),
+  question (surv, q1=372, q2=46, q3 = 2, fun=mean)  + ggtitle('November'),
+  question (surv, q1=372, q2=47, q3 = 2, fun=mean)  + ggtitle('December'),
+  nrow=2, ncol=6
+)
+```
+The questions about fishing effort are not well coded. In question 16 a & b both . and , were used to designate decimals which results on errors and not plot shown. We also have an outlier regarding earning in Colombian pesos, who said that on a bad day will make 3 * 10^6^ which is highly unrealistic. Errors aside, most people fish 6 days a week and the most common fishing day is of 12 hours, followed by working days of 10 and 8 hours. Although the graphs for earnings are less than suitable here (re-scale and use density instead of `geom_bar`) the minimum daily wage on an average day is Col$ `r min(surv[,52], na.rm=T)` and the median is Col$ `r median(surv[,52], na.rm=T)` which is less than US$10. On a bad day most people don't earn anything and the median is `r median(surv[,56], na.rm=T)` which is less than 10Sek. Most people have bad days once or more than once a week.
+
+```{r fishing_effort, fig.height=5, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+grid.arrange(
+  # repeat graph with position = 'dodge' in geom_bar
+  question (surv, q1=372, q2=49, q3 = 2, fun=mean)  + ggtitle('14. Days fishing in a normal week'), 
+  question (surv, q1=372, q2=50, q3 = 2, fun=mean)  + ggtitle('15. Fishing hours in a normal day'),
+  #question (surv, q1=372, q2=51, q3 = 2, fun=mean)  + ggtitle('16a. Kg of fish in a normal day'), ## error!!! summary(surv[,51]) reveals there is . and , used for decimals
+  #question (surv, q1=372, q2=52, q3 = 2, fun=mean)  + ggtitle('16b. Earnings in Col$ in a normal day'), ## error summary(surv[,52]) # one of the datapoins is 3 million pesos per day!
+  question (surv, q1=372, q2=53, q3 = 2, fun=mean)  + ggtitle('16c. Kg of fish in a good day'), # error
+  question (surv, q1=372, q2=54, q3 = 2, fun=mean) 
+    + geom_histogram(aes(alpha=0.2)) + ggtitle('16d. Earnings Col$ in a good day'), # error
+  question (surv, q1=372, q2=55, q3 = 2, fun=mean)  
+    + ggtitle('16e. Kg of fish in a bad day'), # error
+  question (surv, q1=372, q2=56, q3 = 2, fun=mean) + geom_histogram(aes(alpha=0.2)) + ggtitle('16f. Earnings Col$ in a bad day'), # error in distribution table(surv[,56])/16
+  question (surv, q1=372, q2=57, q3 = 2, fun=mean)  
+    + ggtitle('16f. How often do you have a bad day?\n 1 = 1/year, 2 = 1/month, 3 = 1/week, 4 = n/week'),
+  nrow=2, ncol=4
+)
+```
+
+Most people fish in company of other fishermen, but almost a fifth of our surveyed fishermen fish alone. Crew size varies across places, very few people fish with crews > 12, and they are from Taganga or Las Flores, the fishing towns where open sea fishing with more industrial styles are possible. In fact, the maximum crew size for Tasajera is 5 and in Buenavista is 3 or 4. Note we have an error on the raw data for Buenavista datapoints. Most people fish with the same crew, but most of the time the decision on when to go fishing is made by other person than the intervieweed. The most typical boat is *bote* which implies a small size vessel without engine or with a small power engine. Only few people (<20) fish on *lanchas* which are bigger boats with more powerful engines, most of them are located in Las Flores where wind and currents are strong due to the Magdalena river delta. Similarly, around 60% of fishermen are not the captain neither own the boat they fish with. They don't fish on the same places either. Half of the people own their fishing art being ownership most common in Buenavista and less common in Taganga. 
+
+```{r fishing_arts, fig.height=5, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+grid.arrange(
+  question (surv, q1=372, q2=58, q3 = 2, fun=mean)  + ggtitle('18. Do you fish with someone\n else?'),
+  question (surv, q1=372, q2=59, q3 = 2, fun=mean)  + ggtitle('18.1 How often?\n 1=rare, 2=1/2times, 3=most, 4=always'),
+  question (surv, q1=372, q2=60, q3 = 2, fun=mean)  + ggtitle('18.2 How many are you?'), # repeat this plot with density table(surv[,60])/16
+  question (surv, q1=372, q2=61, q3 = 2, fun=mean)  + ggtitle('18.3 Same crew?'),
+  question (surv, q1=372, q2=62, q3 = 2, fun=mean)  + ggtitle('18.4 Who decides when to fish?\n 0=me 1=some else'),
+  question (surv, q1=372, q2=64, q3 = 2, fun=mean)  + ggtitle('19. Do you fish by boat\n or lancha?'),
+  question (surv, q1=372, q2=65, q3 = 2, fun=mean)  + ggtitle('19.1 Are you the captain?'),
+  question (surv, q1=372, q2=66, q3 = 2, fun=mean)  + ggtitle('19.2 Do you own the boat?'),
+  question (surv, q1=372, q2=67, q3 = 2, fun=mean)  + ggtitle('20. Do you fish in the same place?'),
+  question (surv, q1=372, q2=89, q3 = 2, fun=mean)  + ggtitle('23. Do you own the fishing art?'),
+  nrow=2, ncol=5
+)
+```
+
+Where does the food goes?
+
+```{r fishing_prod, fig.height=5, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+grid.arrange(
+  question (surv, q1=372, q2=90, q3 = 2, fun=mean)  + ggtitle('24. How much do you take homes?\n 0=none, 1=some, 2=half, 3=>half, 4=all'),
+  question (surv, q1=372, q2=91, q3 = 2, fun=mean)  + ggtitle('25. How much do you sell?\n 0=none, 1=some, 2=half, 3=>half, 4=all'),
+  question (surv, q1=372, q2=93, q3 = 2, fun=mean)  + ggtitle('26. How much do you give away?\n 0=none, 1=some, 2=half, 3=>half, 4=all'),
+  question (surv, q1=372, q2=93, q3 = 2, fun=mean)  + ggtitle('27. Do you think you will be fishermen in 10yrs?\n 0=NO, 1=no, 2=yes, 3=YES, 4=dont know'),
+  question (surv, q1=372, q2=96, q3 = 2, fun=mean)  + ggtitle('28. Do you think your children will fish?\n 0=NO, 1=no, 2=yes, 3=YES, 4=dont know'),
+  nrow=1, ncol=5
+)
+```
+
+### 3. Changes in resources and traditional ecological knowledge
+
+
+```{r}
+grid.arrange(
+  question (surv, q1=372, q2=98, q3 = 2, fun=mean)  + ggtitle('Have you been fishing the same spp?'), # should be binary
+  question (surv, q1=372, q2=100, q3 = 2, fun=mean)  + ggtitle('Is there any species that you dont fish as much as before?'), # error
+  question (surv, q1=372, q2=102, q3 = 2, fun=mean)  + ggtitle('Dramatic changes?'), # error
+  question (surv, q1=372, q2=104, q3 = 2, fun=mean)  + ggtitle('When?'), ### Errors, horribly coded! summary(surv[,104])
+  question (surv, q1=372, q2=105, q3 = 2, fun=mean)  + ggtitle('How long, still missing?'),
+  nrow=1, ncol=5
+)
+```
+
+
+

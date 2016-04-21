@@ -28,7 +28,14 @@ PopSize <- c(3000, # 3000 ppl Taganga from wikipedia
 
 coords <- geocode(fieldSites)
 
-g <- ggmap(map) + geom_point(aes(x=lon, y=lat, colour='red', size=2), data=coords, alpha=0.5)
+g <- ggmap(map) + 
+  geom_point(aes(x=lon, y=lat, colour='Orange', size=2), data=coords, alpha=0.5, show.legend = F) +
+  geom_text(aes(x=lon, y=lat), data= coords ,
+            label=c('Taganga', 'Tasajeras', 'Buenavista', 'Las Flores'), 
+            size=4, colour='blue', nudge_y = 0.03) + ggtitle('Study area')
+
+                  
+
 
 ## Get Colombia also for context
 
