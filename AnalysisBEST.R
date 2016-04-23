@@ -53,6 +53,8 @@ dat$part <- dat$Round >6
 
 # Create player ID's as in Surveys.R
 dat <- transform (dat, ID_player = interaction(Date, Treatment, Session, Player, drop = TRUE))
+# Create ID group
+dat <- transform(dat, group = interaction (Date, Treatment, Session, drop=T))
 
 # check that ID's are equal in both datasets
 levels(dat$ID_player) %in% levels(surv.dat$ID_player)

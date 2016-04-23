@@ -57,7 +57,7 @@ ggmap(map) +
 
 ```
 
-## A graphical exploration of the survey data
+## A graphical exploration of the survey
 
 We ran a survey with each of the 256 participants of our fishing game. The 56 questions of the survey are grouped around five topics:
 
@@ -90,24 +90,24 @@ question <- function(dat, q1, q2, q3, fun){ # dat = survey, q = is the colname o
 ### 1. The game
 Note that Q3 has an error, it should be binary 1/0 and has values of 2. Most people was not expecting the end of the game and wanted to play at least 5 more rounds. That's good as control for *end of game* effect.
 
-```{r game_opinion, fig.height=7, fig.width=10, collapse=TRUE, fig.align='left', fig.show='hold'} 
+```{r game_opinion, fig.height=3, fig.width=12, collapse=TRUE, fig.align='left', fig.show='hold'} 
 q1 <- question (surv, q1=372, q2=25, q3=2, fun=mean) + ggtitle('Q2. Life satisfaction\n 1= very satisfied : 4 = very unsatisfied')
 q2 <- question (surv, q1=372, q2=26, q3 = 2, fun=mean) + ggtitle('Q3. Have you participated in economic\n experiments before?')
 q3 <- question (surv, q1=372, q2=27, q3 = 2, fun=mean)  + ggtitle('Q4. Did you played with any of your\n fishing partners?')
 q4 <- question (surv, q1=372, q2=28, q3 = 2, fun=mean)  + ggtitle('Q5. Were you surprised at the end?')
 q5 <- question (surv, q1=372, q2=29, q3 = 2, fun=mean)  + ggtitle('Q6. How many extra rounds were you expecting?\n 0 = none; 1 = <5; 2 = >5')
-grid.arrange(q1,q2,q3,q4,q5, nrow=2, ncol=3)
+grid.arrange(q1,q2,q3,q4,q5, nrow=1, ncol=5)
 ```
 
 ### 2. Fishing activities
 Most people started fishing as teenager, however it varies depending of place. For future analysis a density plot might better reveal such differences. We have errors on data input for questions 8 & 10. Most people have been fishermen all then time since they started, and most of them have also been fishing on the same community. For less than half of our sample, people stop fishing at least a month last year (2015)
-```{r fishing_1,fig.height=5.5, fig.width=5.5, collapse=TRUE, fig.align='center', fig.show='hold'}
+```{r fishing_1,fig.height=3, fig.width=8, collapse=TRUE, fig.align='center', fig.show='hold'}
 grid.arrange(
   question (surv, q1=372, q2=31, q3 = 2, fun=mean)  + ggtitle('7. How old did you start fishing?'),
   question (surv, q1=372, q2=32, q3 = 2, fun=mean)  + ggtitle('8. Do you fish most of the time?'),
   question (surv, q1=372, q2=33, q3 = 2, fun=mean)  + ggtitle('9. Have you been fishing here\n since you started?'),
   question (surv, q1=372, q2=35, q3 = 2, fun=mean)  + ggtitle('10. Last year, there were months\n when you have not fished?'),
-  nrow=2, ncol=2
+  nrow=1, ncol=4
 )
 ```
 I'd like to get a cleaner version of the fishing calendar (e.g. a heatmap), but for now the figure below summarizes when were people non-fishing last year. Note is a crappy graph, not all plots are on the same scale... but aesthetics apart, one can see that not surprisingly the month when people stop fishing more often is December, probably also due to festivities. 
@@ -168,9 +168,9 @@ grid.arrange(
 )
 ```
 
-Where does the food goes?
+Where does the food goes? Most fishermen take some fish home but they usually sell more than half and ocassionally give some away. When asked if they imagine themeselves being fishermen in 10 years most people think they will be. Question 28 is horribly coded, it should be between 0:4 but has values >5 up to 10! There is also typing errors in Tasajera where many values were included in answers that should have been unique.
 
-```{r fishing_prod, fig.height=5, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+```{r fishing_prod, fig.height=3, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
 grid.arrange(
   question (surv, q1=372, q2=90, q3 = 2, fun=mean)  + ggtitle('24. How much do you take homes?\n 0=none, 1=some, 2=half, 3=>half, 4=all'),
   question (surv, q1=372, q2=91, q3 = 2, fun=mean)  + ggtitle('25. How much do you sell?\n 0=none, 1=some, 2=half, 3=>half, 4=all'),
@@ -181,19 +181,113 @@ grid.arrange(
 )
 ```
 
-### 3. Changes in resources and traditional ecological knowledge
+### 3. Changes in resources & TEK
+When we asked about species dynamics people reported that there has been speces that they don't fish as much as before. More than 150 respondants report this changes as dramatic. However, this part of the survey is horribly coded. There are errors in data for Tasajera for questions about when the species dissapeared or if is still missing, values should have been numeric but it was not coded that way. Errors lead to no plots produced.
 
 
-```{r}
+```{r fishing_species, fig.height=5, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
 grid.arrange(
-  question (surv, q1=372, q2=98, q3 = 2, fun=mean)  + ggtitle('Have you been fishing the same spp?'), # should be binary
-  question (surv, q1=372, q2=100, q3 = 2, fun=mean)  + ggtitle('Is there any species that you dont fish as much as before?'), # error
-  question (surv, q1=372, q2=102, q3 = 2, fun=mean)  + ggtitle('Dramatic changes?'), # error
-  question (surv, q1=372, q2=104, q3 = 2, fun=mean)  + ggtitle('When?'), ### Errors, horribly coded! summary(surv[,104])
-  question (surv, q1=372, q2=105, q3 = 2, fun=mean)  + ggtitle('How long, still missing?'),
-  nrow=1, ncol=5
+  question (surv, q1=372, q2=98, q3 = 2, fun=mean)  + ggtitle('31. Have you been fishing the same spp?'), # should be binary
+  question (surv, q1=372, q2=100, q3 = 2, fun=mean)  + ggtitle('33. Is there any species that you dont fish as much as before?'), # error
+  question (surv, q1=372, q2=102, q3 = 2, fun=mean)  + ggtitle('35. Dramatic changes?'), # error
+  question (surv, q1=372, q2=104, q3 = 2, fun=mean)  + ggtitle('35.3. Sp1 When?'), ### Errors, horribly coded! summary(surv[,104])
+  question (surv, q1=372, q2=105, q3 = 2, fun=mean)  + ggtitle('35.4. Sp1 How long, still missing?'),
+  question (surv, q1=372, q2=109, q3 = 2, fun=mean)  + ggtitle('35.3. Sp2 When?'),
+  question (surv, q1=372, q2=110, q3 = 2, fun=mean)  + ggtitle('35.4. Sp2 How long, still missing?'),
+  question (surv, q1=372, q2=114, q3 = 2, fun=mean)  + ggtitle('35.3. Sp3 When?'),
+  question (surv, q1=372, q2=115, q3 = 2, fun=mean)  + ggtitle('35.4. Sp3 How long, still missing?'),
+  question (surv, q1=372, q2=119, q3 = 2, fun=mean)  + ggtitle('35.3. Sp4 When?'),
+  question (surv, q1=372, q2=120, q3 = 2, fun=mean)  + ggtitle('35.4. Sp4 How long, still missing?'),
+  nrow=2, ncol=6
+)
+```
+
+Responses on abrupt events on fishing: In question 35 people were asked if they have experienced an abrupt change (above graph). Questions 36:40 were only asked to people who did experience abrupt changes, so N != 256. People were asked if the abrupt event described on table/question 35 have affected what they fish. Most people answer positively, nevertheless about 40 people say 'no' (Q36 error with 10 in Buenavista where it should have been 1/0). Since the occurrance of the event, most people spend more time fishing, less than 20 spends the same or less time respectively. Just above 60 people changed their fishing area while just below 50 didn't (Q36.3 error non-binary value in Las Flores). Most people expected abrupt changes in the future. Question 39 was a multiple choice answer type, but only to ~50 respondents were read the options out loud. In case of an abrupt event fewer people would continue fishing, most of them won't increase effort, but they won't reduce their fishing time neither, less than 40 would consider changing fishing grounds or fishing arts, and most of them wont stop fishing. A lot of questions in this section have coding errors for data in Taganga with contradictory values for the same individual, or with values of 2 when it should be 1/0. 
+
+```{r fishing_resp, fig.height=5, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+grid.arrange(
+  question (surv, q1=372, q2=123, q3 = 2, fun=mean)  + ggtitle('36. Did the dramatic event\n change your catch?'), # error with a 10 in Buenavista
+  question (surv, q1=372, q2=125, q3 = 2, fun=mean)  + ggtitle('36.2 Do you spend more time fishing\n 0=less, 1=more, 2=same?'),
+  question (surv, q1=372, q2=126, q3 = 2, fun=mean)  + ggtitle('36.3 Did you changed your\n fishing area?'),
+  question (surv, q1=372, q2=127, q3 = 2, fun=mean)  + ggtitle('37. Do you expect other changes?'),
+  question (surv, q1=372, q2=129, q3 = 2, fun=mean)  + ggtitle('39.1 What would you do if there\n is abrupt reduction of fish\n Where the question options read out loud?'),
+  question (surv, q1=372, q2=130, q3 = 2, fun=mean)  + ggtitle('39.2 Continue fishing'),
+  question (surv, q1=372, q2=132, q3 = 2, fun=mean)  + ggtitle('39.3 Increase effort'), # error in taganga
+  question (surv, q1=372, q2=134, q3 = 2, fun=mean)  + ggtitle('39.4 Less fishing'),# error in taganga
+  question (surv, q1=372, q2=136, q3 = 2, fun=mean)  + ggtitle('39.5 Change fishing area'),# error in taganga
+  question (surv, q1=372, q2=138, q3 = 2, fun=mean)  + ggtitle('39.6 Change fishing art'), # error taganga
+  question (surv, q1=372, q2=140, q3 = 2, fun=mean)  + ggtitle('39.7 No more fishing'), # not binary
+  nrow=2, ncol=6
+)
+
+```
+
+### 4. Cooperation and community
+
+Most fishermen shared their fishing arts, only ~100 belong to a fishing coop. The community with stronger coop presence is Las Flores (remember the local contact was the coop leader!) while the community with less cooperative participation is Buenavista. People participating in coops usually meet once a month followed by twice a year. Surprisingly, most participants self-report to be treasurers (but there is only one treasurer per coop!?). The graphs about the reasons to belong to a coop doesn't make much sense. Future versions should compare (bars) for positive answers, here I'm not sure if negative was coded as default or that they did not perceive the benefit. For example, for 'better prices' only 20 people report that benefit while ~80 said 'no' to that question. Here 0 means that they don't get the benefit, or that the option was not mentioned? In any case, the most popular positive answers were about recognition as organizaton member and social aspects. Errors: In Q40 is not binary, error in Taganga data; Q42.3 has errors due to coding, for questions where time was asked interviewers were not consistent on the way they wrote down answers. Some times they used years, months, numbers, text and for now we cannot extract the info automatically. 
+
+
+```{r cooperation, fig.height=7, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+grid.arrange(
+  question (surv, q1=372, q2=143, q3 = 2, fun=mean)  + ggtitle('40. Share fishing art'), # error not binary
+  question (surv, q1=372, q2=145, q3 = 2, fun=mean)  + ggtitle('42. Belongs to coop?'),
+  question (surv, q1=372, q2=147, q3 = 2, fun=mean)  + ggtitle('42.2 How often do you meet?\n 1=1/yr, 2=2/yr, 3=1/month, 4=1/week'), # not binary
+  question (surv, q1=372, q2=148, q3 = 2, fun=mean)  + ggtitle('42.3 Since when?'), # error due to coding summary(surv[,148])
+  question (surv, q1=372, q2=149, q3 = 2, fun=mean)  + ggtitle('42.4 What is your role?\n 1=representant, 2=president, 3=secretary, \n 4=treasurer, 5=member, 6=other'),
+  question (surv, q1=372, q2=152, q3 = 2, fun=mean)  + ggtitle('42.5.1. options read out loud?'),
+  question (surv, q1=372, q2=153, q3 = 2, fun=mean)  + ggtitle('42. Better prices'),
+  question (surv, q1=372, q2=154, q3 = 2, fun=mean)  + ggtitle('42. Conservation of fish resource'),
+  question (surv, q1=372, q2=155, q3 = 2, fun=mean)  + ggtitle('42. Support if low income'),
+  question (surv, q1=372, q2=156, q3 = 2, fun=mean)  + ggtitle('42. Recognition as org member'),
+  question (surv, q1=372, q2=157, q3 = 2, fun=mean)  + ggtitle('42. was pushed'),
+  question (surv, q1=372, q2=158, q3 = 2, fun=mean)  + ggtitle('42. social aspects'),
+  question (surv, q1=372, q2=159, q3 = 2, fun=mean)  + ggtitle('42. increase fishing & income'),
+  question (surv, q1=372, q2=160, q3 = 2, fun=mean)  + ggtitle('42. Better quality of fishing products'),
+  nrow=3, ncol=5
 )
 ```
 
 
+### 5. Demographics
+
+Almost all our game participants were male fishermen, most of them married or in co-habitation with partner. The average age for the full sample is `r mean(surv[,163], na.rm=T)` and the median is `r median(surv[,163], na.rm=T)`. Our sample is younger in Taganga and older in Las Flores. Most people finished elementary school, over 25 respondents didn't have any formal education, and less than 20 had university degrees almost all of them from Taganga (There is an error with 0 - datapoint in Tasajeras). Most respondants were born on the community but ~70 of them came from somewhere else (error data point with 10). About 40 people have been moving around while <200 have always live in the same community.  
+
+```{r demographics, fig.height=5, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+
+grid.arrange(
+  question (surv, q1=372, q2=161, q3 = 2, fun=mean)  + ggtitle('43. Gender \n Female=0'),
+  question (surv, q1=372, q2=162, q3 = 2, fun=mean)  + ggtitle('44. Status\n Single=1, married=2, sambo=3, div/widow=4'),
+  question (surv, q1=372, q2=163, q3 = 2, fun=mean)  + ggtitle('45. Age'),
+  question (surv, q1=372, q2=164, q3 = 2, fun=mean)  + ggtitle('46. Formal education\n none=1, elementary=2, high=3, uni=4'),
+  question (surv, q1=372, q2=165, q3 = 2, fun=mean)  + ggtitle('46.1 Years of education'), # error on coding
+  question (surv, q1=372, q2=166, q3 = 2, fun=mean)  + ggtitle('47. Born here?'), # error non binary
+  question (surv, q1=372, q2=168, q3 = 2, fun=mean)  + ggtitle('49. Since when do you live here?'), # error coding
+  question (surv, q1=372, q2=169, q3 = 2, fun=mean)  + ggtitle('50. Have you always lived here?'),
+  question (surv, q1=372, q2=170, q3 = 2, fun=mean)  + ggtitle('51. How long have you\n been living here?'), #error coding
+  question (surv, q1=372, q2=171, q3 = 2, fun=mean)  + ggtitle('51. Displaced?'), # error coding summary(surv[,171])
+
+  nrow=2, ncol=6
+)
+
+```
+
+When asking if they have suffered forced displacement the answers were coding on diverse formats and we cannot plot the info at the moment. However, few respondents (n=5) report forced displacement from 6 months up to 7 years. Question 52 was designed to assess sense of place. Each participant was asked to agree or disagree on a scale from 1 to 4 (1=strongly agree, 2=agree, 3=disagree, 4 strongly disagree) with statements that were read outloud for them. The figure below summarize their answers per location but I'm not quite sure how to interpret them.
+
+```{r sense_of_place, fig.height=7, fig.width=7, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+grid.arrange(
+  
+  question (surv, q1=372, q2=172, q3 = 2, fun=mean)  + ggtitle('52.1 Miss the place'),
+  question (surv, q1=372, q2=173, q3 = 2, fun=mean)  + ggtitle('52.2 Not belonging'),
+  question (surv, q1=372, q2=174, q3 = 2, fun=mean)  + ggtitle('52.3 Safety'),
+  question (surv, q1=372, q2=175, q3 = 2, fun=mean)  + ggtitle('52.4 Proud'),
+  question (surv, q1=372, q2=176, q3 = 2, fun=mean)  + ggtitle('52.5 Part of me'),
+  question (surv, q1=372, q2=177, q3 = 2, fun=mean)  + ggtitle('52.6 go away'),
+  question (surv, q1=372, q2=178, q3 = 2, fun=mean)  + ggtitle('52.7 engaged'),
+  question (surv, q1=372, q2=179, q3 = 2, fun=mean)  + ggtitle('52.8 my roots'),
+  question (surv, q1=372, q2=180, q3 = 2, fun=mean)  + ggtitle('52.9 family and friends'),
+  nrow=3, ncol=3
+)
+
+
+```
 
