@@ -13,19 +13,20 @@
 # clean and load weapons:
 rm(list=ls())
 
-require(ggplot2)
-require(network)
-require(sna)
-require(dplyr)
-require(RColorBrewer)
-require(GGally)
+library(ggplot2)
+library(network)
+library(sna)
+library(tidyr)
+library(dplyr)
+library(RColorBrewer)
+library(GGally)
 library(vegan)
 library(cluster)
 library(NbClust);library(kohonen)
 library(mclust); library(clValid)
 
 setwd("~/Dropbox/BEST/Colombia/0_Game data") # here is the data
-dat <- read.csv(file="~/Dropbox/BEST/Colombia/0_Game data/full_data_long.csv", row.names=1) # in long format, short format also available
+dat <- read.csv(file="~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv", row.names=1) # in long format, short format also available
 
 # set directory for figures
 setwd('~/Documents/Projects/BEST - Beijer/Figs & results')
@@ -49,12 +50,33 @@ levels(dat$Date) <- c('2016-02-09', '2016-02-01', '2016-02-02','2016-02-03','201
 levels(dat$Session) <- c('am','pm')
 levels(dat$Player) <- c('1','2','3','4')
 
-dat$part <- dat$Round >6
+dat$part <- dat$Round > 6
 
 # Create player ID's as in Surveys.R
 dat <- transform (dat, ID_player = interaction(Date, Treatment, Session, Player, drop = TRUE))
 # Create ID group
 dat <- transform(dat, group = interaction (Date, Treatment, Session, drop=T))
+
+# We need to make NA explicit: this is, rounds that were not played (as zeroes) because resource was collapsed
+summary (dat)
+dat2 <- dplyr::select(dat, -StockSizeBegining, -SumTotalCatch, -IntermediateStockSize, -Regeneration, -NewStockSize,-part) %>%
+  spread(key=Round, value=value)
+
+dat3 <- dplyr::select(dat2, 8:23)
+dat3 <- as.matrix(dat3)
+dat3[is.na(dat3)] <- 0
+dat2[,8:23] <- dat3
+
+dat3 <- dat2 %>%
+  gather(Round, value, 8:23)
+dat3$Round <- as.numeric(dat3$Round)
+
+dat <- full_join(dat3, dat)
+str(dat)
+summary(dat)
+dat <- gdata::drop.levels(dat)
+
+# write.csv(dat, file='160427_corrected_full_data_long.csv')
 
 # check that ID's are equal in both datasets
 levels(dat$ID_player) %in% levels(surv.dat$ID_player)
@@ -68,18 +90,19 @@ str(full)
 
 # Time series
 
-g <- ggplot(data=dat, aes(x=Round, y=NewStockSize)) + geom_line(stat='smooth', aes(color=Place, group=Place))
-g + facet_grid(Treatment ~ part)
+g <- ggplot(data=dat, aes(x=Round, y=NewStockSize)) 
++ geom_smooth(stat='smooth', aes(color=Place, group=Place))
+g + facet_grid(Treatment ~ )
 
 g2 <- g + stat_summary(fun.data='mean_cl_boot', geom='smooth') 
-        + ggtitle('Treatments in Colombia \n Second part of the game') 
+        + ggtitle ('Treatments in Colombia \n Second part of the game') 
         + theme(text= element_text(family='Helvetica', size=10))  # working but with lots of warnings.
 
 # Matrix of treatment per place, smooth over player decisions
 
 g <- ggplot(dat=dat, aes(x=Round, y=value)) + 
-		#geom_line(aes(group=ID_player, alpha=0.1)) + 
-		stat_summary(fun.data='mean_cl_boot', geom='smooth') +
+		geom_vline( aes( xintercept=6, color='red', alpha=0.1), show.legend = F) + 
+		stat_summary(fun.data='mean_cl_normal', geom='smooth') + # option 'mean_cl_boot I like the most but normal assumes normality
 		facet_grid(Treatment ~ Place) 
 
 #should be equivalent but is not. Prefer the one above.
@@ -112,12 +135,14 @@ p <- ggplot(data=data, aes(x1, x2, color=round))+ geom_path()
 
 ## very annoying if one wants to recover each path on x[i] * x[i+1] plane
 # Now let's try x[i] * y[i]
-datP1 <- subset(dat, dat$Place == 'Las Flores' & dat$Session == 'tarde' & dat$Date == '30216' )
+datP1 <- dat %>%
+  filter(dat$Place == 'Las Flores' & dat$Session == 'pm' & Date == "2016-02-04" ) %>%
+  gdata::drop.levels()
 
 p <- ggplot(data=datP1, aes(x=value, y=StockSizeBegining), group=Player) + 
-		geom_path(aes(color=Round)) + facet_grid( Player ~ Treatment) +
-		ggtitle('Phase space trajectory per player\n Las Flores') + 
-		theme(text= element_text(family='Helvetica', size=8))
+		geom_path(aes(color=Round)) + facet_grid(Treatment~Player) +
+		ggtitle('Phase space trajectory per player\n Las Flores, 2016-02-04-pm ') + 
+		theme(text= element_text(family='Helvetica', size=9))
 #quartz.save(file='PhaseTrajectoryLasFlores.png', type='png', dpi=100)
 
 datP1 <- subset(dat, dat$Place == 'Taganga'  )
@@ -179,11 +204,12 @@ ggpairs(data=dat, columns=c('StockSizeBegining', 'NewStockSize', 'value'),
 
 ggpairs(data=dat, columns=c('Treatment', 'value', 'Place'), mapping=aes(color= Place))
 
-pm <- ggpairs(data=subset(dat, dat$part == T), 
+pm <- ggpairs(data= filter(dat, dat$part == T), 
               columns=c('StockSizeBegining', 'NewStockSize', 'Treatment','Place'), 
               upper= list(continuous='density'), lower=list(continuous='points'), 
               mapping=aes(color= Place, alpha=0.5), title='Color by treatment, second part') 
-          + theme(text= element_text(family='Helvetica', size=8)) 
+
+pm   + theme(text= element_text(family='Helvetica', size=8)) 
 
 # quartz.save('GeneralSummary_ColTreatment_2part.png', type='png')
 
@@ -206,8 +232,10 @@ c <- ggplot(data=dat, aes(y=NewStockSize, x=StockSizeBegining), group=Session) +
 	dat$Group <- as.factor(ms)
 
 
-c <- ggplot(data=dat, aes(y=NewStockSize, x=StockSizeBegining), group=Session) + stat_density_2d(aes(color=Group, alpha=0.5), n=100, h=20) + facet_grid( Treatment ~ Place)
-
+c <- ggplot(data=dat, aes(y=NewStockSize, x=StockSizeBegining), group=Session) + 
+  stat_density_2d(aes(color=group, alpha=0.5), n=100, h=15, show.legend = F) + 
+  facet_grid( Treatment ~ Place)
+c
 # quartz.save('GeneralSummary_contours_groups.png', type='png')
 
 ### Strategies: can you identify players strategies?
@@ -225,7 +253,7 @@ c <- ggplot(data=dat, aes(y=NewStockSize, x=StockSizeBegining), group=Session) +
 
 players <- (reshape::cast(dat, ID_player ~ Round))[,-1] #delete playersID
 place <- reshape::cast(dat, ID_player ~  Place)[,-1] # 16 because calculate length of 'value'
-group <- reshape::cast(dat, ID_player ~  Group)[,-1]
+group <- reshape::cast(dat, ID_player ~  group)[,-1]
 treat <- reshape::cast(dat, ID_player ~  Treatment)[,-1]
 context <- cbind(place,treat) # don't use group yet, maybe for aes
 
@@ -247,7 +275,7 @@ pca <- rda(players, context) #, context
 	plot(pca, col= levelCols[as.vector(fitSOM$unit.classif)])
 
 # note: I ran mds with 'euclidean' distance and 'manhattan'. Euclidean gave an error saying there is not enough data. manhattan calculated but didn't reach convergence. Morisita, jaccard, kulczynski, horn, rau, don't reach convergence neither. Frequent error on different measures: Stress is (nearly) zero - you may have insufficient data. It does work however if I use the transpose. It calculates the ordering of rounds on mds$points, but the ordering of players can be found too at mds$species
-mds <- metaMDS(players, dist= 'manhattan', trymax=400, autotransform=F, k=2)
+mds <- metaMDS(players, dist= 'manhattan', autotransform=F, k=2)
 # mds2 <- metaMDS(players, dist= 'mahalanobis', trymax=1000, autotransform=F, k=3, previous.best = mds) # solution from http://stackoverflow.com/questions/14434794/no-stable-solution-using-metamds-in-vegan
 ef1 <- envfit(mds, context, permu=999)
 stressplot(mds)
@@ -320,7 +348,7 @@ kruskal.test( value ~ Place, data=dat)
 ####
 # Checking the database for survey data
 
-require(gdata)
+library(gdata)
 
 survey <- read.xls(xls='~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_.xlsx', sheet=1)
 

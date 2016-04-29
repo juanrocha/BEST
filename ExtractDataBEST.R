@@ -12,12 +12,12 @@ rm (list=ls())
 require ('gdata')
 help(package='gdata')
 
-setwd("~/Dropbox/BEST/Colombia/0_Game data/TAGANGA")
+setwd("~/Dropbox/BEST/Colombia/0_Game data/BUENAVISTA")
 
 files <- list.files()
 
 ## Manual demonstration
-df <- read.xls(files[1], sheet=2, header=T)
+df <- read.xls(files[1], sheet=4, header=T)
 
 # trim file
 df <- df[-c(24:dim(df)[1]) , -c(12:dim(df)[2])]
@@ -41,7 +41,8 @@ dat <- apply(dat, 2, as.numeric) # convert all values to numeric
 v <- !is.na(rowSums(dat[,3:6]))
 dat <- dat[v,]
 
-# End of Manual demonstration: for the functions the only change is the chunks of file that gets combined on the dataframe df2 [line24], and the columns that get deleted [line38].
+# End of Manual demonstration: for the functions the only change is the chunks of
+# file that gets combined on the dataframe df2 [line24], and the columns that get deleted [line38].
 
 # Functions for long and short sheets
 
@@ -179,10 +180,13 @@ head(buenavista) # error
 full.data <- rbind(taganga, flores, tasajera, buenavista)
 
 setwd("~/Dropbox/BEST/Colombia/0_Game data")
-write.csv(full.data, file='full_data_short.csv')
+write.csv(full.data, file='160426_full_data_short.csv')
 
 ## Make it long data
 require(reshape)
 full.data <- melt(full.data, id.vars=names(full.data)[c(1,2,7:14)], variable_name='Player')
 
-write.csv(full.data, file='full_data_long.csv')
+write.csv(full.data, file='160426_full_data_long.csv')
+
+
+
