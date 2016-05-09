@@ -209,7 +209,7 @@ pm <- ggpairs(data= filter(dat, dat$part == T),
               upper= list(continuous='density'), lower=list(continuous='points'), 
               mapping=aes(color= Place, alpha=0.5), title='Color by treatment, second part') 
 
-pm   + theme(text= element_text(family='Helvetica', size=8)) 
+pm   + theme(text= element_text(family='Helvetica', size=6)) 
 
 # quartz.save('GeneralSummary_ColTreatment_2part.png', type='png')
 
