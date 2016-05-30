@@ -14,16 +14,17 @@
 rm(list=ls())
 
 library(ggplot2)
-library(network)
-library(sna)
+# library(network)
+# library(sna)
 library(tidyr)
 library(dplyr)
 library(RColorBrewer)
-library(GGally)
-library(vegan)
-library(cluster)
-library(NbClust);library(kohonen)
-library(mclust); library(clValid)
+# library(GGally)
+# library(vegan)
+# library(cluster)
+# library(NbClust);library(kohonen)
+# library(mclust); library(clValid)
+library(ineq) # for gini
 
 setwd("~/Dropbox/BEST/Colombia/0_Game data") # here is the data
 dat <- read.csv(file="~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv", row.names=1) # in long format, short format also available
@@ -76,6 +77,15 @@ str(dat)
 summary(dat)
 dat <- gdata::drop.levels(dat)
 
+dat.noNA <- dat
+summary (dat.noNA)
+dat.noNA$StockSizeBegining[is.na(dat.noNA$StockSizeBegining)] <-  0
+dat.noNA$SumTotalCatch[is.na(dat.noNA$SumTotalCatch)] <-  0
+dat.noNA$IntermediateStockSize[is.na(dat.noNA$IntermediateStockSize)] <-  0
+dat.noNA$Regeneration[is.na(dat.noNA$Regeneration)] <-  0
+dat.noNA$NewStockSize[is.na(dat.noNA$NewStockSize)] <-  0
+
+dat <- dat.noNA
 # write.csv(dat, file='160427_corrected_full_data_long.csv')
 
 # check that ID's are equal in both datasets
@@ -92,7 +102,7 @@ str(full)
 
 g <- ggplot(data=dat, aes(x=Round, y=NewStockSize)) 
 + geom_smooth(stat='smooth', aes(color=Place, group=Place))
-g + facet_grid(Treatment ~ )
+g + facet_grid(Treatment ~ .)
 
 g2 <- g + stat_summary(fun.data='mean_cl_boot', geom='smooth') 
         + ggtitle ('Treatments in Colombia \n Second part of the game') 
@@ -100,10 +110,15 @@ g2 <- g + stat_summary(fun.data='mean_cl_boot', geom='smooth')
 
 # Matrix of treatment per place, smooth over player decisions
 
-g <- ggplot(dat=dat, aes(x=Round, y=value)) + 
+g <- ggplot(dat= filter (dat, part == 1) 
+              , aes(x=Round, y=IntermediateStockSize)) + geom_line(aes(colour = group, alpha = 0.2), show.legend = FALSE) +
 		geom_vline( aes( xintercept=6, color='red', alpha=0.1), show.legend = F) + 
 		stat_summary(fun.data='mean_cl_normal', geom='smooth') + # option 'mean_cl_boot I like the most but normal assumes normality
-		facet_grid(Treatment ~ Place) 
+		facet_grid(Treatment ~ Place) + ggtitle ('Intermediate Stock Size')
+
+g
+
+# quartz.save(file='160525_meanTimeSeries_IntStockSize_smooth-noNA.png', type='png', dpi=100)
 
 #should be equivalent but is not. Prefer the one above.
 g <- ggplot(dat=dat, aes(x=Round, y=value)) + 
@@ -315,11 +330,32 @@ ordihull(pca, groups=as.vector(fitSOM$unit.classif), label=T, cex=0.8,
 ## Stats:
 # Are distributions significantly different?
 # quartz()
-# g <- ggplot(dat, aes(value, group = Treatment)) +
-		# stat_summary(fun.data='mean_cl_boot', geom='crossbar')
-		# geom_crossbar(mapping = aes(group = Treatment))
-	
 
+# For regression Lindahl et al uses group cooperation index as dependent variable
+dat <- mutate(dat, crossThreshold = IntermediateStockSize - 28)
+
+g <- ggplot(dat, aes(Treatment, crossThreshold)) + # SumTotalCatch
+  geom_jitter(width = 0.2, aes(color = Treatment, alpha = 0.2), show.legend = FALSE) +
+  geom_boxplot(aes(alpha = 0.1)) + 
+  facet_grid( Place ~ part) + coord_flip() + ggtitle ('Threshold deviation before and after treatment')
+	
+g <- ggplot(dat, aes(Place, crossThreshold)) + # SumTotalCatch
+  geom_jitter(width = 0.2, aes(color = Place, alpha = 0.2), show.legend = FALSE) +
+  geom_boxplot(aes(alpha = 0.1)) +
+  facet_grid( Treatment ~ part) + coord_flip()+ ggtitle ('Threshold deviation before and after treatment')
+
+g <- ggplot (filter(dat, part ==1), aes(Round, crossThreshold, group = group)) +
+  geom_hline(yintercept = 0, color = 'grey', show.legend = FALSE) +
+  geom_vline (xintercept = 6, color = 'grey', show.legend = FALSE) +
+  geom_line(aes(color = group), show.legend = FALSE) +
+  facet_grid(Treatment ~ Place)
+
+g
+
+  
+quartz.save(file='160525_ThresholdDeviation_PlaceTreatment_BeforeAfter-NoNA.png', type = 'png', dpi=200)
+
+# Examples of how the test is run
 
 wt <- wilcox.test(x=filter(dat, Treatment == 'Risk')$value, 
 			y=filter(dat, Treatment == 'Threshold')$value)
@@ -327,9 +363,9 @@ wt <- wilcox.test(x=filter(dat, Treatment == 'Risk')$value,
 kruskal.test( value ~ Treatment, data=dat)
 kruskal.test( value ~ Place, data=dat)
 
-
-
-
+mod <- aov(crossThreshold ~ Treatment, data = dat)
+summary (mod)
+mod <- lm (crossThreshold ~ Treatment, data = dat)
 
 
 
@@ -380,5 +416,86 @@ for (i in 1:length(bin)){
 
 names(surv[,bin])
 
+### J-160525: some products for Caroline on demand. Now I'm working with dat.noNA
 
+summary(dat.noNA)
+
+GroupStats<- dat.noNA %>% 
+  group_by(group) %>%
+  summarise (m_stockSize = mean (StockSizeBegining),
+             m_TotalCatch = mean (SumTotalCatch),
+             m_IntStock = mean (IntermediateStockSize),
+             m_regRate = mean (Regeneration),
+             m_NewSS = mean (NewStockSize),
+             sd_stockSize = sd (StockSizeBegining),
+             sd_TotalCatch = sd (SumTotalCatch),
+             sd_IntStock = sd (IntermediateStockSize),
+             sd_regRate = sd (Regeneration),
+             sd_NewSS = sd (NewStockSize))
+
+# write.csv(GroupStats, file = 'GroupStats.csv')
+
+g <- ggplot(filter(dat, part ==1), aes(Place, SumTotalCatch)) + # SumTotalCatch
+  geom_jitter(width = 0.2, aes(color = Place, alpha = 0.2), show.legend = FALSE) +
+  geom_boxplot(aes(alpha = 0.1)) +
+  facet_grid( Treatment ~ .) + coord_flip()+ ggtitle ('Threshold deviation before and after treatment')
+
+g
+
+### GINI coefficients
+
+summary (dat)
+str(dat)
+
+gini <- filter(dat, part == 1) %>%
+  group_by (ID_player, group) %>%
+  summarize(earning = sum(value)) %>%
+  group_by (group)%>%
+  summarize (gini = ineq(earning, type = 'Gini'))
+
+gini <- left_join(gini, dplyr::select(dat, Treatment, Place, group) , by = 'group')
+  
+g <- ggplot(gini, aes(Treatment, gini)) + 
+  #geom_jitter (width = 0.5, aes (color = Place, alpha = 0.2), show.legend = T) +
+  geom_boxplot(aes (alpha = 0.1))  + facet_grid(. ~ Place) + coord_flip() + ggtitle ('Gini on fishers earnings\n Stage 2')
+g
+
+quartz.save(file='coop_place_byStage.png', type = 'png')  
+
+
+## Now calculate Gini's on expected values for next round
+# obs ID
+dat <- mutate (dat, round_lev = as.factor(Round))
+surv <- mutate(surv, round_lev = as.factor(round))
+dat <- transform (dat, ID_Obs = interaction(Date, Treatment, Session, Player, round_lev, drop = TRUE))
+surv <- transform (surv, ID_Obs = interaction(date, treatmentName, Session, playerNo, round_lev, drop = TRUE) )
+
+
+expected <- surv %>%
+  dplyr::select ( indGuessStockSize, round_lev, ID_Obs) %>%
+  left_join(dat)
+
+
+summary (expected)
+str(expected)
+str(dat)
+
+filter (expected, indGuessStockSize > 50) %>%
+  dplyr::select ( indGuessStockSize, ID_Obs, value, NewStockSize)
+
+
+## following the same procedure for gini, the gini of expected is our proxy for cooperation
+coop <- expected %>% # filter(expected, part == 1)
+  group_by (ID_player, group) %>%
+  summarize(avg_exp = mean(indGuessStockSize, na.rm = TRUE)) %>%
+  group_by (group)%>%
+  summarize (coop_gini = ineq(avg_exp, type = 'Gini'))
+
+coop <- left_join(coop, dplyr::select(dat, Treatment, Place, group, part) , by = 'group')
+
+g <- ggplot(coop, aes(Treatment, coop_gini)) + 
+  #geom_jitter (width = 0.5, aes (color = Place, alpha = 0.2), show.legend = T) +
+  geom_boxplot(aes (alpha = 0.1))  + facet_grid( Place ~ part) + coord_flip() +
+  ggtitle ('Gini expected stock size on the next round\n Proxy of cooperation?')
+g
 

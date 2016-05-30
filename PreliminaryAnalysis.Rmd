@@ -23,6 +23,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 # require(network)
 # require(sna)
+library(tidyr)
 library(dplyr)
 library(RColorBrewer)
 library(GGally)
@@ -80,7 +81,7 @@ surv$playerNo <- as.factor(surv$playerNo)
 surv <- transform (surv, ID_player = interaction(date, treatmentName, Session, playerNo, drop = TRUE))
 
 question <- function(dat, q1, q2, q3, fun){ # dat = survey, q = is the colname of the question
-  a0 <- select(dat, col1=q1, col2=q2, place=q3)
+  a0 <- dplyr::select(dat, col1=q1, col2=q2, place=q3)
   g <- ggplot(data = aggregate(col2 ~ col1 + place, data=a0, FUN= fun ), aes (x=col2, fill=place))+
     geom_bar(stat='count', na.rm=TRUE)+ theme_minimal(base_size = 8, base_family = "Helvetica")
   return (g)
@@ -234,7 +235,7 @@ grid.arrange(
   question (surv, q1=372, q2=147, q3 = 2, fun=mean)  + ggtitle('42.2 How often do you meet?\n 1=1/yr, 2=2/yr, 3=1/month, 4=1/week'), # not binary
   question (surv, q1=372, q2=148, q3 = 2, fun=mean)  + ggtitle('42.3 Since when?'), # error due to coding summary(surv[,148])
   question (surv, q1=372, q2=149, q3 = 2, fun=mean)  + ggtitle('42.4 What is your role?\n 1=representant, 2=president, 3=secretary, \n 4=treasurer, 5=member, 6=other'),
-  question (surv, q1=372, q2=152, q3 = 2, fun=mean)  + ggtitle('42.5.1. options read out loud?'),
+  question (surv, q1=372, q2=152, q3 = 2, fun=mean)  + ggtitle('42.5.1. options read out loud?') ,
   question (surv, q1=372, q2=153, q3 = 2, fun=mean)  + ggtitle('42. Better prices'),
   question (surv, q1=372, q2=154, q3 = 2, fun=mean)  + ggtitle('42. Conservation of fish resource'),
   question (surv, q1=372, q2=155, q3 = 2, fun=mean)  + ggtitle('42. Support if low income'),
@@ -259,9 +260,9 @@ grid.arrange(
   question (surv, q1=372, q2=162, q3 = 2, fun=mean)  + ggtitle('44. Status\n Single=1, married=2, sambo=3, div/widow=4'),
   question (surv, q1=372, q2=163, q3 = 2, fun=mean)  + ggtitle('45. Age'),
   question (surv, q1=372, q2=164, q3 = 2, fun=mean)  + ggtitle('46. Formal education\n none=1, elementary=2, high=3, uni=4'),
-  question (surv, q1=372, q2=165, q3 = 2, fun=mean)  + ggtitle('46.1 Years of education'), # error on coding
+  question (surv, q1=372, q2=165, q3 = 2, fun=mean)  + ggtitle('46.1 Years of education'), # error on coding summary (surv[, 165])
   question (surv, q1=372, q2=166, q3 = 2, fun=mean)  + ggtitle('47. Born here?'), # error non binary
-  question (surv, q1=372, q2=168, q3 = 2, fun=mean)  + ggtitle('49. Since when do you live here?'), # error coding
+  question (surv, q1=372, q2=168, q3 = 2, fun=mean)  + ggtitle('49. Since when do you live here?'), # error coding summary (surv[, 168])
   question (surv, q1=372, q2=169, q3 = 2, fun=mean)  + ggtitle('50. Have you always lived here?'),
   question (surv, q1=372, q2=170, q3 = 2, fun=mean)  + ggtitle('51. How long have you\n been living here?'), #error coding
   question (surv, q1=372, q2=171, q3 = 2, fun=mean)  + ggtitle('51. Displaced?'), # error coding summary(surv[,171])
@@ -290,6 +291,8 @@ grid.arrange(
 
 
 ```
+
+
 
 
 ## The game

@@ -64,7 +64,7 @@ g
 # question is a function that speed up the steps above
 
 question <- function(dat, q1, q2, q3, fun){ # dat = survey, q = is the colname of the question
-  a0 <- select(dat, col1=q1, col2=q2, place=q3)
+  a0 <- dplyr::select(dat, col1=q1, col2=q2, place=q3)
   g <- ggplot(data = aggregate(col2 ~ col1 + place, data=a0, FUN= fun ), aes (x=col2, fill=place))+
     geom_bar(stat='count', na.rm=TRUE) + theme_minimal(base_size = 10, base_family = "Helvetica")
   return (g)
@@ -103,7 +103,7 @@ g$data
 
 question (surv, q1=372, q2=33, q3 = 2, fun=mean)  + ggtitle('9. Have you been fishing here since you started?')
 
-question (surv, q1=372, q2=35, q3 = 2, fun=mean)  + ggtitle('10. Last year, there were months when you have not fished?')
+question (surv, q1=372, q2=35, q3 = 2, fun=mean)  + ggtitle('11. Last year, there were months when you have not fished?')
 # error in cell ()
 
 question (surv, q1=372, q2=36, q3 = 2, fun=mean)  + ggtitle('Did not fish in January')
@@ -114,7 +114,7 @@ question (surv, q1=372, q2=50, q3 = 2, fun=mean)  + ggtitle('Fishing hours in a 
 
 question (surv, q1=372, q2=51, q3 = 2, fun=mean)  + ggtitle('Kg of fish in a normal day') ## error!!! summary(surv[,51]) reveals there is . and , used for decimals
 class(surv[,51])
-str(surv)
+str(surv[,51])
 
 question (surv, q1=372, q2=52, q3 = 2, fun=mean)  + ggtitle('Earnings in Col$ in a normal day') ## error
 summary(surv[,52]) # one of the datapoins is 3 million pesos per day!

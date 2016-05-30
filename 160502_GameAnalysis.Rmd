@@ -86,6 +86,11 @@ The next natural question to ask is whether there is an effect between:
 * Treatments
 * Place
 
+
+
+
+
+
 The four panels below try to get to these differences
 ```{r pairs, fig.height=5, fig.width=5, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
 pm1 <- ggpairs(data= filter(dat, dat$part == F), 
