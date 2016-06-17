@@ -258,10 +258,10 @@ Almost all our game participants were male fishermen, most of them married or in
 grid.arrange(
   question (surv, q1=372, q2=161, q3 = 2, fun=mean)  + ggtitle('43. Gender \n Female=0'),
   question (surv, q1=372, q2=162, q3 = 2, fun=mean)  + ggtitle('44. Status\n Single=1, married=2, sambo=3, div/widow=4'),
-  question (surv, q1=372, q2=163, q3 = 2, fun=mean)  + ggtitle('45. Age'),
+  question (surv, q1=372, q2=163, q3 = 2, fun=mean)  + ggtitle('45. Age') ,
   question (surv, q1=372, q2=164, q3 = 2, fun=mean)  + ggtitle('46. Formal education\n none=1, elementary=2, high=3, uni=4'),
   question (surv, q1=372, q2=165, q3 = 2, fun=mean)  + ggtitle('46.1 Years of education'), # error on coding summary (surv[, 165])
-  question (surv, q1=372, q2=166, q3 = 2, fun=mean)  + ggtitle('47. Born here?'), # error non binary
+  question (surv, q1=372, q2=166, q3 = 2, fun=mean)  + ggtitle('47. Born here?') , # error non binary
   question (surv, q1=372, q2=168, q3 = 2, fun=mean)  + ggtitle('49. Since when do you live here?'), # error coding summary (surv[, 168])
   question (surv, q1=372, q2=169, q3 = 2, fun=mean)  + ggtitle('50. Have you always lived here?'),
   question (surv, q1=372, q2=170, q3 = 2, fun=mean)  + ggtitle('51. How long have you\n been living here?'), #error coding

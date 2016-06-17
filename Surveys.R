@@ -6,15 +6,21 @@
 rm(list=ls())
 
 # load libraries
-require (ggplot2)
-require (dplyr)
-require(gdata)
-require(GGally)
+library (ggplot2)
+library (tidyr)
+library (dplyr)
+library(gdata)
+library(GGally)
 
 # load data
 
 # survey <- read.xls(xls='~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_.xlsx', sheet=1)
-surv <- read.csv2(file='~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_.csv', header=T, na.strings = '.')
+surv <- read.csv2(file='~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_ 160530.csv', header=T, na.strings = '.')
+
+# Hadleys package is nice at detecting the errors in survey but make it difficult to handle them.
+# surv <- readxl::read_excel ('~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_ 160530.xlsx', sheet = 1, na = '.')
+
+
 key <- read.xls(xls='~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_.xlsx', sheet=2, na.strings = '.')
 
 # for now work only with the first part of the survey data to create ID_player and merge with game data
@@ -47,7 +53,9 @@ head(colnames(surv),20)
 
 head(str(surv))
 
-
+# J160530: I got new weird NA with Nidia's file.
+surv$locationNo[is.na(surv$locationNo)]
+summary(surv$locationNo)
 
 ## Visualize some of the questions ##
 
@@ -75,7 +83,7 @@ q1 <- question (surv, q1=372, q2=25, q3=2, fun=mean) + ggtitle('Life satisfactio
 # have participated in economic experiments before?
 q2 <- question (surv, q1=372, q2=26, q3 = 2, fun=mean) + ggtitle('Have you participated in economic experiments before?')
 # what are the rows with 2!! It should be binary 1/0
-surv[surv[,26] == 2, 1:30]
+surv[surv[,26] == 2, 1:10]
 
 # did you played with any of your fishing partners?
 q3 <- question (surv, q1=372, q2=27, q3 = 2, fun=mean)  + ggtitle('Did you played with any of your fishing partners?')
@@ -158,7 +166,7 @@ question (surv, q1=372, q2=93, q3 = 2, fun=mean)  + ggtitle('How much do you giv
 question (surv, q1=372, q2=93, q3 = 2, fun=mean)  + ggtitle('Do you think you will be fishermen in 10yrs?\n 0=NO, 1=no, 2=yes, 3=YES, 4=dont know')
 
 question (surv, q1=372, q2=96, q3 = 2, fun=mean)  + ggtitle('Do you think your children will fish?\n 0=NO, 1=no, 2=yes, 3=YES, 4=dont know')
-# errors table(surv[,96])/16 levels(as.factor(surv[,96])) hist(surv[,96]) surv[surv[,96] >5, c(372,96,2)]
+# errors table(surv[,96])/16 levels(as.factor(surv[,96])) hist(surv[,96]) surv[surv[,96] >4, c(372,96,2)]
 ## Errors in 2016-02-05.Threshold.am.4 Buenavista, numbers >5
 
 question (surv, q1=372, q2=98, q3 = 2, fun=mean)  + ggtitle('Have you been fishing the same spp?') # should be binary
@@ -175,7 +183,7 @@ question (surv, q1=372, q2=104, q3 = 2, fun=mean)  + ggtitle('When?') ### Errors
 
 question (surv, q1=372, q2=105, q3 = 2, fun=mean)  + ggtitle('How long, still missing?') # summary(surv[,105]) ... not binary
 
-
+question (surv, q1=372, q2=109, q3 = 2, fun=mean)
 
 # do something fancier for the temporal / spatial dynamics of non-fishing
 

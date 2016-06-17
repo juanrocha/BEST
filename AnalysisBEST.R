@@ -108,6 +108,11 @@ g2 <- g + stat_summary(fun.data='mean_cl_boot', geom='smooth')
         + ggtitle ('Treatments in Colombia \n Second part of the game') 
         + theme(text= element_text(family='Helvetica', size=10))  # working but with lots of warnings.
 
+g <- ggplot(data= dat, aes(x=Round, y=NewStockSize, group= ID_player)) +
+  geom_line(aes(color = group, group = ID_player), show.legend = F) +
+  facet_grid (Treatment ~ Place)
+g
+
 # Matrix of treatment per place, smooth over player decisions
 
 g <- ggplot(dat= filter (dat, part == 1) 
@@ -123,13 +128,15 @@ g
 #should be equivalent but is not. Prefer the one above.
 g <- ggplot(dat=dat, aes(x=Round, y=value)) + 
 		geom_smooth(stat='smooth', method='loess', span=0.2) +
-		facet_grid(Treatment ~ Place)
+		facet_grid(Treatment ~ Place) 
+
+
 #quartz.save(file='MeanExtractionSmooth.png', type='png', dpi=100)
 
 ## All players, all places, all treatments... not very informative
 g <- ggplot(dat=dat, aes(x=Round, y=value)) + 
-		geom_line(stat='identity', aes(color=Player, group=ID_player)) +
-		facet_grid(Treatment ~ Place)
+		geom_line(stat='identity', aes(color=group, group=ID_player), show.legend = F) +
+		facet_grid(Treatment ~ Place) + coord_cartesian (ylim=c(0,12))
 
 ## Only players of one place, per day 
 g <- ggplot(dat=subset(dat, dat$Place == 'Las Flores' ),
@@ -324,7 +331,8 @@ ordihull(pca, groups=as.vector(fitSOM$unit.classif), label=T, cex=0.8,
 
 
 
-# Note to self: For combining matrix probabilities (transition prob matrix) see discussion here: https://www.physicsforums.com/threads/can-you-combinie-two-transition-probability-matrices.580126/
+# Note to self: For combining matrix probabilities (transition prob matrix) 
+# see discussion here: https://www.physicsforums.com/threads/can-you-combinie-two-transition-probability-matrices.580126/
 
 
 ## Stats:
@@ -348,12 +356,12 @@ g <- ggplot (filter(dat, part ==1), aes(Round, crossThreshold, group = group)) +
   geom_hline(yintercept = 0, color = 'grey', show.legend = FALSE) +
   geom_vline (xintercept = 6, color = 'grey', show.legend = FALSE) +
   geom_line(aes(color = group), show.legend = FALSE) +
-  facet_grid(Treatment ~ Place)
+  facet_grid(. ~Treatment )
 
 g
 
   
-quartz.save(file='160525_ThresholdDeviation_PlaceTreatment_BeforeAfter-NoNA.png', type = 'png', dpi=200)
+quartz.save(file='160610_SumTotalCatch_Treatment.png', type = 'png', dpi=200)
 
 # Examples of how the test is run
 
@@ -367,8 +375,8 @@ mod <- aov(crossThreshold ~ Treatment, data = dat)
 summary (mod)
 mod <- lm (crossThreshold ~ Treatment, data = dat)
 
-
-
+# look what I found!
+pairwise.wilcox.test()
 
 
 
@@ -456,7 +464,7 @@ gini <- filter(dat, part == 1) %>%
 gini <- left_join(gini, dplyr::select(dat, Treatment, Place, group) , by = 'group')
   
 g <- ggplot(gini, aes(Treatment, gini)) + 
-  #geom_jitter (width = 0.5, aes (color = Place, alpha = 0.2), show.legend = T) +
+  geom_jitter (width = 0.5, aes (color = Place, alpha = 0.2), show.legend = T) +
   geom_boxplot(aes (alpha = 0.1))  + facet_grid(. ~ Place) + coord_flip() + ggtitle ('Gini on fishers earnings\n Stage 2')
 g
 
