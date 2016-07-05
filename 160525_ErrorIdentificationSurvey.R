@@ -1,3 +1,30 @@
+# Survey data cleaning
+# Juan Carlos Rocha
+# juan.rocha@su.se
+# 160705
+
+rm(list=ls())
+
+# load libraries
+library (ggplot2)
+library (tidyr)
+library (dplyr)
+
+# load data
+
+# survey <- read.xls(xls='~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_.xlsx', sheet=1)
+surv <- read.csv2(file='~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_ 160530.csv', header=T, na.strings = '.')
+
+## # standardize with same levels as game data
+surv <- filter(surv, round >0) 
+levels(surv$date) <- as.factor(as.Date(levels(surv$date), format='%d/%m/%Y')[c(7,12:16,7,9,9,11,11, 12:16)])
+surv$Session <- as.factor (ifelse(surv$am == 1, 'am', 'pm'))
+levels(surv$treatmentName) <- c('Base line', 'Base line', 'Risk', 'Risk', 'Threshold', 'Threshold','Threshold', 'Uncertainty', 'Uncertainty') # unify spelling
+surv$playerNo <- as.factor(surv$playerNo)
+# Create unique player IDs
+surv <- transform (surv, ID_player = interaction(date, treatmentName, Session, playerNo, drop = TRUE))
+
+
 ## Finding problems with survey
 surv <- tbl_df(surv)
 surv <- as.data.frame (surv)
@@ -6,6 +33,13 @@ surv <- as.data.frame (surv)
 surv <- mutate(surv, round_lev = as.factor(round))
 surv <- transform (surv, ID_Obs = interaction(date, treatmentName, Session, playerNo, round_lev, drop = TRUE) )
 
+# question is a function that graphic numeric questions in the survey
+question <- function(dat, q1, q2, q3, fun){ # dat = survey, q = is the colname of the question
+  a0 <- dplyr::select(dat, col1=q1, col2=q2, place=q3)
+  g <- ggplot(data = aggregate(col2 ~ col1 + place, data=a0, FUN= fun ), aes (x=col2, fill=place))+
+    geom_bar(stat='count', na.rm=TRUE) + theme_minimal(base_size = 10, base_family = "Helvetica")
+  return (g)
+}
 
 
 # Q32
@@ -26,15 +60,15 @@ filter (surv[, c(2,35, 372)], ID_player == "2016-02-02.Risk.pm.3")
 
 
 # Q100
-q <- 370 # question
+q <- 149 # question
 surv[, c(2,q, 372)] %>%  names()
 
 surv[, c(2,q, 372)] %>% # names()
   group_by(ID_player) %>%
-  summarize(n_obs = n(), avg = mean ( X6..u..2000..36000 )) %>%  #filter (avg <1)
+  summarize(n_obs = n(), avg = mean ( X42.4..role )) %>%  filter (avg < 1)
   filter(avg != 0, avg !=1)
 # see the error
-filter (surv[, c(2,q, 372)], ID_player == "2016-02-05.Threshold.am.4" )
+filter (surv[, c(2,q, 372)], ID_player == "2016-02-02.Threshold.pm.3" )
 
 
 filter (surv[, c(2,q,372)], X51..How.long.have.you.been.living.here. == 'years')
@@ -88,10 +122,29 @@ surv[is.element(surv$ID_Obs, p), 96] <- 4
 # Q 102
 surv [ surv$ID_Obs == '2016-02-02.Risk.pm.3.16', 102] <- 0
 ## Q 98
-surv [ surv$ID_player == '2016-02-05.Threshold.am.4', 98]
+surv [ surv$ID_player == '2016-02-05.Threshold.am.4', 98] # nidia needs to correct
 ## Q 100
 surv [ surv$ID_Obs == '2016-02-02.Risk.pm.3.16', 100] <- 1
 ## Q 104
 table(surv[104])
 
-## Q 123
+## Q 123 Nidia should correct
+
+## Q 132
+surv [ surv$ID_Obs == '2016-02-02.Risk.pm.3.16', 132] <- 0
+## Q 134
+surv [ surv$ID_Obs == '2016-02-02.Risk.pm.3.16', 134] <- 0
+## Q 136
+surv [ surv$ID_Obs == '2016-02-02.Risk.pm.3.16', 136] <- 0
+## Q 138
+surv [ surv$ID_Obs == '2016-02-02.Risk.pm.3.16', 138] <- 0
+## Q 140
+surv [ surv$ID_Obs == '2016-02-05.Threshold.am.4.16', 140] <- 1
+## Q 143
+table(surv[143]) # nidia needs to correct
+## Q 148
+table(surv[148]) 
+class(surv[, 148])
+levels(surv[, 148])[1] <- '2016'
+surv$X42.3..since.when. <- as.numeric(as.character(surv$X42.3..since.when.)) # corrected
+## Q 
