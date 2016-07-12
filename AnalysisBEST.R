@@ -39,19 +39,19 @@ str(dat)
 summary(dat)
 
 # Correct & unify place, treatment names
-levels(dat$Place)[3] <- "Las Flores"
-levels(dat$Treatment)[c(1,3)] <- 'Uncertainty'
-levels(dat$Treatment)[c(2,7)] <- 'Risk'
-levels(dat$Treatment)[c(3,5)] <- 'Base line'
-levels(dat$Treatment)[c(4,5)] <- 'Threshold'
+# levels(dat$Place)[3] <- "Las Flores"
+# levels(dat$Treatment)[c(1,3)] <- 'Uncertainty'
+# levels(dat$Treatment)[c(2,7)] <- 'Risk'
+# levels(dat$Treatment)[c(3,5)] <- 'Base line'
+# levels(dat$Treatment)[c(4,5)] <- 'Threshold'
 
 # Correct date, session, player as factor
-dat$Date <- as.factor(dat$Date)
-levels(dat$Date) <- c('2016-02-09', '2016-02-01', '2016-02-02','2016-02-03','2016-02-04','2016-02-05','2016-02-10','2016-02-12') # standard dates
-levels(dat$Session) <- c('am','pm')
-levels(dat$Player) <- c('1','2','3','4')
+# dat$Date <- as.factor(dat$Date)
+# levels(dat$Date) <- c('2016-02-09', '2016-02-01', '2016-02-02','2016-02-03','2016-02-04','2016-02-05','2016-02-10','2016-02-12') # standard dates
+# levels(dat$Session) <- c('am','pm')
+# levels(dat$Player) <- c('1','2','3','4')
 
-dat$part <- dat$Round > 6
+# dat$part <- dat$Round > 6
 
 # Create player ID's as in Surveys.R
 dat <- transform (dat, ID_player = interaction(Date, Treatment, Session, Player, drop = TRUE))

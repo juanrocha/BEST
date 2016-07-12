@@ -1,0 +1,256 @@
+---
+title: "Survey Exploration"
+author: "Juan Rocha"
+date: "11 July 2016"
+output: 
+  html_document:
+    self_contained: true
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    fig_width: 5
+    fig_height: 5
+    dev: png
+    code_folding: hide
+  github_document:
+    fig_width: 5
+    fig_height: 5
+    dev: png
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(RColorBrewer)
+# library(GGally)
+# library(vegan)
+# library(cluster)
+# library(NbClust);library(kohonen)
+# library(mclust); library(clValid)
+library(ggmap)
+# library(animation)
+library(gridExtra)
+library(tm)
+library(wordcloud)
+```
+
+
+## BEST: Exploratory analysis
+
+The **BEST** project aims to understand what are the behavioural responses of people who rely on natural resources for their livelihood, and whose resources could potentially present threshold like dynamics, aka. *"regime shifts"*. For this study we designed a game played with fishermen in four communities of the Colombian caribbean. Here I present a short exploration of the game data and survey.
+
+### Where?
+
+The game was performed in four coastal communities of the Colombian Caribbean. Taganga is traditional fishing town that in the last decades has become more of a turistic hub for backpackers. Fishing is still important in the area and is mainly done in the sea, sometimes on the marine territory of Tayrona National Park. Tasajeras is a small fishing community located on the road that communicates Santa Marta and Barranquilla, two major cities. Their location favors fishing both in the sea and inside the Cienaga Grande de Santa Marta, a wetland complex of brakish water, mangroves and a very special ecosystem that depends on the exchange of salt water from the sea and fresh water from the Magdalena river. The inhabitants of Buenavista literally live on the Cienaga. Their houses stand just above water on an area of the Cienaga that is flooded all year round. They are the poorest community we visited and they depend completely on explotation of natural resources for survival. Las Flores, in contrast, is actually a neighbourhood of Barranquilla located in the outskirts of the city. They fish on the Magdalena river's mouth with very special techniques that use wind and kites to fish on the sea. They also exploit resources in neigbouring wetlands formed by the delta.
+
+We designed the experiment to test for differences on treatment, but also to test for difference on ecological conditions, expecting that communities who rely more strongly on the Cienaga (a closed system that has undergone regime shifts in the past) would behave differently that communities exposed more to oceanic conditions; where variability has perhaps masked/buffered regime shifts.
+
+```{r map}
+load('~/Documents/Projects/BEST - Beijer/BEST/mapBEST.RData')
+ggmap(map) + 
+  geom_point(aes(x=lon, y=lat, colour='Orange', size=2), data=coords, alpha=0.5, 
+             show.legend = F) +
+  geom_text(aes(x=lon, y=lat), data= coords ,
+            label=c('Taganga', 'Tasajeras', 'Buenavista', 'Las Flores'), 
+            size=4, colour='blue', nudge_y = 0.03) + ggtitle('Study area')
+
+
+```
+
+## A graphical exploration of the survey
+
+We ran a survey with each of the 256 participants of our fishing game. The 56 questions of the survey are grouped around five topics:
+
+1. the game
+2. fishing activities
+3. changes in resources and traditional ecological knowledge
+4. cooperation and community activities
+5. demographic information at household level
+
+For each section I present a series of graphic summaries for questions whose answer was binary or numeric. Later I elaborate on more detailed information for text data. 
+
+```{r set_data, echo=FALSE, include=FALSE}
+# This chunk import the data and set it up for analysis. I also load the function 'question' for later ploting
+# The source command loads a script that automatically takes the old file, correct the errors and simplify it to a unique observation per row. Alternatively one can also load the csv file produced by the script, the dissadvantage of loading the file is that R doesn't recognize the class of each column anymore.
+# surv <- read.csv2(file="~/Documents/Projects/BEST - Beijer/BEST/cleaned_survey.csv", header=T, sep=';', colClasses = clss)
+source('~/Documents/Projects/BEST - Beijer/BEST/160525_ErrorIdentificationSurvey.R')
+
+#key 
+key <- read.csv2(file = '~/Dropbox/BEST/Colombia/Survey/key_consolidado_survey.csv', encoding = "Latin-1" )
+key <- key [c(1:16,23:240),c(2:5)]
+  key$Name.in.datasheet <- as.character(key$Name.in.datasheet)
+  levels(key$Data.type)[3] <- "binary"
+  key <- droplevels(key)
+  key$Column.datasheet <- seq(1:234)
+
+## Function to plot numeric questions  
+q.num <- function (dat, key, q){ # dat = survey, q = is the colname of the question
+  a0 <- dplyr::select(dat, id = 235, q = q, place = locationName, treatment = treatmentName)
+  if (key$Data.type [q] == "binary" ) a0$q <- as.factor(a0$q)
+  if (key$Data.type [q] == "ordinal" ) a0$q <- as.factor(a0$q)
+  g <- ggplot( data = a0,
+               aes (x= q, fill = treatment)) + 
+    geom_bar(stat='count', na.rm=TRUE) + theme_minimal(base_size = 10, base_family = "Helvetica") +
+    ggtitle(key$Name.in.datasheet[q]) + xlab(key$Explanation.coding[q])
+  return (g)
+}
+# example
+# q.num(dat = surv, key = key, q = 163)
+
+## Function to plot text questions
+q.txt <- function (dat, key, q){
+   a0 <- dplyr::select(dat, id = 235, q = q, place = locationName, treatment = treatmentName)
+   if (class(a0$q) == 'factor') a0$q <- as.character(a0$q)
+   x <- paste(a0$q, sep = ',', collapse = '; ')
+   dat <- Corpus(VectorSource(x), readerControl = list (language= 'spanish')) # options(mc.cores=1)
+   dat <-  tm_map (dat, removeWords, stopwords("spanish"))
+   dat <- tm_map(dat, stripWhitespace)
+   dat <- tm_map(dat, removePunctuation)
+   dat <- tm_map(dat, PlainTextDocument)
+  wordcloud(dat, scale = c(3, 0.5),min.freq = 0.1,
+          random.order = T, random.color = T, family = 'Helvetica' )
+  title (key$Name.in.datasheet[q], family = "Helvetica") 
+}
+# example
+# q.txt (dat = surv, key = key, q = 234)
+
+```
+
+### 1. The game
+Most people was not expecting the end of the game and wanted to play at least 5 more rounds. That's good as control for *end of game* effect.
+
+```{r game_opinion, fig.height=8, fig.width=12, collapse=TRUE, fig.align='left', fig.show='hold'} 
+grid.arrange(q.num (dat = surv, key = key, q = 19),
+             q.num (dat = surv, key = key, q = 20),
+             q.num (dat = surv, key = key, q = 21),
+             q.num (dat = surv, key = key, q = 22),
+             q.num (dat = surv, key = key, q = 23) + xlab("0 = fish all time, 1 = stop fishing sometime"),
+             nrow=2, ncol=3)
+
+```
+
+### 2. Fishing activities
+Most people started fishing as teenager, however it varies depending of place. For future analysis a density plot might better reveal such differences. We have errors on data input for questions 8 & 10. Most people have been fishermen all then time since they started, and most of them have also been fishing on the same community. For less than half of our sample, people stop fishing at least a month last year (2015)
+```{r fishing_1, fig.height=2, fig.width=8, collapse=TRUE, fig.align='center', fig.show='hold'}
+grid.arrange(
+  q.num (dat = surv, key = key, q = 25), 
+  q.num (dat = surv, key = key, q = 26),
+  q.num (dat = surv, key = key, q = 27), 
+  q.num (dat = surv, key = key, q = 29),
+  nrow=1, ncol=4
+)
+```
+I'd like to get a cleaner version of the fishing calendar (e.g. a heatmap), but for now the figure below summarizes when were people non-fishing last year. Note is a crappy graph, not all plots are on the same scale... but aesthetics apart, one can see that not surprisingly the month when people stop fishing more often is December, probably also due to festivities. 
+
+```{r fishing_calendar, fig.height=8, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold'}
+grid.arrange(
+  q.num (dat = surv, key = key, q = 30)+ xlab(NULL), 
+  q.num (dat = surv, key = key, q = 31)+ xlab(NULL),
+  q.num (dat = surv, key = key, q = 32)+ xlab(NULL),
+  q.num (dat = surv, key = key, q = 33)+ xlab(NULL), 
+  q.num (dat = surv, key = key, q = 34)+ xlab(NULL), 
+  q.num (dat = surv, key = key, q = 35)+ xlab(NULL),
+  q.num (dat = surv, key = key, q = 36)+ xlab(NULL), 
+  q.num (dat = surv, key = key, q = 37)+ xlab(NULL), 
+  q.num (dat = surv, key = key, q = 38)+ xlab(NULL),
+  q.num (dat = surv, key = key, q = 39)+ xlab(NULL), 
+  q.num (dat = surv, key = key, q = 40)+ xlab(NULL), 
+  q.num (dat = surv, key = key, q = 41)+ xlab(NULL),
+  nrow=3, ncol=4
+)
+```
+Most people fish 6 days a week and the most common fishing day is of 12 hours, followed by working days of 10 and 8 hours. Although the graphs for earnings are less than suitable here (re-scale and use density instead of `geom_bar`) the minimum daily wage on an average day is Col$ `r min(surv[,52], na.rm=T)` and the median is Col$ `r median(surv[,52], na.rm=T)` which is less than US$10. On a bad day most people don't earn anything and the median is `r median(surv[,56], na.rm=T)` which is less than 10Sek. Most people have bad days once or more than once a week.
+
+```{r fishing_effort, fig.height=12, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+grid.arrange(
+
+  q.num (dat = surv, key = key, q = 43), 
+  q.num (dat = surv, key = key, q = 44),
+  q.num (dat = surv, key = key, q = 45), 
+  q.num (dat = surv, key = key, q = 46),
+  q.num (dat = surv, key = key, q = 47),
+  q.num (dat = surv, key = key, q = 48), 
+  q.num (dat = surv, key = key, q = 49),
+  q.num (dat = surv, key = key, q = 50), 
+  q.num (dat = surv, key = key, q = 51) + ggtitle('16f. How often do you have a bad day?') + xlab("1/yr = 1, 1/month = 2, 1/week = 3, >1/week = 4"),
+  nrow=3, ncol=3
+)
+```
+
+Most people fish in company of other fishermen, but almost a fifth of our surveyed fishermen fish alone. Crew size varies across places, very few people fish with crews > 12, and they are from Taganga or Las Flores, the fishing towns where open sea fishing with more industrial styles are possible. In fact, the maximum crew size for Tasajera is 5 and in Buenavista is 3 or 4. Most people fish with the same crew, but most of the time the decision on when to go fishing is made by other person than the intervieweed. The most typical boat is *bote* which implies a small size vessel without engine or with a small power engine. Only few people (<20) fish on *lanchas* which are bigger boats with more powerful engines, most of them are located in Las Flores where wind and currents are strong due to the Magdalena river delta. Similarly, around 60% of fishermen are not the captain neither own the boat they fish with. They don't fish on the same places either. Half of the people own their fishing art being ownership most common in Buenavista and less common in Taganga. 
+
+```{r fishing_arts, fig.height=12, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+grid.arrange(
+  q.num (dat = surv, key = key, q = 52),
+  q.num (dat = surv, key = key, q = 53), 
+  q.num (dat = surv, key = key, q = 54),
+  q.num (dat = surv, key = key, q = 55), 
+  q.num (dat = surv, key = key, q = 56), 
+  q.num (dat = surv, key = key, q = 58),
+  q.num (dat = surv, key = key, q = 59), 
+  q.num (dat = surv, key = key, q = 60),
+  q.num (dat = surv, key = key, q = 61), 
+  nrow=3, ncol=3
+)
+```
+The graphs below summarize the most important species and some other textual answers from previous sections of the survey.
+
+```{r fishing_txt, fig.height=15, fig.width=15, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+# quartz(width=5, height =  5, family = "serif", pointsize = 6)
+par (mfrow= c(6,3), family = "serif")
+for (i in 1:14){
+  x <- c(24,28,42,57,62:65,69,70,74:75,79:80)
+  q.txt (dat = surv, key = key, q = x[i])
+} # problems with 68, 73, 79
+
+
+# # q.txt (dat = surv, key = key, q = 24)
+# q.txt (dat = surv, key = key, q = 28)
+ # q.txt (dat = surv, key = key, q = 42),
+#q.txt (dat = surv, key = key, q = 57),
+#q.txt (dat = surv, key = key, q = 62),
+ # q.txt (dat = surv, key = key, q = 63),
+  # q.txt (dat = surv, key = key, q = 64),
+  # q.txt (dat = surv, key = key, q = 65),
+  # q.txt (dat = surv, key = key, q = 57), 
+ # q.txt (dat = surv, key = key, q = 68),
+  # q.txt (dat = surv, key = key, q = 69),
+  # q.txt (dat = surv, key = key, q = 70), 
+  # q.txt (dat = surv, key = key, q = 73),
+  # q.txt (dat = surv, key = key, q = 74),
+  # q.txt (dat = surv, key = key, q = 75), 
+  # q.txt (dat = surv, key = key, q = 78),
+  # q.txt (dat = surv, key = key, q = 79),
+  # q.txt (dat = surv, key = key, q = 80), 
+ 
+grid.arrange(
+  q.num (dat = surv, key = key, q = 66),
+  q.num (dat = surv, key = key, q = 67),
+  q.num (dat = surv, key = key, q = 71),
+  q.num (dat = surv, key = key, q = 72),
+  q.num (dat = surv, key = key, q = 76),
+  q.num (dat = surv, key = key, q = 77),
+  q.num (dat = surv, key = key, q = 81),
+  q.num (dat = surv, key = key, q = 82),
+  nrow = 3, ncol= 3
+)
+
+```
+
+
+Where does the food goes? Most fishermen take some fish home but they usually sell more than half and ocassionally give some away. When asked if they imagine themeselves being fishermen in 10 years most people think they will be. Question 28 is horribly coded, it should be between 0:4 but has values >5 up to 10! There is also typing errors in Tasajera where many values were included in answers that should have been unique.
+
+```{r fishing_prod, fig.height=8, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+grid.arrange(
+   q.num (dat = surv, key = key, q = 83),  q.num (dat = surv, key = key, q = 84), q.num (dat = surv, key = key, q = 85),
+   # q.txt (dat = surv, key = key, q = 86), 
+   q.num (dat = surv, key = key, q = 87), q.num (dat = surv, key = key, q = 88), 
+   # q.txt (dat = surv, key = key, q = 89), 
+   q.num (dat = surv, key = key, q = 90), 
+   # q.txt (dat = surv, key = key, q = 91),
+   nrow=2, ncol=3
+)
+```

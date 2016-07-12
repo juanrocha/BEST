@@ -20,8 +20,9 @@ surv <- read.csv2(file='~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_d
 # Hadleys package is nice at detecting the errors in survey but make it difficult to handle them.
 # surv <- readxl::read_excel ('~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_ 160530.xlsx', sheet = 1, na = '.')
 
+#key <- read.xls(xls='~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_.xlsx', sheet=2, na.strings = '.')
+key <- read.csv2(file = '~/Dropbox/BEST/Colombia/Survey/key_consolidado_survey.csv')
 
-key <- read.xls(xls='~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_.xlsx', sheet=2, na.strings = '.')
 
 # for now work only with the first part of the survey data to create ID_player and merge with game data
 str(surv)
@@ -240,5 +241,14 @@ dim(a)
 # 
 # names(surv[,bin])
 
+### idea for text data:
+txt <- key$Data.type == 'text'
 
+a0 <- select(surv, ID_player, X6.1.comment. , locationName)
+aggregate( X2..lifeSatisfaction ~ ID_player + locationName, data=a0, mean)
+
+g <- ggplot(data = aggregate(X2..lifeSatisfaction ~ ID_player + locationName, data=a0, mean), aes(x= X2..lifeSatisfaction, fill=locationName)) + #, group=ID_player
+  geom_bar(stat='count', na.rm=TRUE)
+
+g
 
