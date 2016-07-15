@@ -1,6 +1,6 @@
 ---
 title: "BEST: Behavioural Economics for Social-Ecological Systems with Thresholds"
-author: "by Juan Carlos Rocha"
+author: "Juan Rocha"
 output: 
   html_document:
     self_contained: true
@@ -21,18 +21,16 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
-# require(network)
-# require(sna)
 library(tidyr)
 library(dplyr)
 library(RColorBrewer)
-library(GGally)
-library(vegan)
-library(cluster)
-library(NbClust);library(kohonen)
-library(mclust); library(clValid)
+# library(GGally)
+# library(vegan)
+# library(cluster)
+# library(NbClust);library(kohonen)
+# library(mclust); library(clValid)
 library(ggmap)
-library(animation)
+# library(animation)
 library(gridExtra)
 ```
 
@@ -72,20 +70,39 @@ For each section I present a series of graphic summaries for questions whose ans
 
 ```{r set_data, echo=FALSE, include=FALSE}
 # This chunk import the data and set it up for analysis. I also load the function 'question' for later ploting
-surv <- read.csv2(file='~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_.csv', header=T, na.strings = '.')
-surv <- filter(surv, round >0) 
-levels(surv$date) <- as.factor(as.Date(levels(surv$date), format='%d/%m/%Y')[c(7,12:16,7,9,9,11,11, 12:16)])
-surv$Session <- as.factor (ifelse(surv$am == 1, 'am', 'pm'))
-levels(surv$treatmentName) <- c('Base line', 'Base line', 'Risk', 'Risk', 'Threshold', 'Threshold','Threshold', 'Uncertainty', 'Uncertainty') # unify spelling
-surv$playerNo <- as.factor(surv$playerNo)
-surv <- transform (surv, ID_player = interaction(date, treatmentName, Session, playerNo, drop = TRUE))
+# The source command loads a script that automatically takes the old file, correct the errors and simplify it to a unique observation per row. Alternatively one can also load the csv file produced by the script, the dissadvantage of loading the file is that R doesn't recognize the class of each column anymore.
 
-question <- function(dat, q1, q2, q3, fun){ # dat = survey, q = is the colname of the question
-  a0 <- dplyr::select(dat, col1=q1, col2=q2, place=q3)
-  g <- ggplot(data = aggregate(col2 ~ col1 + place, data=a0, FUN= fun ), aes (x=col2, fill=place))+
-    geom_bar(stat='count', na.rm=TRUE)+ theme_minimal(base_size = 8, base_family = "Helvetica")
+# surv <- read.csv2(file="~/Documents/Projects/BEST - Beijer/BEST/cleaned_survey.csv", header=T, sep=';', colClasses = clss)
+
+source('~/Documents/Projects/BEST - Beijer/BEST/160525_ErrorIdentificationSurvey.R')
+#key 
+key <- read.csv2(file = '~/Dropbox/BEST/Colombia/Survey/key_consolidado_survey.csv')
+key <- key [c(1:16,23:240),c(2:5)]
+key$Name.in.datasheet <- as.character(key$Name.in.datasheet)
+
+# Old function for old file
+# question <- function(dat, q1, q2, q3, fun){ # dat = survey, q = is the colname of the question
+#   a0 <- dplyr::select(dat, col1=q1, col2=q2, place=q3)
+#   g <- ggplot(data = aggregate(col2 ~ col1 + place, data=a0, FUN= fun ), aes (x=col2, fill=place))+
+#     geom_bar(stat='count', na.rm=TRUE)+ theme_minimal(base_size = 8, base_family = "Helvetica")
+#   return (g)
+# }
+q.num <- function (dat, key, q){ # dat = survey, q = is the colname of the question
+  a0 <- dplyr::select(dat, id = 235, q = q, place = locationName, treatment = treatmentName)
+ # ifelse(key$Data.type [q] )
+  g <- ggplot( data = a0,
+               aes (x= q, fill = treatment)) + 
+    geom_bar(stat='count', na.rm=TRUE) + theme_minimal(base_size = 8, base_family = "Helvetica") +
+    ggtitle(key$Name.in.datasheet[q]) + xlab(key$Explanation.coding[q])
   return (g)
 }
+
+a0 <- select(surv, col1=235, col2=19, place = treatmentName)
+g <- ggplot(data = a0, aes(col2, fill = place)) + geom_bar(stat = 'count', na.rm= TRUE) + theme_minimal(base_size = 8, base_family = "Helvetica")
+
+q.num(dat = surv, key = key, q = 19)
+
+
 ```
 
 ### 1. The game
@@ -142,8 +159,7 @@ grid.arrange(
   question (surv, q1=372, q2=53, q3 = 2, fun=mean)  + ggtitle('16c. Kg of fish in a good day'), # error
   question (surv, q1=372, q2=54, q3 = 2, fun=mean) 
     + geom_histogram(aes(alpha=0.2)) + ggtitle('16d. Earnings Col$ in a good day'), # error
-  question (surv, q1=372, q2=55, q3 = 2, fun=mean)  
-    + ggtitle('16e. Kg of fish in a bad day'), # error
+  question (surv, q1=372, q2=55, q3 = 2, fun=mean) + ggtitle('16e. Kg of fish in a bad day'), # error
   question (surv, q1=372, q2=56, q3 = 2, fun=mean) + geom_histogram(aes(alpha=0.2)) + ggtitle('16f. Earnings Col$ in a bad day'), # error in distribution table(surv[,56])/16
   question (surv, q1=372, q2=57, q3 = 2, fun=mean)  
     + ggtitle('16f. How often do you have a bad day?\n 1 = 1/year, 2 = 1/month, 3 = 1/week, 4 = n/week'),
@@ -382,25 +398,25 @@ pm4 <- ggpairs(data= filter(dat, dat$part == T),
 Something I'd really like to get into (for modeling purposes) is identifying fishing strategies or styles. To do so I ran a PCA and MDS on the time series (16 rounds) of each of the 256 players in our dataset. The results are shown below.
 
 ```{r pca, fig.height=3, fig.width=9, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
-library(vegan)
-players <- (reshape::cast(dat, ID_player ~ Round))[,-1] #delete playersID
-place <- reshape::cast(dat, ID_player ~  Place)[,-1] # 16 because calculate length of 'value'
-group <- reshape::cast(dat, ID_player ~  group)[,-1]
-treat <- reshape::cast(dat, ID_player ~  Treatment)[,-1]
-context <- cbind(place,treat) # don't use group yet, maybe for aes
-
-pca <- rda(players, context) #, context
-
-# note: I ran mds with 'euclidean' distance and 'manhattan'. Euclidean gave an error saying there is not enough data. manhattan calculated but didn't reach convergence. Morisita, jaccard, kulczynski, horn, rau, don't reach convergence neither. Frequent error on different measures: Stress is (nearly) zero - you may have insufficient data. It does work however if I use the transpose. It calculates the ordering of rounds on mds$points, but the ordering of players can be found too at mds$species
-mds <- metaMDS(players, dist= 'manhattan', trymax=400, autotransform=F, k=2)
-# mds2 <- metaMDS(players, dist= 'mahalanobis', trymax=1000, autotransform=F, k=3, previous.best = mds) # solution from http://stackoverflow.com/questions/14434794/no-stable-solution-using-metamds-in-vegan
-ef1 <- envfit(mds, context, permu=999)
-
-par(mfrow=c(1,3))
-  plot(pca)
-  plot(mds, type='p', display=c('sites', 'species'), cex=0.8)
-  plot(ef1, p.max=0.05, col='blue', cex=0.8)
-  stressplot(mds)
+# library(vegan)
+# players <- (reshape::cast(dat, ID_player ~ Round))[,-1] #delete playersID
+# place <- reshape::cast(dat, ID_player ~  Place)[,-1] # 16 because calculate length of 'value'
+# group <- reshape::cast(dat, ID_player ~  group)[,-1]
+# treat <- reshape::cast(dat, ID_player ~  Treatment)[,-1]
+# context <- cbind(place,treat) # don't use group yet, maybe for aes
+# 
+# pca <- rda(players, context) #, context
+# 
+# # note: I ran mds with 'euclidean' distance and 'manhattan'. Euclidean gave an error saying there is not enough data. manhattan calculated but didn't reach convergence. Morisita, jaccard, kulczynski, horn, rau, don't reach convergence neither. Frequent error on different measures: Stress is (nearly) zero - you may have insufficient data. It does work however if I use the transpose. It calculates the ordering of rounds on mds$points, but the ordering of players can be found too at mds$species
+# mds <- metaMDS(players, dist= 'manhattan', trymax=400, autotransform=F, k=2)
+# # mds2 <- metaMDS(players, dist= 'mahalanobis', trymax=1000, autotransform=F, k=3, previous.best = mds) # solution from http://stackoverflow.com/questions/14434794/no-stable-solution-using-metamds-in-vegan
+# ef1 <- envfit(mds, context, permu=999)
+# 
+# par(mfrow=c(1,3))
+#   plot(pca)
+#   plot(mds, type='p', display=c('sites', 'species'), cex=0.8)
+#   plot(ef1, p.max=0.05, col='blue', cex=0.8)
+#   stressplot(mds)
 	
 ```
 
@@ -413,11 +429,11 @@ par(mfrow=c(1,3))
 4. styles clustering
 
 ```{r phase_diag3, fig.height=5, fig.width=5, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
-g <- ggplot(dat, aes(x=value, y=StockSizeBegining,color=Treatment )) +
-		geom_point() +
-		geom_smooth( method='loess') +
-		ggtitle('Local polynomial regression\n Stock size vs Decision')
-g
+# g <- ggplot(dat, aes(x=value, y=StockSizeBegining,color=Treatment )) +
+# 		geom_point() +
+# 		geom_smooth( method='loess') +
+# 		ggtitle('Local polynomial regression\n Stock size vs Decision')
+# g
 ```
 
 ```{r}

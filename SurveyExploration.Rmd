@@ -1,7 +1,7 @@
 ---
 title: "Survey Exploration"
 author: "Juan Rocha"
-date: "11 July 2016"
+date: "`r Sys.Date()`"
 output: 
   html_document:
     self_contained: true
@@ -38,7 +38,7 @@ library(wordcloud)
 ```
 
 
-## BEST: Exploratory analysis
+## BEST: Survey exploratory analysis
 
 The **BEST** project aims to understand what are the behavioural responses of people who rely on natural resources for their livelihood, and whose resources could potentially present threshold like dynamics, aka. *"regime shifts"*. For this study we designed a game played with fishermen in four communities of the Colombian caribbean. Here I present a short exploration of the game data and survey.
 
@@ -70,7 +70,7 @@ We ran a survey with each of the 256 participants of our fishing game. The 56 qu
 4. cooperation and community activities
 5. demographic information at household level
 
-For each section I present a series of graphic summaries for questions whose answer was binary or numeric. Later I elaborate on more detailed information for text data. 
+For each section I present a series of graphic summaries for questions whose answer was binary, ordinal or numeric. For most plots colors are divided by place, but upon request I can change for treatments to see the treatment differences on box plots. For text data (e.g. open questions) you will find word clouds that show the most frequent words used on the survey. In the future we can also produce one cloud per place to see differences. Due to encoding problems you will find some weird words, for example 'mx97s' which should be 'maás'. No matter what enconding I use when importing the data, I still get errors; but the patterns are the same.
 
 ```{r set_data, echo=FALSE, include=FALSE}
 # This chunk import the data and set it up for analysis. I also load the function 'question' for later ploting
@@ -92,7 +92,7 @@ q.num <- function (dat, key, q){ # dat = survey, q = is the colname of the quest
   if (key$Data.type [q] == "binary" ) a0$q <- as.factor(a0$q)
   if (key$Data.type [q] == "ordinal" ) a0$q <- as.factor(a0$q)
   g <- ggplot( data = a0,
-               aes (x= q, fill = treatment)) + 
+               aes (x= q, fill = place)) + 
     geom_bar(stat='count', na.rm=TRUE) + theme_minimal(base_size = 10, base_family = "Helvetica") +
     ggtitle(key$Name.in.datasheet[q]) + xlab(key$Explanation.coding[q])
   return (g)
@@ -105,14 +105,14 @@ q.txt <- function (dat, key, q){
    a0 <- dplyr::select(dat, id = 235, q = q, place = locationName, treatment = treatmentName)
    if (class(a0$q) == 'factor') a0$q <- as.character(a0$q)
    x <- paste(a0$q, sep = ',', collapse = '; ')
-   dat <- Corpus(VectorSource(x), readerControl = list (language= 'spanish')) # options(mc.cores=1)
+   dat <- Corpus(VectorSource(deparse(x)), readerControl = list (language= 'spanish')) # options(mc.cores=1)
    dat <-  tm_map (dat, removeWords, stopwords("spanish"))
    dat <- tm_map(dat, stripWhitespace)
    dat <- tm_map(dat, removePunctuation)
    dat <- tm_map(dat, PlainTextDocument)
   wordcloud(dat, scale = c(3, 0.5),min.freq = 0.1,
-          random.order = T, random.color = T, family = 'Helvetica' )
-  title (key$Name.in.datasheet[q], family = "Helvetica") 
+          random.order = T, random.color = T, family = 'serif' )
+  title (key$Name.in.datasheet[q], family = "serif", col.main = 'red' , cex.main = 1) 
 }
 # example
 # q.txt (dat = surv, key = key, q = 234)
@@ -122,28 +122,48 @@ q.txt <- function (dat, key, q){
 ### 1. The game
 Most people was not expecting the end of the game and wanted to play at least 5 more rounds. That's good as control for *end of game* effect.
 
-```{r game_opinion, fig.height=8, fig.width=12, collapse=TRUE, fig.align='left', fig.show='hold'} 
+```{r game_opinion, fig.height=6, fig.width=9, collapse=TRUE, fig.align='left', fig.show='hold'} 
 grid.arrange(q.num (dat = surv, key = key, q = 19),
              q.num (dat = surv, key = key, q = 20),
              q.num (dat = surv, key = key, q = 21),
              q.num (dat = surv, key = key, q = 22),
-             q.num (dat = surv, key = key, q = 23) + xlab("0 = fish all time, 1 = stop fishing sometime"),
+             q.num (dat = surv, key = key, q = 23) + xlab("0 = None; 1 = < 5 rounds; 2 = > 5 rounds"),
              nrow=2, ncol=3)
+```
+Also an inspection of the most frequent words used when people was asked about any particular comments about the game reveals that in general people like it and see it as a learning experience.
 
+```{r opition, fig.height= 3, fig.width= 9, collapse= TRUE, fig.align= 'center', fig.show='hold'}
+oldpar <- par()
+par (mfrow= c(1,3), family = "serif")
+q.txt (dat = surv, key = key, q = 24)
+q.txt (dat = surv, key = key, q = 28)
+q.txt (dat = surv, key = key, q = 42)
+par (oldpar)
 ```
 
 ### 2. Fishing activities
-Most people started fishing as teenager, however it varies depending of place. For future analysis a density plot might better reveal such differences. We have errors on data input for questions 8 & 10. Most people have been fishermen all then time since they started, and most of them have also been fishing on the same community. For less than half of our sample, people stop fishing at least a month last year (2015)
-```{r fishing_1, fig.height=2, fig.width=8, collapse=TRUE, fig.align='center', fig.show='hold'}
+Most people started fishing as teenager, however it varies depending of place. The density plot reveals such differences, fishermen in Taganga starts fishing younger, while the oldest at start are fishermen from Las Flores. Most people have been fishermen all then time since they started, and most of them have also been fishing on the same community. For less than half of our sample, people stop fishing at least a month last year (2015)
+
+```{r fishing_1, fig.height=6, fig.width=9, collapse=TRUE, fig.align='left', fig.show='hold'}
+
+  a0 <- dplyr::select(surv, id = 235, q = 25, place = locationName, treatment = treatmentName)
+  if (key$Data.type [25] == "binary" ) a0$q <- as.factor(a0$q)
+  if (key$Data.type [25] == "ordinal" ) a0$q <- as.factor(a0$q)
+
 grid.arrange(
   q.num (dat = surv, key = key, q = 25), 
+  ggplot( data = a0, aes (x= q, fill = place)) + 
+    geom_density(alpha = 0.4) + theme_minimal(base_size = 10, base_family = "Helvetica") +
+    ggtitle(key$Name.in.datasheet[25]) + xlab(key$Explanation.coding[25]),  
   q.num (dat = surv, key = key, q = 26),
   q.num (dat = surv, key = key, q = 27), 
   q.num (dat = surv, key = key, q = 29),
-  nrow=1, ncol=4
+  nrow=2, ncol=3
 )
+
+rm(a0)
 ```
-I'd like to get a cleaner version of the fishing calendar (e.g. a heatmap), but for now the figure below summarizes when were people non-fishing last year. Note is a crappy graph, not all plots are on the same scale... but aesthetics apart, one can see that not surprisingly the month when people stop fishing more often is December, probably also due to festivities. 
+I'd like to get a cleaner version of the fishing calendar (e.g. a heatmap), but for now the figure below summarizes when were people non-fishing last year. For all graphs 0 means that they do not stop fishing in the month, while 1 means stop fishing. The inter-monthly variability is not so high but when most people take a fishing break is in December, probably due to local festivities.
 
 ```{r fishing_calendar, fig.height=8, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold'}
 grid.arrange(
@@ -162,32 +182,32 @@ grid.arrange(
   nrow=3, ncol=4
 )
 ```
-Most people fish 6 days a week and the most common fishing day is of 12 hours, followed by working days of 10 and 8 hours. Although the graphs for earnings are less than suitable here (re-scale and use density instead of `geom_bar`) the minimum daily wage on an average day is Col$ `r min(surv[,52], na.rm=T)` and the median is Col$ `r median(surv[,52], na.rm=T)` which is less than US$10. On a bad day most people don't earn anything and the median is `r median(surv[,56], na.rm=T)` which is less than 10Sek. Most people have bad days once or more than once a week.
+Most people fish 6 days a week and the most common fishing day is of 12 hours, followed by working days of 10 and 8 hours. Note that due to outliers (probably industrial fishermen) the plots for earnings and catches have their x-axis log-scaled. The minimum daily wage on an average day is Col$ `r format(min(surv[,46], na.rm=T), decimal.mark =',', big.mark=' ', small.mark='.', small.interval =3) ` and the median is Col$ `r format (median(surv[,46], na.rm=T) , decimal.mark =',', big.mark=' ', small.mark='.', small.interval =3)` which is less than US$10, while the maximum is Col `r format (max(surv[,48], na.rm = T) , decimal.mark =',', big.mark=' ', small.mark='.', small.interval =3)`. We believe this outlier values belong to industrial fishermen that happen to participate on our game; according to Lina Maria Saavedra from UniMagdalena, some of these values sounds realistic if the person happens to be on an industiral crew and is the owner of the boat or fishing gear. On a bad day most people don't earn anything and the median is Col. `r median(surv[,50], na.rm=T)` which is less than 10 Swedish crowns. Most people have bad days once or more than once a week.
 
 ```{r fishing_effort, fig.height=12, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
 grid.arrange(
 
   q.num (dat = surv, key = key, q = 43), 
   q.num (dat = surv, key = key, q = 44),
-  q.num (dat = surv, key = key, q = 45), 
-  q.num (dat = surv, key = key, q = 46),
+  q.num (dat = surv, key = key, q = 45) + scale_x_log10() + geom_density(alpha = 0.4) , 
+  q.num (dat = surv, key = key, q = 46)  + scale_x_log10() + geom_density(alpha = 0.4) ,
   q.num (dat = surv, key = key, q = 47),
-  q.num (dat = surv, key = key, q = 48), 
-  q.num (dat = surv, key = key, q = 49),
-  q.num (dat = surv, key = key, q = 50), 
+  q.num (dat = surv, key = key, q = 48)  + scale_x_log10() + geom_density(alpha = 0.4) , 
+  q.num (dat = surv, key = key, q = 49) + scale_x_log10() + geom_density(alpha = 0.4) ,
+  q.num (dat = surv, key = key, q = 50) + scale_x_log10() + geom_density(alpha = 0.4) , 
   q.num (dat = surv, key = key, q = 51) + ggtitle('16f. How often do you have a bad day?') + xlab("1/yr = 1, 1/month = 2, 1/week = 3, >1/week = 4"),
   nrow=3, ncol=3
 )
 ```
 
-Most people fish in company of other fishermen, but almost a fifth of our surveyed fishermen fish alone. Crew size varies across places, very few people fish with crews > 12, and they are from Taganga or Las Flores, the fishing towns where open sea fishing with more industrial styles are possible. In fact, the maximum crew size for Tasajera is 5 and in Buenavista is 3 or 4. Most people fish with the same crew, but most of the time the decision on when to go fishing is made by other person than the intervieweed. The most typical boat is *bote* which implies a small size vessel without engine or with a small power engine. Only few people (<20) fish on *lanchas* which are bigger boats with more powerful engines, most of them are located in Las Flores where wind and currents are strong due to the Magdalena river delta. Similarly, around 60% of fishermen are not the captain neither own the boat they fish with. They don't fish on the same places either. Half of the people own their fishing art being ownership most common in Buenavista and less common in Taganga. 
+Most people fish in company of other fishermen, but almost a fifth of our surveyed fishermen fish alone. Crew size varies across places, very few people fish with crews > 12, and they are from Taganga or Las Flores, the fishing towns where open sea fishing with more industrial styles are possible. In fact, the maximum crew size for Tasajera is 5 and in Buenavista is 3 or 4. Most people fish with the same crew, but most of the time the decision on when or where to go fishing is made by other person than the intervieweed. The most typical boat is *bote* which implies a small size vessel without engine or with a small power engine. Only few people (<20) fish on *lanchas* which are bigger boats with more powerful engines, most of them are located in Las Flores where wind and currents are strong due to the Magdalena river delta. Similarly, around 60% of fishermen are not the captain neither own the boat they fish with. They don't fish on the same places either. Half of the people own their fishing art; ownership is most common in Buenavista and less common in Taganga. 
 
 ```{r fishing_arts, fig.height=12, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
 grid.arrange(
   q.num (dat = surv, key = key, q = 52),
   q.num (dat = surv, key = key, q = 53), 
-  q.num (dat = surv, key = key, q = 54),
-  q.num (dat = surv, key = key, q = 55), 
+  q.num (dat = surv, key = key, q = 54) ,
+  q.num (dat = surv, key = key, q = 55) , 
   q.num (dat = surv, key = key, q = 56), 
   q.num (dat = surv, key = key, q = 58),
   q.num (dat = surv, key = key, q = 59), 
@@ -196,48 +216,32 @@ grid.arrange(
   nrow=3, ncol=3
 )
 ```
-The graphs below summarize the most important species and some other textual answers from previous sections of the survey.
+The graphs below summarize the most important species and some other textual answers from previous sections of the survey. The first row shows the most common answers for the questions about their secondary activity when they are not fishing (left), who decides where and when to fish (center) and the most common fishing ground. Rows 2-5 show on the left the most important species, the fishing art used (center) and transportation means to reach the fishing grounds (right).
 
 ```{r fishing_txt, fig.height=15, fig.width=15, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
 # quartz(width=5, height =  5, family = "serif", pointsize = 6)
-par (mfrow= c(6,3), family = "serif")
-for (i in 1:14){
-  x <- c(24,28,42,57,62:65,69,70,74:75,79:80)
+oldpar <- par()
+par (mfrow= c(5,3), family = "serif")
+for (i in 1:15){
+  x <- c(42, 57,62:65,68, 69,70,73:75,78:80)
   q.txt (dat = surv, key = key, q = x[i])
-} # problems with 68, 73, 79
+} 
+par (oldpar)
+```
+The graphs below are a bit weird to interpret. We asked the fishermen what were the most important species they fish, their names appear above. Afterwards we asked them to rank them from most important (1) to less important (4), and importance were divided by biomass in kg or by money earned. So the results only make sense when looking at individual interviews, at the aggregated level they are confusing.
 
-
-# # q.txt (dat = surv, key = key, q = 24)
-# q.txt (dat = surv, key = key, q = 28)
- # q.txt (dat = surv, key = key, q = 42),
-#q.txt (dat = surv, key = key, q = 57),
-#q.txt (dat = surv, key = key, q = 62),
- # q.txt (dat = surv, key = key, q = 63),
-  # q.txt (dat = surv, key = key, q = 64),
-  # q.txt (dat = surv, key = key, q = 65),
-  # q.txt (dat = surv, key = key, q = 57), 
- # q.txt (dat = surv, key = key, q = 68),
-  # q.txt (dat = surv, key = key, q = 69),
-  # q.txt (dat = surv, key = key, q = 70), 
-  # q.txt (dat = surv, key = key, q = 73),
-  # q.txt (dat = surv, key = key, q = 74),
-  # q.txt (dat = surv, key = key, q = 75), 
-  # q.txt (dat = surv, key = key, q = 78),
-  # q.txt (dat = surv, key = key, q = 79),
-  # q.txt (dat = surv, key = key, q = 80), 
- 
+```{r fishing_act, fig.height=10, fig.width=6, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
 grid.arrange(
-  q.num (dat = surv, key = key, q = 66),
-  q.num (dat = surv, key = key, q = 67),
-  q.num (dat = surv, key = key, q = 71),
-  q.num (dat = surv, key = key, q = 72),
-  q.num (dat = surv, key = key, q = 76),
-  q.num (dat = surv, key = key, q = 77),
-  q.num (dat = surv, key = key, q = 81),
-  q.num (dat = surv, key = key, q = 82),
-  nrow = 3, ncol= 3
+  q.num (dat = surv, key = key, q = 66) + xlab(NULL) + ggtitle("Importance spp1 Kg") ,
+  q.num (dat = surv, key = key, q = 67) + xlab(NULL) + ggtitle("Importance spp1 $$"),
+  q.num (dat = surv, key = key, q = 71)+ xlab(NULL) + ggtitle("Importance spp2 Kg"),
+  q.num (dat = surv, key = key, q = 72)+ xlab(NULL) + ggtitle("Importance spp2 $$"),
+  q.num (dat = surv, key = key, q = 76) + xlab(NULL)+ ggtitle("Importance spp3 Kg"),
+  q.num (dat = surv, key = key, q = 77) + xlab(NULL)+ ggtitle("Importance spp3 $$"),
+  q.num (dat = surv, key = key, q = 81) + xlab(NULL)+ ggtitle("Importance spp4 Kg"),
+  q.num (dat = surv, key = key, q = 82) + xlab(NULL)+ ggtitle("Importance spp4 $$"),
+  nrow = 4, ncol= 2
 )
-
 ```
 
 
@@ -245,12 +249,164 @@ Where does the food goes? Most fishermen take some fish home but they usually se
 
 ```{r fishing_prod, fig.height=8, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
 grid.arrange(
-   q.num (dat = surv, key = key, q = 83),  q.num (dat = surv, key = key, q = 84), q.num (dat = surv, key = key, q = 85),
-   # q.txt (dat = surv, key = key, q = 86), 
-   q.num (dat = surv, key = key, q = 87), q.num (dat = surv, key = key, q = 88), 
-   # q.txt (dat = surv, key = key, q = 89), 
+   q.num (dat = surv, key = key, q = 83),  
+   q.num (dat = surv, key = key, q = 84), 
+   q.num (dat = surv, key = key, q = 85),
+   q.num (dat = surv, key = key, q = 87), 
+   q.num (dat = surv, key = key, q = 88), 
    q.num (dat = surv, key = key, q = 90), 
-   # q.txt (dat = surv, key = key, q = 91),
    nrow=2, ncol=3
 )
 ```
+The following word clouds show who is the main person who buys the fish (left). For fisherment who answered that they don't see themeselves fishing in the future, we asked why not? their most common words used are shown in the middle; and for fishermen who aswered that they don't see their kids fishing in the future, their most common words used are plotted in the right. 
+```{r prod_txt, fig.height= 2, fig.width= 6, collapse= TRUE, fig.align= 'center', fig.show='hold'}
+oldpar <- par()
+par (mfrow= c(1,3), family = "serif")
+q.txt (dat = surv, key = key, q = 86)
+q.txt (dat = surv, key = key, q = 89)
+q.txt (dat = surv, key = key, q = 91)
+par (oldpar)
+```
+
+
+### 3. Changes in resources & TEK
+When we asked about species dynamics people reported that there has been speces that they don't fish as much as before. More than 150 respondants report this changes as dramatic. On the left you see the word cloud for the most frequent words used when asked *what has changed?*, in the center *which species have changed?* and *how?* (left). The following rows and columns correspond to the answers in question 35 which is a table. Each respondant was asked  *what happened?* (left), *what do they think were the causes* (center), and *how were they affected?* (left) for a maximum of 4 of this abrupt events or drastic changes on resouce availability. Accordingly, for each of the 4 changes mentioned, we also asked *when did it happen?* and *how long has been the resource missing?*. The later questions are numerical and summarized below the word clouds. 
+
+```{r fishing_sp_txt, fig.height=12, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+oldpar <- par()
+par (mfrow= c(5,3), family = "serif")
+for (i in 1:15){
+  x <- c(93,95,97,118,100:102,105:107,110:112,115,116)
+  q.txt (dat = surv, key = key, q = x[i]) 
+}
+par (oldpar)
+```
+
+```{r fishing_species, fig.height=8, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+grid.arrange(
+  q.num (dat = surv, key = key, q = 92) + xlab("Yes=1, No=0"),  
+  q.num (dat = surv, key = key, q = 94) + xlab("Yes=1, No=0"),  
+  q.num (dat = surv, key = key, q = 96) + xlab("Yes=1, No=0"),
+  # q.num (dat = surv, key = key, q = 97), 
+  q.num (dat = surv, key = key, q = 98), 
+  q.num (dat = surv, key = key, q = 99),  
+  q.num (dat = surv, key = key, q = 103),  
+  q.num (dat = surv, key = key, q = 104), 
+  q.num (dat = surv, key = key, q = 108),
+  q.num (dat = surv, key = key, q = 109), 
+  q.num (dat = surv, key = key, q = 113), 
+  q.num (dat = surv, key = key, q = 114),
+  nrow=3, ncol=4
+)
+```
+
+
+Responses on abrupt events on fishing: In question 35 people were asked if they have experienced an abrupt change (above graph). Questions 36:40 were only asked to people who did experience abrupt changes, so N != 256. People were asked if the abrupt event described on table/question 35 have affected what they fish. Most people answer positively, nevertheless about 40 people say 'no'. Since the occurrance of the event, most people spend more time fishing, less than 20 spends the same or less time respectively. Just above 60 people changed their fishing area while just below 50 didn't. Questions 37 to 39 explore the hypothetical case of drastic events in the future. Most people expected abrupt changes in the future but they strategies on how they would deal with it varies: In case of an abrupt event fewer people would continue fishing, most of them won't increase effort, but they won't reduce their fishing time neither, less than 40 would consider changing fishing grounds or fishing arts, and most of them wont stop fishing. 
+
+```{r fishing_resp, fig.height=8, fig.width=15, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+grid.arrange(
+  q.num (dat = surv, key = key, q = 117),  
+  q.num (dat = surv, key = key, q = 119) + ggtitle("more or less time fishing?"), 
+  q.num (dat = surv, key = key, q = 120),
+  q.num (dat = surv, key = key, q = 121) + ggtitle("37. Expect changes?"), 
+  #q.num (dat = surv, key = key, q = 123), 
+  q.num (dat = surv, key = key, q = 124),  
+  q.num (dat = surv, key = key, q = 126),  
+  q.num (dat = surv, key = key, q = 128), 
+  q.num (dat = surv, key = key, q = 130),
+  q.num (dat = surv, key = key, q = 132), 
+  q.num (dat = surv, key = key, q = 134), 
+ # q.num (dat = surv, key = key, q = 137),
+  nrow=2, ncol=5
+)
+
+```
+Question 38 explores what they think would be the cause of the hypotehtical abrupt event, being climate change, overfishing and pollution among the expected causes. The rest of the word clouds are the answer of open questions that follows up the multiple selection described above. So for example, if the respondant said in question 39.2 that she or he will continue fishing in case of the drastic event, the world cloud below for 39.2 explores the answers to the follow up question *why?*.
+
+```{r fishing_resp_txt, fig.height=12, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+oldpar <- par()
+par (mfrow= c(3,3), family = "serif")
+for (i in 1:8){
+  x <- c(122,125,127,129,131,133,135,136) # 144 not ploted
+  q.txt (dat = surv, key = key, q = x[i]) 
+}
+par (oldpar)
+```
+
+### 4. Cooperation and community
+
+Most fishermen shared their fishing arts, but only ~100 belong to a fishing coop. The community with stronger coop presence is Las Flores (note however that our local contact was the coop leader!) while the community with less cooperative participation is Buenavista. People participating in coops usually meet once a month followed by twice a year. Surprisingly, most participants self-report to be treasurers (but there is only one treasurer per coop!?). The graphs about the reasons to belong to a coop doesn't make much sense. Future versions should compare (bars) for positive answers, here I'm not sure if negative was coded as default or that they did not perceive the benefit. For example, for 'better prices' only 20 people report that benefit while ~80 said 'no' to that question. 
+
+
+```{r cooperation, fig.height=12, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+grid.arrange(
+  q.num (dat = surv, key = key, q = 137) + xlab(NULL),  
+  q.num (dat = surv, key = key, q = 139)+ xlab(NULL), 
+  q.num (dat = surv, key = key, q = 141) + xlab("1/year = 1,  2/year = 2, 1/month = 3,  1/week = 4"),
+  q.num (dat = surv, key = key, q = 142), 
+  q.num (dat = surv, key = key, q = 143) + xlab ("0 = representant, 1= President, 2= secretary,\n 3= treasurer, 4= active member, 5= other"), 
+  #q.num (dat = surv, key = key, q = 146),  
+  q.num (dat = surv, key = key, q = 147)+ xlab(NULL) ,  
+  q.num (dat = surv, key = key, q = 148) + xlab(NULL), 
+  q.num (dat = surv, key = key, q = 149)+ xlab(NULL),
+  q.num (dat = surv, key = key, q = 150)+ xlab(NULL), 
+  q.num (dat = surv, key = key, q = 151)+ xlab(NULL), 
+  q.num (dat = surv, key = key, q = 152)+ xlab(NULL),
+  q.num (dat = surv, key = key, q = 153)+ xlab(NULL), 
+  q.num (dat = surv, key = key, q = 154)+ xlab(NULL),
+  nrow=4, ncol=4
+)
+```
+The word clouds below correspond to the questions *who do you ask for help when needed?*, *which coop do you belong to?*, if the respondant said that he/she has another role in question 42.4, here we follow up with *which other role?*, and the last one summarizes the benefits of belonging to a coop.
+```{r coop_txt, fig.height=2, fig.width=6, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+oldpar <- par()
+par (mfrow= c(1,4), family = "serif")
+for (i in 1:4){
+  x <- c(138, 140,144,145 ) 
+  q.txt (dat = surv, key = key, q = x[i]) 
+}
+par (oldpar)
+```
+
+### 5. Demographics
+
+Almost all our game participants were male fishermen, most of them married or in co-habitation with partner. The average age for the full sample is `r mean(surv[,157], na.rm=T)` and the median is `r median(surv[,157], na.rm=T)`. Our sample is younger in Taganga and older in Las Flores. Most people finished elementary school, over 25 respondents didn't have any formal education, and less than 20 had university degrees almost all of them from Taganga (There is an error with 0 - datapoint in Tasajeras). Most respondants were born on the community but ~70 of them came from somewhere else (error data point with 10). About 40 people have been moving around while <200 have always live in the same community.  
+
+```{r demographics, fig.height=9, fig.width=12, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+
+grid.arrange(
+  q.num (dat = surv, key = key, q = 155), 
+  q.num (dat = surv, key = key, q = 156) + xlab ("1= single, 2= married, 3= co-habitation, 4= divorce/widowed"),
+  q.num (dat = surv, key = key, q = 157), 
+  q.num (dat = surv, key = key, q = 158) + xlab ("1= none,  2= elementary,  3=high school, 4= university"),
+  q.num (dat = surv, key = key, q = 159), 
+  q.num (dat = surv, key = key, q = 160),
+  q.num (dat = surv, key = key, q = 162), 
+  q.num (dat = surv, key = key, q = 163),
+  q.num (dat = surv, key = key, q = 164), 
+  q.num (dat = surv, key = key, q = 165),
+  q.num (dat = surv, key = key, q = 232) + xlab (NULL),
+  
+  nrow=3, ncol=4
+)
+
+```
+
+When asking if they have suffered forced displacement few respondents (n=5) report forced displacement from 6 months up to 7 years. Question 52 was designed to assess sense of place. Each participant was asked to agree or disagree on a scale from 1 to 4 (1=strongly agree, 2=agree, 3=disagree, 4 strongly disagree) with statements that were read outloud for them. The figure below summarize their answers per location.
+
+```{r sense_of_place, fig.height=9, fig.width=9, collapse=TRUE, fig.align='center', fig.show='hold', error=FALSE, warning=FALSE, message=FALSE}
+grid.arrange(
+   q.num (dat = surv, key = key, q = 166) + xlab (NULL), 
+  q.num (dat = surv, key = key, q = 167) + xlab (NULL),
+  q.num (dat = surv, key = key, q = 168) + xlab (NULL), 
+  q.num (dat = surv, key = key, q = 169) + xlab (NULL),
+  q.num (dat = surv, key = key, q = 170) + xlab (NULL), 
+  q.num (dat = surv, key = key, q = 171) + xlab (NULL),
+  q.num (dat = surv, key = key, q = 172) + xlab (NULL), 
+  q.num (dat = surv, key = key, q = 173) + xlab (NULL),
+  q.num (dat = surv, key = key, q = 174) + xlab (NULL),
+  nrow=3, ncol=3
+)
+```
+
+The only information that has not been ploted from the survey is the table 53 where we ask about the household composition and income.
