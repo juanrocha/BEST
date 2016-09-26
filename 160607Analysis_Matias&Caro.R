@@ -3,6 +3,11 @@
 ## Notes: we can run the analysis at the individual level or group level
 ## for group level we need to summarize / agregate the data
 
+library(ggplot2)
+library(dplyr)
+
+
+
 setwd("~/Dropbox/BEST/Colombia/0_Game data") # here is the data
 dat <- read.csv(file="~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv", row.names=1) # in long format, short format also available
 
@@ -13,7 +18,9 @@ dat <- mutate (dat, crossThreshold = ifelse(dat$Treatment == 'Base line' | dat$p
                                             dat$IntermediateStockSize - 20, 
                                             dat$IntermediateStockSize - 28))
 
-dat <- mutate (dat, crossThreshold = StockSizeBegining - 28)
+dat <- mutate (dat, threshold = ifelse (dat$Treatment == "Base line" | dat$part == FALSE, 20, 28 ))
+
+# dat <- mutate (dat, crossThreshold = StockSizeBegining - 28)
 
 
 str(dat)
@@ -23,8 +30,12 @@ summary(dat)
 
 dat <- dat %>%
   mutate (dev_drop = ifelse(dat$Treatment == 'Base line' | dat$part == FALSE,
-                                ((dat$StockSizeBegining - 20)) ,  # - dat$value
-                                 ((dat$StockSizeBegining - 28))   )) #- dat$value
+                                ((dat$IntermediateStockSize - 20)) ,  # - dat$value
+                                 ((dat$IntermediateStockSize - 28))   )) #- dat$value
+
+dat <- dat %>%
+  mutate (optimal = (StockSizeBegining - threshold) / 4) %>%
+  mutate (cooperation = optimal - value)
 
 # create dummies for Treatments 0 for rounds 1-6, 1 for 7-16, and 1 for all base line.
 dat <- dat %>% 
@@ -36,12 +47,12 @@ dat <- dat %>%
 
 ## verify by filtering
 bl <- dat %>%
-  filter (Treatment == 'Threshold') %>% 
-  mutate (deviation = IntermediateStockSize - 28) # change 28 to 20 depending if you use treatment or base line
+  filter (Treatment == 'Base line') %>% 
+  mutate (deviation = IntermediateStockSize - 20) # change 28 to 20 depending if you use treatment or base line
 
 test <- dat %>% 
-  filter (Treatment == 'Threshold') %>%
-  select (dev_treshold)
+  filter (Treatment == 'Base line') %>%
+  select (dev_drop)
 
 # test is correct, the mean should be 1 and only 1, meaning all values is TRUE
 mean(bl$deviation == test)
@@ -54,18 +65,19 @@ rm(dat.g)
 names(dat)[16] <- 'dev_threshold'
 
 ## modeling libraries
-install.packages(pkgs =  'apsrtable')
+# install.packages(pkgs =  'apsrtable')
 
 ols <- lm(dev_threshold ~ Treatment + Place, data = dat)
 summary (ols) # ordinary least squares regression does not consider heterogeneity across groups or time
 plot(ols)
+anova (ols)
 
-mod <- aov(dev_threshold ~ Treatment, data = dat)
+mod <- aov(dev_threshold ~ Treatment + Place, data = dat)
 summary (mod)
 
 ## Fixed effects using least squares dummy variable model
 
-fixed.dum <- lm(value ~ Treatment + factor (Place) - 1, data = dat ) # one needs to rest 1 to the factors (?)
+fixed.dum <- lm(dev_drop ~ Treatment + factor (Place) - 1, data = dat ) # one needs to rest 1 to the factors (?)
 summary(fixed.dum)
 
 # fixed effect with plm

@@ -1,0 +1,38 @@
+---
+title: "Behavioural Economics in Social-Ecological Systems with Thresholds"
+author: "Juan Rocha, Caroline Schill, et al [?]"
+date: "12 September 2016"
+output:
+    pdf_document:
+        toc: yes
+        toc_depth: 2
+        citation_package: natbib
+    word_document: null
+fontsize: 11pt
+bibliography: arcticRS.bib
+cls: pnastwo.cls
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Abstract
+
+How does people behave when dealing with situations pervaded by thresholds? Imagine you’re a fisherman whose livelihoods depend on a resource on the brink to collapse, what would you do? and what do you think others will do? Here we report results form a field experiment with fishermen from four coastal communities in the Colombian Caribbean. A dynamic game with 256 fishermen helped us investigate behavioural responses to the existence of thresholds (probability =1 ), risk (threshold with a climate event with known probability of 0.5) and uncertainty (threshold with an unknown probability climate event). Communication was allowed during the game and the social dilemma was confronted in groups of 4 fishermen. We found that fishermen facing thresholds presented a more conservative behaviour on the exploration of the parameter space of resource exploitation. Some groups that crossed the threshold managed to recover to a regime of high fish reproduction rate. However, complementary survey data reveals that groups that collapsed the resource in the game come often from communities with high livelihood diversification, lower resource dependence and strongly exposed to infrastructure development. We speculate that the later translates on higher noise levels on resource dynamics which decouples or mask the relationship between fishing efforts and stock size encouraging a more explorative behaviour of fishing effort in real life. This context is brought to our artificial game and leave statistical signatures on resource exploitation patterns. In general, people adopt a precautionary behaviour when dealing with common pool resource dilemmas with thresholds. However, stochasticity can trigger the opposite behaviour.
+
+## Introduction
+
+## Methods
+
+## Results
+
+Is there a treatment effect?
+
+
+
+## Discussion
+
+## Conclusions
+
+

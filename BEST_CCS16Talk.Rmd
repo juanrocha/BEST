@@ -1,0 +1,373 @@
+---
+title: "Behavioural Economics in Social Ecological Systems with Thresholds"
+author: "Juan Rocha"
+date: "12 September 2016"
+output: 
+  html_document:
+    self_contained: true
+    toc: true
+    deep: 2
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+    fig_width: 5
+    fig_height: 5
+    dev: png
+    code_folding: hide  
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library (plm)
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(RColorBrewer)
+library(GGally)
+# library(vegan)
+# library(cluster)
+# library(NbClust);library(kohonen)
+# library(mclust); library(clValid)
+library(ineq) # for gini
+```
+
+```{r setup_data, include = FALSE}
+
+
+setwd("~/Dropbox/BEST/Colombia/0_Game data") # here is the data
+dat <- read.csv(file="~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv", row.names=1) # in long format, short format also available
+
+# set directory for figures
+setwd('~/Documents/Projects/BEST - Beijer/Figs & results')
+
+## Preliminary data exploration
+
+names(dat)
+str(dat)
+summary(dat)
+
+# Correct & unify place, treatment names
+# levels(dat$Place)[3] <- "Las Flores"
+# levels(dat$Treatment)[c(1,3)] <- 'Uncertainty'
+# levels(dat$Treatment)[c(2,7)] <- 'Risk'
+# levels(dat$Treatment)[c(3,5)] <- 'Base line'
+# levels(dat$Treatment)[c(4,5)] <- 'Threshold'
+
+# Correct date, session, player as factor
+# dat$Date <- as.factor(dat$Date)
+# levels(dat$Date) <- c('2016-02-09', '2016-02-01', '2016-02-02','2016-02-03','2016-02-04','2016-02-05','2016-02-10','2016-02-12') # standard dates
+# levels(dat$Session) <- c('am','pm')
+# levels(dat$Player) <- c('1','2','3','4')
+
+# dat$part <- dat$Round > 6
+
+# Create player ID's as in Surveys.R
+dat <- transform (dat, ID_player = interaction(Date, Treatment, Session, Player, drop = TRUE))
+# Create ID group
+dat <- transform(dat, group = interaction (Date, Treatment, Session, drop=T))
+
+# We need to make NA explicit: this is, rounds that were not played (as zeroes) because resource was collapsed
+summary (dat)
+dat2 <- dplyr::select(dat, -StockSizeBegining, -SumTotalCatch, -IntermediateStockSize, -Regeneration, -NewStockSize,-part) %>%
+  spread(key=Round, value=value)
+
+dat3 <- dplyr::select(dat2, 8:23)
+dat3 <- as.matrix(dat3)
+dat3[is.na(dat3)] <- 0
+dat2[,8:23] <- dat3
+
+dat3 <- dat2 %>%
+  gather(Round, value, 8:23)
+dat3$Round <- as.numeric(dat3$Round)
+
+dat <- full_join(dat3, dat)
+str(dat)
+summary(dat)
+dat <- gdata::drop.levels(dat)
+
+dat.noNA <- dat
+summary (dat.noNA)
+dat.noNA$StockSizeBegining[is.na(dat.noNA$StockSizeBegining)] <-  0
+dat.noNA$SumTotalCatch[is.na(dat.noNA$SumTotalCatch)] <-  0
+dat.noNA$IntermediateStockSize[is.na(dat.noNA$IntermediateStockSize)] <-  0
+dat.noNA$Regeneration[is.na(dat.noNA$Regeneration)] <-  0
+dat.noNA$NewStockSize[is.na(dat.noNA$NewStockSize)] <-  0
+
+dat <- dat.noNA
+# write.csv(dat, file='160427_corrected_full_data_long.csv')
+
+# check that ID's are equal in both datasets
+# levels(dat$ID_player) %in% levels(surv.dat$ID_player)
+# levels(surv.dat$ID_player) %in% levels(dat$ID_player)
+# 
+# # Now you can join them and use both datasets for stats!!
+# full <- full_join(dat, surv.dat, by= c('ID_player' = 'ID_player', 'Session' = 'Session', 
+#                                         'Date' = 'date', 'Place' = 'locationName', 'Round'='round'))
+# str(full)
+
+
+dat <- mutate (dat, crossThreshold = ifelse(dat$Treatment == 'Base line' | dat$part == FALSE, 
+                                            dat$IntermediateStockSize - 20, 
+                                            dat$IntermediateStockSize - 28))
+
+dat <- mutate (dat, threshold = ifelse (dat$Treatment == "Base line" | dat$part == FALSE, 20, 28 ))
+
+# dat <- mutate (dat, crossThreshold = StockSizeBegining - 28)
+
+# 
+# str(dat)
+# summary(dat)
+
+## Use the deviation from threshold, and dev_t_divided by 4
+
+dat <- dat %>%
+  mutate (dev_drop = ifelse(dat$Treatment == 'Base line' | dat$part == FALSE,
+                                ((dat$IntermediateStockSize - 20)) ,  # - dat$value
+                                 ((dat$IntermediateStockSize - 28))   )) #- dat$value
+
+dat <- dat %>%
+  mutate (optimal = (StockSizeBegining - threshold) / 4) %>%
+  mutate (cooperation = optimal - value)
+
+# create dummies for Treatments 0 for rounds 1-6, 1 for 7-16, and 1 for all base line.
+dat <- dat %>% 
+  mutate (BL = ifelse (dat$Treatment != "Base line" , 0,1) ,
+          TR = ifelse (dat$Treatment == 'Threshold' & dat$part == TRUE, 1, 0) , 
+          U = ifelse (dat$Treatment == 'Uncertainty' & dat$part == TRUE, 1, 0) , 
+          R = ifelse (dat$Treatment == 'Risk' & dat$part == TRUE, 1, 0) 
+          )
+
+### Group level data
+group_dat <- dat %>%
+  select (Treatment, Place, group, Round, StockSizeBegining, IntermediateStockSize, 
+          Regeneration, NewStockSize, part, BL,TR,U,R) %>%
+  unique ()
+
+```
+
+# Analysis at the individual level
+
+
+### Definition of cooperation: an individual based analysis
+
+Cooperation is measured as _the right thing to do_ minus what people actually did, aka. _value_. The _right thing to do_ can be approximated as the _StockSizeBegining_ minus _Threshold_. The later is the drop point on the reproduction rate of the stock, which is 20 for Base line and 28 for other treatments. Therefore, if cooperation is zero, is at its maximum value, if it's >0 it means people did cooperate in order to avoid the threshold but were not efficient at maximizing their personal utility; if <0 it means people did not cooperate and prefered maximizing their utility over the common good of maintaining the resource on the long run. This is how cooperation look for our `r dim(dat)[1]` observations:
+
+***
+
+```{r coop, echo = FALSE, fig.height= 4, fig.width= 4, fig.align='center'}
+plot (density(dat$cooperation), main= "Cooperation at individual level")
+```
+
+### Ordinary least squares approximation {.smaller}
+It's a naive approach that doesn't take into consideration heterogeneity across groups or time.
+```{r ols}
+ols <- lm(cooperation ~ Treatment + Place, data = dat)
+summary (ols)
+```
+
+*** 
+
+```{r mod1, fig.height= 3, fig.width=3}
+plot(ols, cex = 0.8)
+```
+
+### Anova:  Analisis of variance
+
+```{r anova}
+anova (ols)
+
+
+aov (cooperation ~ Treatment + Place, data = dat)
+```
+
+### Fixed effects using least squares dummy variable model {.smaller}
+```{r fix_effects}
+fixed.dum <- lm(cooperation ~ Treatment + factor (Place) - 1, data = dat )
+summary(fixed.dum)
+```
+
+### Panel data model with fixed effects {.smaller}
+```{r plm_fixed}
+fixed <- plm (cooperation ~ BL + U + R + TR , data = dat, index = c('ID_player' ,'Round'), model = 'within')
+summary (fixed)
+```
+
+### Panel data model with random effects {.smaller}
+```{r random}
+random <- plm (cooperation ~  BL + U + R + TR , data = dat , index = c('ID_player' ,'Round'), model = 'random')
+summary (random)
+```
+
+### fixed or random
+p-value is > 0.05 then we should use random effect model
+
+```{r test1}
+phtest(fixed, random)
+```
+
+
+### Include time fixed effects {.smaller}
+```{r time, echo = FALSE}
+random.time <- plm (cooperation ~  BL + U + R + TR + Round + Place, data = dat , index = c('ID_player' ,'Round'), model = 'random')
+summary (random.time)
+# fixed.time <- plm (cooperation ~  BL + U + R + TR + Round , data = dat , index = c('ID_player' ,'Round'), model = 'within')
+# summary (fixed.time)
+# phtest(fixed.time, random.time) # use random
+```
+
+
+### Testing for random effects {.smaller}
+```{r pool}
+pool <- plm(cooperation ~  BL + U + R + TR + Round ,
+            data = dat , index = c('ID_player' ,'Round'), 
+            model = 'pooling')
+
+summary (pool)
+```
+
+### Breusch-Pagan Lagrange multiplier (LM)
+The Lagrange multiplier helps decide between random effects regression or a simple OLS regression. If p<0.05 a random model is preferred, meaning there is evidence that there is differences amongst treatments.
+
+```{r test2}
+plmtest(pool, type = 'bp')
+```
+
+### Testing for cross-sectional dependnece
+It seems that there is cross-sectional dependence, probably the location effect.
+```{r test3}
+pcdtest(random, test = c('lm'))
+
+pcdtest(random, test = c("cd"))
+```
+
+
+### Testing for serial correlation
+There is serieal correlation. It shouldn't be a problem in micropanels with few years like ours.
+```{r test4}
+pbgtest(random)
+```
+
+### Dickey-Fuller test
+It check for stochastic trends, the null hypothesis is that the series as a unit root (non-stationary). If root is present one can take the first difference of the variable. p-value is < 0.05 then there is no unit roots present.
+```{r test5, warning = FALSE}
+panel.set <- plm.data (dat , index = c('ID_player' ,'Round') ) 
+library(tseries)
+adf <-  adf.test (panel.set$cooperation, k=2)
+adf
+```
+
+### Breusch-Pagan test for homoskedasticity
+p < 0.05 therefore there is presence of heteroskedasticity, one can use robust covariance matrix to account for it.
+
+```{r test6, echo = FALSE, warning= FALSE}
+library(lmtest)
+bptest(cooperation ~  BL + U + R + TR , data = dat , studentize = F )
+```
+
+# Analysis at the group level
+At the group level the response variable is _IntermediateStockSize_, else remains the same. The dataset used is therefore smaller: `r dim(group_dat)[1]` observations.
+
+### Ordinary least squares approximation {.smaller}
+```{r g_ols}
+ols <- lm(IntermediateStockSize ~ Treatment + Place, data = group_dat)
+summary (ols)
+```
+
+*** 
+
+```{r g_mod1, fig.height= 3, fig.width=3}
+plot(ols, cex = 0.8)
+```
+
+### Anova:  Analisis of variance
+
+```{r g_anova}
+anova (ols)
+
+
+aov (IntermediateStockSize ~ Treatment + Place, data = group_dat)
+```
+
+### Fixed effects using least squares dummy variable model {.smaller}
+```{r g_fix_effects}
+fixed.dum <- lm(IntermediateStockSize ~ Treatment + factor (Place) - 1, data = group_dat )
+summary(fixed.dum)
+```
+
+### Panel data model with fixed effects {.smaller}
+Note that here there is less of an treatment effects, p-values are not significant anymore (at 0.05)
+```{r g_plm_fixed}
+fixed <- plm (IntermediateStockSize ~  U + R + TR + Round , data = group_dat, index = c('group' ,'Round'), model = 'within')
+summary (fixed)
+```
+
+### Panel data model with random effects {.smaller}
+```{r g_random}
+random <- plm (IntermediateStockSize ~  BL + U + R + TR , data = group_dat , index = c('group' ,'Round'), model = 'random')
+summary (random)
+```
+
+### fixed or random
+p-value is > 0.05 then we should use random effect model
+
+```{r g_test1}
+phtest(fixed, random)
+```
+
+
+## Include time fixed effects {.smaller}
+```{r g_time, echo = FALSE}
+random.time <- plm (IntermediateStockSize ~  + U + R + TR + Round , data = group_dat , index = c('group' ,'Round'), model = 'random')
+summary (random.time)
+# fixed.time <- plm (IntermediateStockSize ~  BL + U + R + TR + Round , data = group_dat , index = c('ID_player' ,'Round'), model = 'within')
+# summary (fixed.time)
+# phtest(fixed.time, random.time) # use random
+```
+
+
+## Testing for random effects {.smaller}
+```{r g_pool}
+pool <- plm(IntermediateStockSize ~  BL + U + R + TR + Round ,
+            data = group_dat , index = c('group' ,'Round'), 
+            model = 'pooling')
+
+summary (pool)
+```
+
+### Breusch-Pagan Lagrange multiplier (LM)
+The Lagrange multiplier helps decide between random effects regression or a simple OLS regression. If p<0.05 a random model is preferred, meaning there is evidence that there is differences amongst treatments.
+
+```{r g_test2, warning= FALSE}
+plmtest(pool, type = 'bp')
+```
+
+### Testing for cross-sectional dependnece
+It seems that there is cross-sectional dependence, probably the location effect.
+```{r g_test3}
+pcdtest(random, test = c('lm'))
+
+pcdtest(random, test = c("cd"))
+```
+
+
+### Testing for serial correlation
+There is serieal correlation. It shouldn't be a problem in micropanels with few years like ours.
+```{r g_test4}
+pbgtest(random)
+```
+
+### Dickey-Fuller test
+It check for stochastic trends, the null hypothesis is that the series as a unit root (non-stationary). If root is present one can take the first difference of the variable. p-value is < 0.05 then there is no unit roots present.
+```{r g_test5, warnings = FALSE}
+panel.set <- plm.data(group_dat, index = c('group' ,'Round')) 
+library(tseries)
+adf <-  adf.test (panel.set$IntermediateStockSize, k=2)
+adf
+```
+
+### Breusch-Pagan test for homoskedasticity
+p < 0.05 therefore there is presence of heteroskedasticity, one can use robust covariance matrix to account for it.
+
+```{r g_test6}
+library(lmtest)
+bptest(IntermediateStockSize ~  BL + U + R + TR , data = group_dat , studentize = F )

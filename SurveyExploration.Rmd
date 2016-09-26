@@ -70,7 +70,7 @@ We ran a survey with each of the 256 participants of our fishing game. The 56 qu
 4. cooperation and community activities
 5. demographic information at household level
 
-For each section I present a series of graphic summaries for questions whose answer was binary, ordinal or numeric. For most plots colors are divided by place, but upon request I can change for treatments to see the treatment differences on box plots. For text data (e.g. open questions) you will find word clouds that show the most frequent words used on the survey. In the future we can also produce one cloud per place to see differences. Due to encoding problems you will find some weird words, for example 'mx97s' which should be 'maás'. No matter what enconding I use when importing the data, I still get errors; but the patterns are the same.
+For each section I present a series of graphic summaries for questions whose answer was binary, ordinal or numeric. For most plots colors are divided by place, but upon request I can change for treatments to see the treatment differences on box plots. For text data (e.g. open questions) you will find word clouds that show the most frequent words used on the survey. In the future we can also produce one cloud per place to see differences. Due to encoding problems you will find some weird words, for example 'mx97s' which should be 'más'. No matter what enconding I use when importing the data, I still get errors; but the patterns are the same.
 
 ```{r set_data, echo=FALSE, include=FALSE}
 # This chunk import the data and set it up for analysis. I also load the function 'question' for later ploting

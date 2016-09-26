@@ -26,7 +26,7 @@ wordcloud(dat, scale = c(3, 0.5),min.freq = 0.1, max.words = 25,
 a0 <- dplyr::select(surv, id = 235, q = 68, place = locationName, treatment = treatmentName)
 if (class(a0$q) == 'factor') a0$q <- as.character(a0$q)
 x <- paste(a0$q, sep = ' ', collapse = ' ')
-dat <- Corpus(VectorSource(x), readerControl = list (language= 'spanish')) # options(mc.cores=1)
+dat <- Corpus(VectorSource(deparse(x)), readerControl = list (language= 'spanish')) # options(mc.cores=1)
 dat <-  tm_map (dat, removeWords, stopwords("spanish"))
 dat <- tm_map(dat, stripWhitespace)
 dat <- tm_map(dat, removePunctuation)

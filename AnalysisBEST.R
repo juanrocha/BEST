@@ -19,7 +19,7 @@ library(ggplot2)
 library(tidyr)
 library(dplyr)
 library(RColorBrewer)
-# library(GGally)
+library(GGally)
 # library(vegan)
 # library(cluster)
 # library(NbClust);library(kohonen)
@@ -89,18 +89,24 @@ dat <- dat.noNA
 # write.csv(dat, file='160427_corrected_full_data_long.csv')
 
 # check that ID's are equal in both datasets
-levels(dat$ID_player) %in% levels(surv.dat$ID_player)
-levels(surv.dat$ID_player) %in% levels(dat$ID_player)
+# levels(dat$ID_player) %in% levels(surv.dat$ID_player)
+# levels(surv.dat$ID_player) %in% levels(dat$ID_player)
+# 
+# # Now you can join them and use both datasets for stats!!
+# full <- full_join(dat, surv.dat, by= c('ID_player' = 'ID_player', 'Session' = 'Session', 
+#                                         'Date' = 'date', 'Place' = 'locationName', 'Round'='round'))
+# str(full)
 
-# Now you can join them and use both datasets for stats!!
-full <- full_join(dat, surv.dat, by= c('ID_player' = 'ID_player', 'Session' = 'Session', 
-                                        'Date' = 'date', 'Place' = 'locationName', 'Round'='round'))
-str(full)
+### Group level data
+group_dat <- dat %>%
+  select (Treatment, Place, group, Round, StockSizeBegining, IntermediateStockSize, 
+          Regeneration, NewStockSize, part) %>%
+  unique ()
 
 
 # Time series
 
-g <- ggplot(data=dat, aes(x=Round, y=NewStockSize)) 
+g <- ggplot(data=group_dat, aes(x=Round, y=NewStockSize)) 
 + geom_smooth(stat='smooth', aes(color=Place, group=Place))
 g + facet_grid(Treatment ~ .)
 
@@ -108,22 +114,22 @@ g2 <- g + stat_summary(fun.data='mean_cl_boot', geom='smooth')
         + ggtitle ('Treatments in Colombia \n Second part of the game') 
         + theme(text= element_text(family='Helvetica', size=10))  # working but with lots of warnings.
 
-g <- ggplot(data= dat, aes(x=Round, y=NewStockSize, group= ID_player)) +
-  geom_line(aes(color = group, group = ID_player), show.legend = F) +
-  facet_grid (Treatment ~ Place)
+g <- ggplot(data= filter(group_dat, part == T), aes(x=Round, y=NewStockSize, group= group)) +
+  geom_line(aes(color = group, group = group), show.legend = F) +
+  facet_grid (. ~ Treatment)
 g
 
 # Matrix of treatment per place, smooth over player decisions
 
-g <- ggplot(dat= filter (dat, part == 1) 
+g <- ggplot(dat= filter (group_dat, part == 1) 
               , aes(x=Round, y=IntermediateStockSize)) + geom_line(aes(colour = group, alpha = 0.2), show.legend = FALSE) +
 		geom_vline( aes( xintercept=6, color='red', alpha=0.1), show.legend = F) + 
-		stat_summary(fun.data='mean_cl_normal', geom='smooth') + # option 'mean_cl_boot I like the most but normal assumes normality
-		facet_grid(Treatment ~ Place) + ggtitle ('Intermediate Stock Size')
+		stat_summary(fun.data='mean_cl_boot', geom='smooth') + # option 'mean_cl_boot I like the most but normal assumes normality
+		facet_grid(.~Treatment)# + ggtitle ('Intermediate Stock Size')
 
 g
 
-# quartz.save(file='160525_meanTimeSeries_IntStockSize_smooth-noNA.png', type='png', dpi=100)
+# quartz.save(file='160919_rawData_2part.png', type='png', dpi=200, width = 8, height=3)
 
 #should be equivalent but is not. Prefer the one above.
 g <- ggplot(dat=dat, aes(x=Round, y=value)) + 
@@ -217,23 +223,23 @@ library(plot3D)
 
 
 
-pm <- ggpairs(data=dat, columns=c('StockSizeBegining', 'NewStockSize', 'Treatment','Place'),
+pm <- ggpairs(data=group_dat, columns=c( 'NewStockSize', 'Treatment','Place'), #'StockSizeBegining',
               mapping=aes(color= Treatment, alpha=0.5))+ 
               theme(text= element_text(family='Helvetica', size=8))
-
+pm
 ggpairs(data=dat, columns=c('StockSizeBegining', 'NewStockSize', 'value'), 
         mapping=aes(color= Place, alpha=0.5))
 
 ggpairs(data=dat, columns=c('Treatment', 'value', 'Place'), mapping=aes(color= Place))
 
 pm <- ggpairs(data= filter(dat, dat$part == T), 
-              columns=c('StockSizeBegining', 'NewStockSize', 'Treatment','Place'), 
+              columns=c( 'NewStockSize', 'Treatment','Place'), 
               upper= list(continuous='density'), lower=list(continuous='points'), 
-              mapping=aes(color= Place, alpha=0.5), title='Color by treatment, second part') 
+              mapping=aes(color= Place, alpha=0.5), title='Treatment effects') 
 
 pm   + theme(text= element_text(family='Helvetica', size=6)) 
 
-# quartz.save('GeneralSummary_ColTreatment_2part.png', type='png')
+quartz.save('160913_TreatmentEffects.png', type='png', width = 7, height = 7)
 
 
 ## Contours works fine for stability landscapes for now.
@@ -352,7 +358,7 @@ g <- ggplot(dat, aes(Place, crossThreshold)) + # SumTotalCatch
   geom_boxplot(aes(alpha = 0.1)) +
   facet_grid( Treatment ~ part) + coord_flip()+ ggtitle ('Threshold deviation before and after treatment')
 
-g <- ggplot (filter(dat, part ==1), aes(Round, crossThreshold, group = group)) +
+g <- ggplot (filter(dat, part == 1), aes(Round, crossThreshold, group = group)) +
   geom_hline(yintercept = 0, color = 'grey', show.legend = FALSE) +
   geom_vline (xintercept = 6, color = 'grey', show.legend = FALSE) +
   geom_line(aes(color = group), show.legend = FALSE) +
@@ -376,7 +382,7 @@ summary (mod)
 mod <- lm (crossThreshold ~ Treatment, data = dat)
 
 # look what I found!
-pairwise.wilcox.test()
+pwt <- pairwise.wilcox.test(x= group_dat$IntermediateStockSize, g =  dat$Treatment, paired = T, p.adj = 'bonf')
 
 
 

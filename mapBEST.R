@@ -3,8 +3,7 @@
 # juan.rocha@su.se
 # Stockholm, 160411
 
-
-require(ggmap)
+library (ggmap)
 
 # get map from Google
 map <- get_map('Cienaga Grande de Santa Marta', zoom=10, maptype = 'roadmap', color='bw', source='google')
@@ -42,5 +41,11 @@ g <- ggmap(map) +
 Colombia <- get_map('Colombia', zoom=5, maptype = 'roadmap', color='bw', source='google')
 c <- ggmap(Colombia)
 
+c + theme_dark()
+
+
+# c + geom_segment(data = data.frame (x = c(-74.83926,-74.83926,-74.07983,-74.07983),
+#                                     y = c(10.59559,11.51344, 11.51344, 10.59559)), 
+#                  aes (x,y))
 
 # save.image(file='mapBEST.RData', safe=T)
