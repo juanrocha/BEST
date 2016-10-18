@@ -1,7 +1,7 @@
 ---
-title: "Behavioural Economics in Social Ecological Systems with Thresholds"
+title: "Regressions"
 author: "Juan Rocha"
-date: "12 September 2016"
+date: "12 October 2016"
 output: 
   html_document:
     self_contained: true
@@ -34,11 +34,11 @@ library(ineq) # for gini
 ```{r setup_data, include = FALSE}
 
 
-setwd("~/Dropbox/BEST/Colombia/0_Game data") # here is the data
+# setwd("~/Dropbox/BEST/Colombia/0_Game data") # here is the data
 dat <- read.csv(file="~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv", row.names=1) # in long format, short format also available
 
 # set directory for figures
-setwd('~/Documents/Projects/BEST - Beijer/Figs & results')
+# setwd('~/Documents/Projects/BEST - Beijer/BEST')
 
 ## Preliminary data exploration
 
@@ -146,7 +146,7 @@ group_dat <- dat %>%
 ```
 
 # Analysis at the individual level
-
+Note to self: Don't look at the text, just check results. I'm fitting models only taking into account the second part of the game.
 
 ### Definition of cooperation: an individual based analysis
 
@@ -161,7 +161,7 @@ plot (density(dat$cooperation), main= "Cooperation at individual level")
 ### Ordinary least squares approximation {.smaller}
 It's a naive approach that doesn't take into consideration heterogeneity across groups or time.
 ```{r ols}
-ols <- lm(cooperation ~ Treatment + Place, data = dat)
+ols <- lm(cooperation ~ Treatment + Place, data = filter (dat, part == TRUE))
 summary (ols)
 ```
 
@@ -176,26 +176,26 @@ The analysis of variance reveals that there is significant differences between T
 ```{r anova}
 anova (ols)
 
-aov.mod <- aov (cooperation ~ Treatment + Place, data = dat)
+aov.mod <- aov (cooperation ~ Treatment + Place, data = filter (dat, part == TRUE))
 
 TukeyHSD(aov.mod)
 ```
 
 ### Fixed effects using least squares dummy variable model {.smaller}
 ```{r fix_effects}
-fixed.dum <- lm(cooperation ~ Treatment + factor (Place) - 1, data = dat )
+fixed.dum <- lm(cooperation ~ Treatment + factor (Place) - 1, data = filter (dat, part == TRUE) )
 summary(fixed.dum)
 ```
 
 ### Panel data model with fixed effects {.smaller}
 ```{r plm_fixed}
-fixed <- plm (cooperation ~  U + R + TR , data = dat, index = c('ID_player' ,'Round'), model = 'within')
+fixed <- plm (cooperation ~  Treatment , data = filter (dat, part == TRUE), index = c('ID_player' ,'Round'), model = 'within')
 summary (fixed)
 ```
 
 ### Panel data model with random effects {.smaller}
 ```{r random}
-random <- plm (cooperation ~ U + R + TR , data = dat , index = c('ID_player' ,'Round'), model = 'random')
+random <- plm (cooperation ~ U + R + TR , data = filter (dat, part == TRUE) , index = c('ID_player' ,'Round'), model = 'random')
 summary (random)
 ```
 
@@ -213,9 +213,9 @@ Note that in most of the models the signficance of treatment change if I use the
 From Caroline's results in STATA, it seems that only one parameter is the default, while for R it automatically convert the time parameter into a `factor`. I can reverse the behaviour by using `as.numeric` but needs to be consulted with statistician. Results below shows the longer model. Note that in the STATA tutorial from Princeton, time is treated as factor as well. I also compare between fixed and random time effects with the Hausman test which suggest random.
 
 ```{r time, echo = FALSE}
-random.time <- plm (cooperation ~   U + R + TR +  Round, data = dat , index = c('ID_player' ,'Round'), model = 'random')
+random.time <- plm (cooperation ~   U + R + TR +  Round, data = filter (dat, part == TRUE) , index = c('ID_player' ,'Round'), model = 'random')
 summary (random.time)
-fixed.time <- plm (cooperation ~ U + R + TR +  Round , data = dat , index = c('ID_player' ,'Round'), model = 'within')
+fixed.time <- plm (cooperation ~ U + R + TR +  Round , data = filter (dat, part == TRUE) , index = c('ID_player' ,'Round'), model = 'within')
 summary (fixed.time)
 phtest(fixed.time, random.time) # use random
 ```
@@ -226,7 +226,7 @@ Below I test a OLS-pooled model. Intriguintly, when modeling time as numeric or 
 
 ```{r pool}
 pool <- plm(cooperation ~  U + R + TR  , #+ as.numeric(Round)
-            data = dat , index = c('ID_player' ,'Round'), 
+            data = filter (dat, part == TRUE) , index = c('ID_player' ,'Round'), 
             model = 'pooling')
 
 summary (pool)
@@ -263,7 +263,7 @@ pbgtest(random)
 ### Dickey-Fuller test
 It check for stochastic trends, the null hypothesis is that the series as a unit root (non-stationary). If root is present one can take the first difference of the variable. p-value is < 0.05 then there is no unit roots present.
 ```{r test5, warning = FALSE}
-panel.set <- plm.data (dat , index = c('ID_player' ,'Round') ) 
+panel.set <- plm.data (filter (dat, part == TRUE) , index = c('ID_player' ,'Round') ) 
 library(tseries)
 adf <-  adf.test (panel.set$cooperation, k=2)
 adf
@@ -274,7 +274,7 @@ p < 0.05 therefore there is presence of heteroskedasticity, one can use robust c
 
 ```{r test6, echo = FALSE, warning= FALSE}
 library(lmtest)
-bptest(cooperation ~  U + R + TR , data = dat , studentize = F )
+bptest(cooperation ~  U + R + TR , data = filter (dat, part == TRUE) , studentize = F )
 ```
 
 # Analysis at the group level
@@ -283,7 +283,7 @@ At the group level the response variable is _IntermediateStockSize_, else remain
 ### Ordinary least squares approximation {.smaller}
 OLS is a naive approach that doesn't take into consideration heterogeneity across groups or time, but needs to be tested for comparison purposes to see which model is better suited to our data.
 ```{r g_ols}
-ols <- lm(IntermediateStockSize ~ Treatment + Place, data = group_dat)
+ols <- lm(IntermediateStockSize ~ Treatment + Place, data = filter (group_dat, part == TRUE))
 summary (ols)
 ```
 
@@ -297,23 +297,23 @@ plot(ols, cex = 0.8)
 Similar to the Anova for the individual level models, here it shows that there is significant differences for place and treatment. The Tukey test shows that the differences are significant for all pairwise comparison except for Threshold and Risk treatments, and Tasajera-Taganga locations. These results agree with Wilcox pair wise comparisons presented at CCS16.
 ```{r g_anova}
 anova (ols)
-aov.mod2 <- aov (IntermediateStockSize ~ Treatment + Place, data = group_dat)
+aov.mod2 <- aov (IntermediateStockSize ~ Treatment + Place, data = filter (group_dat, part == TRUE))
 TukeyHSD(aov.mod2)
 ```
 
 ### Fixed effects using least squares dummy variable model {.smaller}
 I don't understand why the basic linear model in R does drop one location but doesn't do the same with Treatment. Both variables are coded as factors.
 ```{r g_fix_effects}
-fixed.dum <- lm(IntermediateStockSize ~ Treatment - 1 + factor (Place) - 1, data = group_dat )
+fixed.dum <- lm(IntermediateStockSize ~ Treatment - 1 + factor (Place) - 1, data = filter (group_dat, part == TRUE) )
 summary(fixed.dum)
 ```
 
 ### Panel data model with fixed effects {.smaller}
 Here I drop the location effect and try to follow exactly the same model Caro fitted both for fixed effects and random effects below, but without time effects. Both models show very low significance for selected treatments: risk in random model, and risk & threshold for fixed model. 
 ```{r g_plm_fixed_random}
-fixed <- plm (IntermediateStockSize ~  U + R + TR , data = group_dat, index = c('group' ,'Round'), model = 'within')
+fixed <- plm (IntermediateStockSize ~  U + R + TR , data = filter (group_dat, part == TRUE), index = c('group' ,'Round'), model = 'within')
 summary (fixed)
-random <- plm (IntermediateStockSize ~   U + R + TR , data = group_dat , index = c('group' ,'Round'), model = 'random')
+random <- plm (IntermediateStockSize ~   U + R + TR , data = filter (group_dat, part == TRUE) , index = c('group' ,'Round'), model = 'random')
 summary (random)
 phtest(fixed, random)
 ```
@@ -323,9 +323,9 @@ Hausman test p-value is > 0.05 then we should use random effect model. Not sure 
 ## Include time fixed effects {.smaller}
 Now I'm fitting the same model Caroline did on the presentation. Note that now the random effects model show the same p-values and coefficients as Caroline's model in STATA. So dropping the missing round does not make a difference on model output, she uses 1023 obs while I do 1024. However, bear in mind that if I fit the model with time as factor (default for R and as it's shown in tutorial), the significant effect treatment Threshold dissapears.
 ```{r g_time, echo = FALSE}
-random.time <- plm (IntermediateStockSize ~  U + R + TR + as.numeric(Round) , data = group_dat , index = c('group' ,'Round'), model = 'random')
+random.time <- plm (IntermediateStockSize ~  U + R + TR + as.numeric(Round) , data = filter (group_dat, part == TRUE) , index = c('group' ,'Round'), model = 'random')
 summary (random.time)
-fixed.time <- plm (IntermediateStockSize ~   U + R + TR + as.numeric(Round) , data = group_dat , index = c('group' ,'Round'), model = 'within')
+fixed.time <- plm (IntermediateStockSize ~   U + R + TR + as.numeric(Round) , data = filter (group_dat, part == TRUE) , index = c('group' ,'Round'), model = 'within')
 summary (fixed.time)
 phtest(fixed.time, random.time) # use random
 ```
@@ -334,7 +334,7 @@ Note that here Hausman test p > 0.05 suggesting fixed effects model. I'm not sur
 ## Testing for random effects {.smaller}
 ```{r g_pool}
 pool <- plm(IntermediateStockSize ~   U + R + TR + as.numeric(Round) ,
-            data = group_dat , index = c('group' ,'Round'), 
+            data = filter (group_dat, part == TRUE) , index = c('group' ,'Round'), 
             model = 'pooling')
 
 summary (pool)
@@ -363,7 +363,7 @@ pbgtest(random)
 ### Dickey-Fuller test
 It check for stochastic trends, the null hypothesis is that the series as a unit root (non-stationary). If root is present one can take the first difference of the variable. p-value is < 0.05 then there is no unit roots present. Same results obtained at the individual level.
 ```{r g_test5, warnings = FALSE}
-panel.set <- plm.data (group_dat, index = c('group' ,'Round')) 
+panel.set <- plm.data (filter (group_dat, part == TRUE), index = c('group' ,'Round')) 
 library(tseries)
 adf <-  adf.test (panel.set$IntermediateStockSize, k=2)
 adf
@@ -374,6 +374,6 @@ p < 0.05 therefore there is presence of heteroskedasticity, one can use robust c
 
 ```{r g_test6}
 library(lmtest)
-bptest(IntermediateStockSize ~  BL + U + R + TR , data = group_dat , studentize = F )
+bptest(IntermediateStockSize ~  BL + U + R + TR , data = filter (group_dat, part == TRUE) , studentize = F )
 ```
 

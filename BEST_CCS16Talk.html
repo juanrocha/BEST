@@ -274,20 +274,33 @@ div.tocify {
 </div>
 <div id="anova-analisis-of-variance" class="section level3">
 <h3>Anova: Analisis of variance</h3>
+<p>The analysis of variance reveals that there is significant differences between Treatments and Place. The Tukey test shows the pair wise comparisons between treatments and places. At the treatment level, uncertainty and base line are not significantly different, neither threshold from risk; all other pair wise combinations are significant. For location effects, only Tasajeras and Tanga are not significantly different, all other pairwise combinatios are significant. Similar results were presented at CCS with the Pairwise Wilcox test not shown here.</p>
 <pre><code>##             Df     Sum Sq     Mean Sq   F value        Pr(&gt;F)
 ## Treatment    3   407.5439  135.847982  16.42745  1.308484e-10
 ## Place        3  5371.9717 1790.657227 216.53566 2.292682e-130
 ## Residuals 4089 33814.2803    8.269572        NA            NA</code></pre>
-<pre><code>## Call:
-##    aov(formula = cooperation ~ Treatment + Place, data = dat)
+<pre><code>##   Tukey multiple comparisons of means
+##     95% family-wise confidence level
 ## 
-## Terms:
-##                 Treatment    Place Residuals
-## Sum of Squares     407.54  5371.97  33814.28
-## Deg. of Freedom         3        3      4089
+## Fit: aov(formula = cooperation ~ Treatment + Place, data = dat)
 ## 
-## Residual standard error: 2.875686
-## Estimated effects may be unbalanced</code></pre>
+## $Treatment
+##                              diff        lwr        upr     p adj
+## Risk-Base line        -0.64746094 -0.9740899 -0.3208320 0.0000022
+## Threshold-Base line   -0.51367187 -0.8403008 -0.1870430 0.0003149
+## Uncertainty-Base line  0.08105469 -0.2455742  0.4076836 0.9197962
+## Threshold-Risk         0.13378906 -0.1928399  0.4604180 0.7182980
+## Uncertainty-Risk       0.72851562  0.4018867  1.0551445 0.0000001
+## Uncertainty-Threshold  0.59472656  0.2680976  0.9213555 0.0000176
+## 
+## $Place
+##                             diff        lwr         upr     p adj
+## Las Flores-Buenavista -1.9648437 -2.2914727 -1.63821483 0.0000000
+## Taganga-Buenavista     0.9707031  0.6440742  1.29733204 0.0000000
+## Tasajera-Buenavista    0.6835937  0.3569648  1.01022267 0.0000005
+## Taganga-Las Flores     2.9355469  2.6089180  3.26217579 0.0000000
+## Tasajera-Las Flores    2.6484375  2.3218086  2.97506642 0.0000000
+## Tasajera-Taganga      -0.2871094 -0.6137383  0.03951954 0.1079235</code></pre>
 </div>
 <div id="fixed-effects-using-least-squares-dummy-variable-model" class="section level3 smaller">
 <h3>Fixed effects using least squares dummy variable model</h3>
@@ -320,7 +333,7 @@ div.tocify {
 <pre><code>## Oneway (individual) effect Within Model
 ## 
 ## Call:
-## plm(formula = cooperation ~ BL + U + R + TR, data = dat, model = &quot;within&quot;, 
+## plm(formula = cooperation ~ U + R + TR, data = dat, model = &quot;within&quot;, 
 ##     index = c(&quot;ID_player&quot;, &quot;Round&quot;))
 ## 
 ## Balanced Panel: n=256, T=16, N=4096
@@ -349,182 +362,210 @@ div.tocify {
 ##    (Swamy-Arora's transformation)
 ## 
 ## Call:
-## plm(formula = cooperation ~ BL + U + R + TR, data = dat, model = &quot;random&quot;, 
+## plm(formula = cooperation ~ U + R + TR, data = dat, model = &quot;random&quot;, 
 ##     index = c(&quot;ID_player&quot;, &quot;Round&quot;))
 ## 
 ## Balanced Panel: n=256, T=16, N=4096
 ## 
 ## Effects:
 ##                 var std.dev share
-## idiosyncratic 4.615   2.148 0.513
-## individual    4.375   2.092 0.487
+## idiosyncratic 4.614   2.148 0.513
+## individual    4.374   2.091 0.487
 ## theta:  0.7513  
 ## 
 ## Residuals :
 ##    Min. 1st Qu.  Median 3rd Qu.    Max. 
-## -33.500  -0.853   0.189   1.110   8.880 
+## -33.500  -0.856   0.201   1.140   8.730 
 ## 
 ## Coefficients :
-##             Estimate Std. Error  t-value  Pr(&gt;|t|)    
-## (Intercept)  1.74566    0.16373  10.6620 &lt; 2.2e-16 ***
-## BL          -0.82378    0.31577  -2.6088  0.009119 ** 
-## U           -1.68194    0.13431 -12.5229 &lt; 2.2e-16 ***
-## R           -1.61238    0.13431 -12.0050 &lt; 2.2e-16 ***
-## TR          -2.38797    0.13431 -17.7797 &lt; 2.2e-16 ***
+##             Estimate Std. Error t-value  Pr(&gt;|t|)    
+## (Intercept)   1.5242     0.1401  10.879 &lt; 2.2e-16 ***
+## U            -1.6488     0.1338 -12.323 &lt; 2.2e-16 ***
+## R            -1.5793     0.1338 -11.803 &lt; 2.2e-16 ***
+## TR           -2.3549     0.1338 -17.599 &lt; 2.2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## Total Sum of Squares:    21575
-## Residual Sum of Squares: 18888
-## R-Squared:      0.12453
-## Adj. R-Squared: 0.12438
-## F-statistic: 145.481 on 4 and 4091 DF, p-value: &lt; 2.22e-16</code></pre>
+## Residual Sum of Squares: 18919
+## R-Squared:      0.12307
+## Adj. R-Squared: 0.12295
+## F-statistic: 191.435 on 3 and 4092 DF, p-value: &lt; 2.22e-16</code></pre>
 </div>
 <div id="fixed-or-random" class="section level3">
 <h3>fixed or random</h3>
-<p>p-value is &gt; 0.05 then we should use random effect model</p>
+<p>p-value is &lt; 0.05 then we should use <strong>fixed</strong> effects model at the individual level. If I remember correctly in our conversations with Matias, this is good news in the sense that we can introduce the fixed effects directly on the regression, where the fixed effects (alpha parameter) will use e.g. the info from the surveys directly as regression terms. This interpretation needs to be checked with Caro, Mattias or an statistician.</p>
 <pre><code>## 
 ##  Hausman Test
 ## 
-## data:  cooperation ~ BL + U + R + TR
-## chisq = 5.0948, df = 3, p-value = 0.165
+## data:  cooperation ~ U + R + TR
+## chisq = 12.603, df = 3, p-value = 0.00558
 ## alternative hypothesis: one model is inconsistent</code></pre>
 </div>
 <div id="include-time-fixed-effects" class="section level3 smaller">
 <h3>Include time fixed effects</h3>
+<p>Note that in most of the models the signficance of treatment change if I use the time effects as categorical varialbe or numeric. If numeric, the model uses only one parameter to estimate the effect of time (Round); but if categorical, there is one parameter for each time step fitted to the model. What is the best way to fit it?</p>
+<p>From Caroline’s results in STATA, it seems that only one parameter is the default, while for R it automatically convert the time parameter into a <code>factor</code>. I can reverse the behaviour by using <code>as.numeric</code> but needs to be consulted with statistician. Results below shows the longer model. Note that in the STATA tutorial from Princeton, time is treated as factor as well. I also compare between fixed and random time effects with the Hausman test which suggest random.</p>
 <pre><code>## Oneway (individual) effect Random Effect Model 
 ##    (Swamy-Arora's transformation)
 ## 
 ## Call:
-## plm(formula = cooperation ~ BL + U + R + TR + Round + Place, 
-##     data = dat, model = &quot;random&quot;, index = c(&quot;ID_player&quot;, &quot;Round&quot;))
+## plm(formula = cooperation ~ U + R + TR + Round, data = dat, model = &quot;random&quot;, 
+##     index = c(&quot;ID_player&quot;, &quot;Round&quot;))
 ## 
 ## Balanced Panel: n=256, T=16, N=4096
 ## 
 ## Effects:
 ##                 var std.dev share
-## idiosyncratic 3.290   1.814 0.509
-## individual    3.178   1.783 0.491
-## theta:  0.7535  
+## idiosyncratic 3.286   1.813 0.424
+## individual    4.469   2.114 0.576
+## theta:  0.7904  
 ## 
 ## Residuals :
 ##    Min. 1st Qu.  Median 3rd Qu.    Max. 
-## -34.100  -1.000   0.193   1.090   7.120 
+## -33.700  -1.020   0.258   1.110   6.720 
 ## 
 ## Coefficients :
-##                 Estimate Std. Error  t-value  Pr(&gt;|t|)    
-## (Intercept)      3.99257    0.26413  15.1157 &lt; 2.2e-16 ***
-## BL              -0.37847    0.27862  -1.3584  0.174419    
-## U               -0.97024    0.16302  -5.9518 2.875e-09 ***
-## R               -0.89867    0.16302  -5.5128 3.751e-08 ***
-## TR              -1.67588    0.16302 -10.2805 &lt; 2.2e-16 ***
-## Round2          -1.62891    0.16032 -10.1606 &lt; 2.2e-16 ***
-## Round3          -2.29688    0.16032 -14.3272 &lt; 2.2e-16 ***
-## Round4          -2.80859    0.16032 -17.5191 &lt; 2.2e-16 ***
-## Round5          -2.91797    0.16032 -18.2014 &lt; 2.2e-16 ***
-## Round6          -3.36328    0.16032 -20.9791 &lt; 2.2e-16 ***
-## Round7          -0.38333    0.18969  -2.0209  0.043359 *  
-## Round8          -1.62943    0.18969  -8.5900 &lt; 2.2e-16 ***
-## Round9          -2.29349    0.18969 -12.0908 &lt; 2.2e-16 ***
-## Round10         -2.76224    0.18969 -14.5620 &lt; 2.2e-16 ***
-## Round11         -3.03958    0.18969 -16.0241 &lt; 2.2e-16 ***
-## Round12         -3.36771    0.18969 -17.7539 &lt; 2.2e-16 ***
-## Round13         -3.57474    0.18969 -18.8453 &lt; 2.2e-16 ***
-## Round14         -3.80521    0.18969 -20.0603 &lt; 2.2e-16 ***
-## Round15         -3.88333    0.18969 -20.4722 &lt; 2.2e-16 ***
-## Round16         -4.07865    0.18969 -21.5018 &lt; 2.2e-16 ***
-## PlaceLas Flores -1.96484    0.32517  -6.0425 1.653e-09 ***
-## PlaceTaganga     0.97070    0.32517   2.9852  0.002851 ** 
-## PlaceTasajera    0.68359    0.32517   2.1023  0.035591 *  
+##             Estimate Std. Error  t-value  Pr(&gt;|t|)    
+## (Intercept)  3.82031    0.17412  21.9410 &lt; 2.2e-16 ***
+## U           -0.94185    0.15980  -5.8940 4.075e-09 ***
+## R           -0.83794    0.15980  -5.2437 1.653e-07 ***
+## TR          -1.64105    0.15980 -10.2696 &lt; 2.2e-16 ***
+## Round2      -1.62891    0.16029 -10.1623 &lt; 2.2e-16 ***
+## Round3      -2.29688    0.16029 -14.3296 &lt; 2.2e-16 ***
+## Round4      -2.80859    0.16029 -17.5221 &lt; 2.2e-16 ***
+## Round5      -2.91797    0.16029 -18.2045 &lt; 2.2e-16 ***
+## Round6      -3.36328    0.16029 -20.9827 &lt; 2.2e-16 ***
+## Round7      -0.41432    0.18780  -2.2062   0.02743 *  
+## Round8      -1.66042    0.18780  -8.8415 &lt; 2.2e-16 ***
+## Round9      -2.32448    0.18780 -12.3775 &lt; 2.2e-16 ***
+## Round10     -2.79323    0.18780 -14.8736 &lt; 2.2e-16 ***
+## Round11     -3.07057    0.18780 -16.3504 &lt; 2.2e-16 ***
+## Round12     -3.39870    0.18780 -18.0976 &lt; 2.2e-16 ***
+## Round13     -3.60573    0.18780 -19.2000 &lt; 2.2e-16 ***
+## Round14     -3.83620    0.18780 -20.4272 &lt; 2.2e-16 ***
+## Round15     -3.91432    0.18780 -20.8432 &lt; 2.2e-16 ***
+## Round16     -4.10963    0.18780 -21.8832 &lt; 2.2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Total Sum of Squares:    21554
-## Residual Sum of Squares: 13399
-## R-Squared:      0.37835
-## Adj. R-Squared: 0.37622
-## F-statistic: 112.678 on 22 and 4073 DF, p-value: &lt; 2.22e-16</code></pre>
-</div>
-<div id="testing-for-random-effects" class="section level3 smaller">
-<h3>Testing for random effects</h3>
-<pre><code>## Oneway (individual) effect Pooling Model
+## Total Sum of Squares:    21231
+## Residual Sum of Squares: 13408
+## R-Squared:      0.36848
+## Adj. R-Squared: 0.36677
+## F-statistic: 132.157 on 18 and 4077 DF, p-value: &lt; 2.22e-16</code></pre>
+<pre><code>## Oneway (individual) effect Within Model
 ## 
 ## Call:
-## plm(formula = cooperation ~ BL + U + R + TR + Round, data = dat, 
-##     model = &quot;pooling&quot;, index = c(&quot;ID_player&quot;, &quot;Round&quot;))
+## plm(formula = cooperation ~ U + R + TR + Round, data = dat, model = &quot;within&quot;, 
+##     index = c(&quot;ID_player&quot;, &quot;Round&quot;))
 ## 
 ## Balanced Panel: n=256, T=16, N=4096
 ## 
 ## Residuals :
 ##    Min. 1st Qu.  Median 3rd Qu.    Max. 
-## -40.300  -1.400   0.714   1.890   6.290 
+## -32.000  -0.997   0.109   0.968   7.410 
 ## 
 ## Coefficients :
-##             Estimate Std. Error  t-value  Pr(&gt;|t|)    
-## (Intercept)  3.91493    0.17855  21.9259 &lt; 2.2e-16 ***
-## BL          -0.37847    0.16385  -2.3099   0.02095 *  
-## U           -0.68003    0.22585  -3.0110   0.00262 ** 
-## R           -1.33472    0.22585  -5.9097 3.708e-09 ***
-## TR          -1.53003    0.22585  -6.7745 1.427e-11 ***
-## Round2      -1.62891    0.24578  -6.6276 3.858e-11 ***
-## Round3      -2.29688    0.24578  -9.3454 &lt; 2.2e-16 ***
-## Round4      -2.80859    0.24578 -11.4274 &lt; 2.2e-16 ***
-## Round5      -2.91797    0.24578 -11.8724 &lt; 2.2e-16 ***
-## Round6      -3.36328    0.24578 -13.6843 &lt; 2.2e-16 ***
-## Round7      -0.38333    0.29081  -1.3182   0.18752    
-## Round8      -1.62943    0.29081  -5.6031 2.244e-08 ***
-## Round9      -2.29349    0.29081  -7.8866 3.956e-15 ***
-## Round10     -2.76224    0.29081  -9.4985 &lt; 2.2e-16 ***
-## Round11     -3.03958    0.29081 -10.4522 &lt; 2.2e-16 ***
-## Round12     -3.36771    0.29081 -11.5806 &lt; 2.2e-16 ***
-## Round13     -3.57474    0.29081 -12.2925 &lt; 2.2e-16 ***
-## Round14     -3.80521    0.29081 -13.0850 &lt; 2.2e-16 ***
-## Round15     -3.88333    0.29081 -13.3536 &lt; 2.2e-16 ***
-## Round16     -4.07865    0.29081 -14.0253 &lt; 2.2e-16 ***
+##         Estimate Std. Error  t-value  Pr(&gt;|t|)    
+## U       -1.02031    0.16549  -6.1655 7.754e-10 ***
+## R       -0.82344    0.16549  -4.9759 6.782e-07 ***
+## TR      -1.70104    0.16549 -10.2790 &lt; 2.2e-16 ***
+## Round2  -1.62891    0.16023 -10.1659 &lt; 2.2e-16 ***
+## Round3  -2.29687    0.16023 -14.3347 &lt; 2.2e-16 ***
+## Round4  -2.80859    0.16023 -17.5283 &lt; 2.2e-16 ***
+## Round5  -2.91797    0.16023 -18.2109 &lt; 2.2e-16 ***
+## Round6  -3.36328    0.16023 -20.9901 &lt; 2.2e-16 ***
+## Round7  -0.38333    0.18959  -2.0219   0.04325 *  
+## Round8  -1.62943    0.18959  -8.5945 &lt; 2.2e-16 ***
+## Round9  -2.29349    0.18959 -12.0972 &lt; 2.2e-16 ***
+## Round10 -2.76224    0.18959 -14.5696 &lt; 2.2e-16 ***
+## Round11 -3.03958    0.18959 -16.0325 &lt; 2.2e-16 ***
+## Round12 -3.36771    0.18959 -17.7632 &lt; 2.2e-16 ***
+## Round13 -3.57474    0.18959 -18.8552 &lt; 2.2e-16 ***
+## Round14 -3.80521    0.18959 -20.0709 &lt; 2.2e-16 ***
+## Round15 -3.88333    0.18959 -20.4829 &lt; 2.2e-16 ***
+## Round16 -4.07865    0.18959 -21.5131 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Total Sum of Squares:    20387
+## Residual Sum of Squares: 12560
+## R-Squared:      0.38391
+## Adj. R-Squared: 0.35823
+## F-statistic: 132.313 on 18 and 3822 DF, p-value: &lt; 2.22e-16</code></pre>
+<pre><code>## 
+##  Hausman Test
+## 
+## data:  cooperation ~ U + R + TR + Round
+## chisq = 6.6194, df = 18, p-value = 0.993
+## alternative hypothesis: one model is inconsistent</code></pre>
+</div>
+<div id="testing-for-random-effects" class="section level3 smaller">
+<h3>Testing for random effects</h3>
+<p>Below I test a OLS-pooled model. Intriguintly, when modeling time as numeric or as factor not only change the sign of the coefficient but also who is significant. Using time as factor (default in R) renders all signficant except Uncertainty, which has a negative coefficient and p-value &gt; 0.1. Using time as numeric, results on positive and significant coefficient for Uncertainty and negative and non-significant coefficient for Risk. To follow the tutorial below the model is fitted without the time effects.</p>
+<pre><code>## Oneway (individual) effect Pooling Model
+## 
+## Call:
+## plm(formula = cooperation ~ U + R + TR, data = dat, model = &quot;pooling&quot;, 
+##     index = c(&quot;ID_player&quot;, &quot;Round&quot;))
+## 
+## Balanced Panel: n=256, T=16, N=4096
+## 
+## Residuals :
+##    Min. 1st Qu.  Median 3rd Qu.    Max. 
+## -39.400  -1.200   0.802   1.890   6.140 
+## 
+## Coefficients :
+##              Estimate Std. Error t-value  Pr(&gt;|t|)    
+## (Intercept)  1.357996   0.064484  21.059 &lt; 2.2e-16 ***
+## U           -1.004871   0.135263  -7.429 1.324e-13 ***
+## R           -1.659559   0.135263 -12.269 &lt; 2.2e-16 ***
+## TR          -1.854871   0.135263 -13.713 &lt; 2.2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## Total Sum of Squares:    39594
-## Residual Sum of Squares: 31516
-## R-Squared:      0.20403
-## Adj. R-Squared: 0.20303
-## F-statistic: 54.9882 on 19 and 4076 DF, p-value: &lt; 2.22e-16</code></pre>
+## Residual Sum of Squares: 37025
+## R-Squared:      0.06487
+## Adj. R-Squared: 0.064806
+## F-statistic: 94.6203 on 3 and 4092 DF, p-value: &lt; 2.22e-16</code></pre>
 </div>
 <div id="breusch-pagan-lagrange-multiplier-lm" class="section level3">
 <h3>Breusch-Pagan Lagrange multiplier (LM)</h3>
-<p>The Lagrange multiplier helps decide between random effects regression or a simple OLS regression. If p&lt;0.05 a random model is preferred, meaning there is evidence that there is differences amongst treatments.</p>
+<p>The Lagrange multiplier helps decide between random effects regression or a simple OLS regression. The null hypothesis is that variances across entitites is zero, thus no significant difference across units (no panel effect). If p&lt;0.05 a random model is preferred, meaning there is evidence that there is differences amongst treatments.</p>
 <pre><code>## 
 ##  Lagrange Multiplier Test - (Breusch-Pagan)
 ## 
-## data:  cooperation ~ BL + U + R + TR + Round
-## chisq = 10037, df = 1, p-value &lt; 2.2e-16
+## data:  cooperation ~ U + R + TR
+## chisq = 7199.1, df = 1, p-value &lt; 2.2e-16
 ## alternative hypothesis: significant effects</code></pre>
 </div>
 <div id="testing-for-cross-sectional-dependnece" class="section level3">
 <h3>Testing for cross-sectional dependnece</h3>
-<p>It seems that there is cross-sectional dependence, probably the location effect.</p>
+<p>The cross-sectional dependence test check if the residuals are correlated accross entities (here groups). It seems that there is cross-sectional dependence, probably the location effect. Cross-sectional dependence can lead to bias in test results (contemporaneous correlation). In the tutorial this test is applied to the fixed effects model, which I do below. However, the Haussman test above suggest random effects model is more suitable for the data. Does it make sense to make the cross-sectional dependence on random effects model? If so, both test are positive suggesting cross-sectional dependence on random model. Current test on fixed model suggest cross-sectional dependence (results below), and the same was found for random model and random model with fixed time effects).</p>
 <pre><code>## 
 ##  Breusch-Pagan LM test for cross-sectional dependence in panels
 ## 
 ## data:  formula
-## chisq = 113330, df = 32640, p-value &lt; 2.2e-16
+## chisq = 113110, df = 32640, p-value &lt; 2.2e-16
 ## alternative hypothesis: cross-sectional dependence</code></pre>
 <pre><code>## 
 ##  Pesaran CD test for cross-sectional dependence in panels
 ## 
 ## data:  formula
-## z = 220.89, p-value &lt; 2.2e-16
+## z = 220.37, p-value &lt; 2.2e-16
 ## alternative hypothesis: cross-sectional dependence</code></pre>
 </div>
 <div id="testing-for-serial-correlation" class="section level3">
 <h3>Testing for serial correlation</h3>
-<p>There is serieal correlation. It shouldn’t be a problem in micropanels with few years like ours.</p>
+<p>There is serieal correlation (p &lt; 0.05). The null hypothesis is that residuals across entities are not correlated, here entities I believe is groups. It shouldn’t be a problem in micropanels with few time steps like ours, but we have it both on the random model and the random with time effects. Not sure this change if time is assumed as factor.</p>
 <pre><code>## 
 ##  Breusch-Godfrey/Wooldridge test for serial correlation in panel
 ##  models
 ## 
-## data:  cooperation ~ BL + U + R + TR
-## chisq = 1903.7, df = 16, p-value &lt; 2.2e-16
+## data:  cooperation ~ U + R + TR
+## chisq = 1905.7, df = 16, p-value &lt; 2.2e-16
 ## alternative hypothesis: serial correlation in idiosyncratic errors</code></pre>
 </div>
 <div id="dickey-fuller-test" class="section level3">
@@ -539,7 +580,7 @@ div.tocify {
 </div>
 <div id="breusch-pagan-test-for-homoskedasticity" class="section level3">
 <h3>Breusch-Pagan test for homoskedasticity</h3>
-<p>p &lt; 0.05 therefore there is presence of heteroskedasticity, one can use robust covariance matrix to account for it.</p>
+<p>p &lt; 0.05 therefore there is presence of heteroskedasticity, one can use robust covariance matrix to account for it. Both tutorials in R and STATA suggest good ways of dealing with heteroskedasticity but I will stop here. First we need to define which model are we fitting and presenting on the papers: fixed, random, with treatment + location + time effects?</p>
 <pre><code>## Loading required package: zoo</code></pre>
 <pre><code>## 
 ## Attaching package: 'zoo'</code></pre>
@@ -549,15 +590,16 @@ div.tocify {
 <pre><code>## 
 ##  Breusch-Pagan test
 ## 
-## data:  cooperation ~ BL + U + R + TR
-## BP = 65.229, df = 4, p-value = 2.303e-13</code></pre>
+## data:  cooperation ~ U + R + TR
+## BP = 52.266, df = 3, p-value = 2.629e-11</code></pre>
 </div>
 </div>
 <div id="analysis-at-the-group-level" class="section level1">
 <h1>Analysis at the group level</h1>
-<p>At the group level the response variable is <em>IntermediateStockSize</em>, else remains the same. The dataset used is therefore smaller: 1024 observations.</p>
+<p>At the group level the response variable is <em>IntermediateStockSize</em>, else remains the same. The dataset used is therefore smaller: 1024 observations. Note that when I clean the data I set up all rounds not played to zeroes. It means that rounds not played due to errors (experimenter forgot to play one round on one group) does not show on my dataset and i cannot exclude it at the moment. However, below I show there is not difference from Caro’s analysis where she does exclude it. I will follow the same steps as for the individual analysis.</p>
 <div id="ordinary-least-squares-approximation-1" class="section level3 smaller">
 <h3>Ordinary least squares approximation</h3>
+<p>OLS is a naive approach that doesn’t take into consideration heterogeneity across groups or time, but needs to be tested for comparison purposes to see which model is better suited to our data.</p>
 <pre><code>## 
 ## Call:
 ## lm(formula = IntermediateStockSize ~ Treatment + Place, data = group_dat)
@@ -586,26 +628,40 @@ div.tocify {
 </div>
 <div id="anova-analisis-of-variance-1" class="section level3">
 <h3>Anova: Analisis of variance</h3>
+<p>Similar to the Anova for the individual level models, here it shows that there is significant differences for place and treatment. The Tukey test shows that the differences are significant for all pairwise comparison except for Threshold and Risk treatments, and Tasajera-Taganga locations. These results agree with Wilcox pair wise comparisons presented at CCS16.</p>
 <pre><code>##             Df     Sum Sq   Mean Sq  F value       Pr(&gt;F)
 ## Treatment    3   3572.461 1190.8203 11.74586 1.438843e-07
 ## Place        3  21321.703 7107.2344 70.10345 3.268238e-41
 ## Residuals 1017 103105.586  101.3821       NA           NA</code></pre>
-<pre><code>## Call:
-##    aov(formula = IntermediateStockSize ~ Treatment + Place, data = group_dat)
+<pre><code>##   Tukey multiple comparisons of means
+##     95% family-wise confidence level
 ## 
-## Terms:
-##                 Treatment     Place Residuals
-## Sum of Squares    3572.46  21321.70 103105.59
-## Deg. of Freedom         3         3      1017
+## Fit: aov(formula = IntermediateStockSize ~ Treatment + Place, data = group_dat)
 ## 
-## Residual standard error: 10.06887
-## Estimated effects may be unbalanced</code></pre>
+## $Treatment
+##                            diff         lwr      upr     p adj
+## Risk-Base line        2.4140625  0.12391568 4.704209 0.0342484
+## Threshold-Base line   2.8867188  0.59657193 5.176866 0.0066771
+## Uncertainty-Base line 5.2617188  2.97157193 7.551866 0.0000000
+## Threshold-Risk        0.4726563 -1.81749057 2.762803 0.9515166
+## Uncertainty-Risk      2.8476563  0.55750943 5.137803 0.0077296
+## Uncertainty-Threshold 2.3750000  0.08485318 4.665147 0.0386761
+## 
+## $Place
+##                            diff         lwr       upr     p adj
+## Las Flores-Buenavista -7.898437 -10.1885843 -5.608291 0.0000000
+## Taganga-Buenavista     3.796875   1.5067282  6.087022 0.0001276
+## Tasajera-Buenavista    2.648438   0.3582907  4.938584 0.0158051
+## Taganga-Las Flores    11.695312   9.4051657 13.985459 0.0000000
+## Tasajera-Las Flores   10.546875   8.2567282 12.837022 0.0000000
+## Tasajera-Taganga      -1.148438  -3.4385843  1.141709 0.5692402</code></pre>
 </div>
 <div id="fixed-effects-using-least-squares-dummy-variable-model-1" class="section level3 smaller">
 <h3>Fixed effects using least squares dummy variable model</h3>
+<p>I don’t understand why the basic linear model in R does drop one location but doesn’t do the same with Treatment. Both variables are coded as factors.</p>
 <pre><code>## 
 ## Call:
-## lm(formula = IntermediateStockSize ~ Treatment + factor(Place) - 
+## lm(formula = IntermediateStockSize ~ Treatment - 1 + factor(Place) - 
 ##     1, data = group_dat)
 ## 
 ## Residuals:
@@ -630,11 +686,11 @@ div.tocify {
 </div>
 <div id="panel-data-model-with-fixed-effects-1" class="section level3 smaller">
 <h3>Panel data model with fixed effects</h3>
-<p>Note that here there is less of an treatment effects, p-values are not significant anymore (at 0.05)</p>
+<p>Here I drop the location effect and try to follow exactly the same model Caro fitted both for fixed effects and random effects below, but without time effects. Both models show very low significance for selected treatments: risk in random model, and risk &amp; threshold for fixed model.</p>
 <pre><code>## Oneway (individual) effect Within Model
 ## 
 ## Call:
-## plm(formula = IntermediateStockSize ~ BL + U + R + TR, data = group_dat, 
+## plm(formula = IntermediateStockSize ~ U + R + TR, data = group_dat, 
 ##     model = &quot;within&quot;, index = c(&quot;group&quot;, &quot;Round&quot;))
 ## 
 ## Balanced Panel: n=64, T=16, N=1024
@@ -656,189 +712,187 @@ div.tocify {
 ## R-Squared:      0.0073306
 ## Adj. R-Squared: 0.0068509
 ## F-statistic: 2.35571 on 3 and 957 DF, p-value: 0.070482</code></pre>
-</div>
-<div id="panel-data-model-with-random-effects-1" class="section level3 smaller">
-<h3>Panel data model with random effects</h3>
 <pre><code>## Oneway (individual) effect Random Effect Model 
 ##    (Swamy-Arora's transformation)
 ## 
 ## Call:
-## plm(formula = IntermediateStockSize ~ BL + U + R + TR, data = group_dat, 
+## plm(formula = IntermediateStockSize ~ U + R + TR, data = group_dat, 
 ##     model = &quot;random&quot;, index = c(&quot;group&quot;, &quot;Round&quot;))
 ## 
 ## Balanced Panel: n=64, T=16, N=1024
 ## 
 ## Effects:
 ##                  var std.dev share
-## idiosyncratic 57.229   7.565 0.455
-## individual    68.683   8.288 0.545
+## idiosyncratic 57.169   7.561 0.454
+## individual    68.627   8.284 0.546
 ## theta:  0.7775  
 ## 
 ## Residuals :
 ##    Min. 1st Qu.  Median 3rd Qu.    Max. 
-## -32.000  -2.970   0.694   3.910  24.700 
+## -31.700  -2.990   0.732   3.820  24.900 
 ## 
 ## Coefficients :
 ##             Estimate Std. Error t-value Pr(&gt;|t|)    
-## (Intercept) 27.03819    1.27540 21.1998  &lt; 2e-16 ***
-## BL          -3.28819    2.47683 -1.3276  0.18461    
-## U            1.22795    0.95063  1.2917  0.19675    
-## R            1.46000    0.95063  1.5358  0.12489    
-## TR          -1.57128    0.95063 -1.6529  0.09866 .  
+## (Intercept) 26.16632    1.09383 23.9218  &lt; 2e-16 ***
+## U            1.33421    0.94761  1.4080  0.15944    
+## R            1.56634    0.94761  1.6529  0.09865 .  
+## TR          -1.46500    0.94761 -1.5460  0.12241    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Total Sum of Squares:    58723
-## Residual Sum of Squares: 58210
-## R-Squared:      0.0087274
-## Adj. R-Squared: 0.0086848
-## F-statistic: 2.24287 on 4 and 1019 DF, p-value: 0.062592</code></pre>
-</div>
-<div id="fixed-or-random-1" class="section level3">
-<h3>fixed or random</h3>
-<p>p-value is &gt; 0.05 then we should use random effect model</p>
+## Total Sum of Squares:    58722
+## Residual Sum of Squares: 58310
+## R-Squared:      0.0070129
+## Adj. R-Squared: 0.0069855
+## F-statistic: 2.40122 on 3 and 1020 DF, p-value: 0.066322</code></pre>
 <pre><code>## 
 ##  Hausman Test
 ## 
-## data:  IntermediateStockSize ~ BL + U + R + TR
-## chisq = 1.1846, df = 3, p-value = 0.7567
+## data:  IntermediateStockSize ~ U + R + TR
+## chisq = 2.952, df = 3, p-value = 0.3991
 ## alternative hypothesis: one model is inconsistent</code></pre>
+<p>Hausman test p-value is &gt; 0.05 then we should use random effect model. Not sure it holds for model with time treated as factor.</p>
 </div>
 <div id="include-time-fixed-effects-1" class="section level2 smaller">
 <h2>Include time fixed effects</h2>
+<p>Now I’m fitting the same model Caroline did on the presentation. Note that now the random effects model show the same p-values and coefficients as Caroline’s model in STATA. So dropping the missing round does not make a difference on model output, she uses 1023 obs while I do 1024. However, bear in mind that if I fit the model with time as factor (default for R and as it’s shown in tutorial), the significant effect treatment Threshold dissapears.</p>
 <pre><code>## Oneway (individual) effect Random Effect Model 
 ##    (Swamy-Arora's transformation)
 ## 
 ## Call:
-## plm(formula = IntermediateStockSize ~ +U + R + TR + Round, data = group_dat, 
-##     model = &quot;random&quot;, index = c(&quot;group&quot;, &quot;Round&quot;))
+## plm(formula = IntermediateStockSize ~ U + R + TR + as.numeric(Round), 
+##     data = group_dat, model = &quot;random&quot;, index = c(&quot;group&quot;, &quot;Round&quot;))
 ## 
 ## Balanced Panel: n=64, T=16, N=1024
 ## 
 ## Effects:
 ##                  var std.dev share
-## idiosyncratic 36.339   6.028  0.34
-## individual    70.497   8.396  0.66
-## theta:  0.8233  
+## idiosyncratic 43.381   6.586 0.384
+## individual    69.534   8.339 0.616
+## theta:  0.8063  
 ## 
 ## Residuals :
 ##    Min. 1st Qu.  Median 3rd Qu.    Max. 
-## -27.400  -3.760   0.841   4.010  17.300 
+## -29.500  -4.110   0.717   4.250  22.400 
 ## 
 ## Coefficients :
-##             Estimate Std. Error  t-value  Pr(&gt;|t|)    
-## (Intercept)  35.2812     1.2908  27.3325 &lt; 2.2e-16 ***
-## U             4.0937     1.0720   3.8186 0.0001424 ***
-## R             4.4645     1.0720   4.1645 3.388e-05 ***
-## TR            1.3235     1.0720   1.2346 0.2172817    
-## Round2       -6.3281     1.0647  -5.9438 3.836e-09 ***
-## Round3       -9.1875     1.0647  -8.6296 &lt; 2.2e-16 ***
-## Round4      -11.2188     1.0647 -10.5375 &lt; 2.2e-16 ***
-## Round5      -11.6406     1.0647 -10.9337 &lt; 2.2e-16 ***
-## Round6      -13.3906     1.0647 -12.5775 &lt; 2.2e-16 ***
-## Round7       -1.5486     1.2508  -1.2381 0.2159780    
-## Round8       -6.5329     1.2508  -5.2231 2.139e-07 ***
-## Round9       -9.1892     1.2508  -7.3467 4.196e-13 ***
-## Round10     -11.0642     1.2508  -8.8458 &lt; 2.2e-16 ***
-## Round11     -12.1423     1.2508  -9.7078 &lt; 2.2e-16 ***
-## Round12     -13.4548     1.2508 -10.7571 &lt; 2.2e-16 ***
-## Round13     -14.1423     1.2508 -11.3068 &lt; 2.2e-16 ***
-## Round14     -15.2361     1.2508 -12.1812 &lt; 2.2e-16 ***
-## Round15     -15.5486     1.2508 -12.4310 &lt; 2.2e-16 ***
-## Round16     -16.3298     1.2508 -13.0557 &lt; 2.2e-16 ***
+##                    Estimate Std. Error  t-value  Pr(&gt;|t|)    
+## (Intercept)       31.605389   1.129650  27.9780 &lt; 2.2e-16 ***
+## U                 10.164475   0.973897  10.4369 &lt; 2.2e-16 ***
+## R                 10.486431   0.973897  10.7675 &lt; 2.2e-16 ***
+## TR                 7.384036   0.973897   7.5819 7.642e-14 ***
+## as.numeric(Round) -1.128850   0.064503 -17.5007 &lt; 2.2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Total Sum of Squares:    57390
-## Residual Sum of Squares: 36453
-## R-Squared:      0.36482
-## Adj. R-Squared: 0.35805
-## F-statistic: 32.068 on 18 and 1005 DF, p-value: &lt; 2.22e-16</code></pre>
+## Total Sum of Squares:    57850
+## Residual Sum of Squares: 44167
+## R-Squared:      0.23653
+## Adj. R-Squared: 0.23538
+## F-statistic: 78.925 on 4 and 1019 DF, p-value: &lt; 2.22e-16</code></pre>
+<pre><code>## Oneway (individual) effect Within Model
+## 
+## Call:
+## plm(formula = IntermediateStockSize ~ U + R + TR + as.numeric(Round), 
+##     data = group_dat, model = &quot;within&quot;, index = c(&quot;group&quot;, &quot;Round&quot;))
+## 
+## Balanced Panel: n=64, T=16, N=1024
+## 
+## Residuals :
+##     Min.  1st Qu.   Median  3rd Qu.     Max. 
+## -30.6000  -3.9100  -0.0256   3.7600  26.2000 
+## 
+## Coefficients :
+##                    Estimate Std. Error t-value  Pr(&gt;|t|)    
+## U                 10.164844   0.997074  10.195 &lt; 2.2e-16 ***
+## R                 10.791927   0.997074  10.824 &lt; 2.2e-16 ***
+## TR                 7.448177   0.997074   7.470 1.806e-13 ***
+## as.numeric(Round) -1.137012   0.065088 -17.469 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Total Sum of Squares:    55115
+## Residual Sum of Squares: 41473
+## R-Squared:      0.24752
+## Adj. R-Squared: 0.23109
+## F-statistic: 78.6181 on 4 and 956 DF, p-value: &lt; 2.22e-16</code></pre>
+<pre><code>## 
+##  Hausman Test
+## 
+## data:  IntermediateStockSize ~ U + R + TR + as.numeric(Round)
+## chisq = 2.1, df = 4, p-value = 0.7174
+## alternative hypothesis: one model is inconsistent</code></pre>
+<p>Note that here Hausman test p &gt; 0.05 suggesting fixed effects model. I’m not sure it holds when treating time as factor.</p>
 </div>
 <div id="testing-for-random-effects-1" class="section level2 smaller">
 <h2>Testing for random effects</h2>
 <pre><code>## Oneway (individual) effect Pooling Model
 ## 
 ## Call:
-## plm(formula = IntermediateStockSize ~ BL + U + R + TR + Round, 
+## plm(formula = IntermediateStockSize ~ U + R + TR + as.numeric(Round), 
 ##     data = group_dat, model = &quot;pooling&quot;, index = c(&quot;group&quot;, &quot;Round&quot;))
 ## 
 ## Balanced Panel: n=64, T=16, N=1024
 ## 
 ## Residuals :
 ##    Min. 1st Qu.  Median 3rd Qu.    Max. 
-##  -29.30   -5.48    2.69    7.33   24.90 
+##  -29.40   -4.39    2.62    6.73   26.80 
 ## 
 ## Coefficients :
-##             Estimate Std. Error t-value  Pr(&gt;|t|)    
-## (Intercept)  35.6658     1.3077 27.2730 &lt; 2.2e-16 ***
-## BL           -1.5382     1.2001 -1.2818 0.2002204    
-## U             5.1743     1.6542  3.1280 0.0018104 ** 
-## R             2.5618     1.6542  1.5487 0.1217691    
-## TR            1.7806     1.6542  1.0764 0.2820039    
-## Round2       -6.3281     1.8001 -3.5155 0.0004586 ***
-## Round3       -9.1875     1.8001 -5.1039 3.978e-07 ***
-## Round4      -11.2187     1.8001 -6.2323 6.753e-10 ***
-## Round5      -11.6406     1.8001 -6.4667 1.561e-10 ***
-## Round6      -13.3906     1.8001 -7.4389 2.176e-13 ***
-## Round7       -1.4573     2.1299 -0.6842 0.4940009    
-## Round8       -6.4417     2.1299 -3.0244 0.0025545 ** 
-## Round9       -9.0979     2.1299 -4.2715 2.126e-05 ***
-## Round10     -10.9729     2.1299 -5.1519 3.104e-07 ***
-## Round11     -12.0510     2.1299 -5.6581 1.996e-08 ***
-## Round12     -13.3635     2.1299 -6.2743 5.214e-10 ***
-## Round13     -14.0510     2.1299 -6.5971 6.774e-11 ***
-## Round14     -15.1448     2.1299 -7.1106 2.192e-12 ***
-## Round15     -15.4573     2.1299 -7.2573 7.895e-13 ***
-## Round16     -16.2385     2.1299 -7.6241 5.681e-14 ***
+##                    Estimate Std. Error  t-value  Pr(&gt;|t|)    
+## (Intercept)       31.448112   0.691397  45.4849 &lt; 2.2e-16 ***
+## U                  9.669441   1.070266   9.0346 &lt; 2.2e-16 ***
+## R                  7.056941   1.070266   6.5936 6.878e-11 ***
+## TR                 6.275691   1.070266   5.8637 6.112e-09 ***
+## as.numeric(Round) -1.017831   0.089778 -11.3373 &lt; 2.2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## Total Sum of Squares:    128000
-## Residual Sum of Squares: 104100
-## R-Squared:      0.18668
-## Adj. R-Squared: 0.18303
-## F-statistic: 12.1287 on 19 and 1004 DF, p-value: &lt; 2.22e-16</code></pre>
+## Residual Sum of Squares: 111930
+## R-Squared:      0.12554
+## Adj. R-Squared: 0.12493
+## F-statistic: 36.5725 on 4 and 1019 DF, p-value: &lt; 2.22e-16</code></pre>
 <div id="breusch-pagan-lagrange-multiplier-lm-1" class="section level3">
 <h3>Breusch-Pagan Lagrange multiplier (LM)</h3>
 <p>The Lagrange multiplier helps decide between random effects regression or a simple OLS regression. If p&lt;0.05 a random model is preferred, meaning there is evidence that there is differences amongst treatments.</p>
 <pre><code>## 
 ##  Lagrange Multiplier Test - (Breusch-Pagan)
 ## 
-## data:  IntermediateStockSize ~ BL + U + R + TR + Round
-## chisq = 3201.7, df = 1, p-value &lt; 2.2e-16
+## data:  IntermediateStockSize ~ U + R + TR + as.numeric(Round)
+## chisq = 2753.9, df = 1, p-value &lt; 2.2e-16
 ## alternative hypothesis: significant effects</code></pre>
 </div>
 <div id="testing-for-cross-sectional-dependnece-1" class="section level3">
 <h3>Testing for cross-sectional dependnece</h3>
-<p>It seems that there is cross-sectional dependence, probably the location effect.</p>
+<p>Both Breusch-Pagan LM test and Pesaran CD test indicate that there is cross-sectional dependence, probably the location effect. For the first paper with analysis on group level (Schill et al) Caro wanted to emphasize the results on the treatment effects rather than treatment and location. However, if all these test are common practice in econometrics, wouldn’t be easier to present the complete history and the control for location already on the model, or perhaps show comparative models table?</p>
 <pre><code>## 
 ##  Breusch-Pagan LM test for cross-sectional dependence in panels
 ## 
 ## data:  formula
-## chisq = 8779.9, df = 2016, p-value &lt; 2.2e-16
+## chisq = 8782.5, df = 2016, p-value &lt; 2.2e-16
 ## alternative hypothesis: cross-sectional dependence</code></pre>
 <pre><code>## 
 ##  Pesaran CD test for cross-sectional dependence in panels
 ## 
 ## data:  formula
-## z = 65.06, p-value &lt; 2.2e-16
+## z = 64.963, p-value &lt; 2.2e-16
 ## alternative hypothesis: cross-sectional dependence</code></pre>
 </div>
 <div id="testing-for-serial-correlation-1" class="section level3">
 <h3>Testing for serial correlation</h3>
-<p>There is serieal correlation. It shouldn’t be a problem in micropanels with few years like ours.</p>
+<p>There is serieal correlation (p-value &lt; 0.05). It shouldn’t be a problem in micropanels with few time steps like ours, but we have it. I believe it means that coefficients across time are correlated, but there is already a term for time effects on the model; so I’m not sure how to interpret this result. Maybe solved if time is treated as factor?</p>
 <pre><code>## 
 ##  Breusch-Godfrey/Wooldridge test for serial correlation in panel
 ##  models
 ## 
-## data:  IntermediateStockSize ~ BL + U + R + TR
-## chisq = 475.98, df = 16, p-value &lt; 2.2e-16
+## data:  IntermediateStockSize ~ U + R + TR
+## chisq = 475.99, df = 16, p-value &lt; 2.2e-16
 ## alternative hypothesis: serial correlation in idiosyncratic errors</code></pre>
 </div>
 <div id="dickey-fuller-test-1" class="section level3">
 <h3>Dickey-Fuller test</h3>
-<p>It check for stochastic trends, the null hypothesis is that the series as a unit root (non-stationary). If root is present one can take the first difference of the variable. p-value is &lt; 0.05 then there is no unit roots present.</p>
+<p>It check for stochastic trends, the null hypothesis is that the series as a unit root (non-stationary). If root is present one can take the first difference of the variable. p-value is &lt; 0.05 then there is no unit roots present. Same results obtained at the individual level.</p>
 <pre><code>## Warning in adf.test(panel.set$IntermediateStockSize, k = 2): p-value
 ## smaller than printed p-value</code></pre>
 <pre><code>## 
@@ -850,12 +904,12 @@ div.tocify {
 </div>
 <div id="breusch-pagan-test-for-homoskedasticity-1" class="section level3">
 <h3>Breusch-Pagan test for homoskedasticity</h3>
-<p>p &lt; 0.05 therefore there is presence of heteroskedasticity, one can use robust covariance matrix to account for it.</p>
+<p>p &lt; 0.05 therefore there is presence of heteroskedasticity, one can use robust covariance matrix to account for it. First let’s decide which models are we using and then decide how to fix this.</p>
 <pre><code>## 
 ##  Breusch-Pagan test
 ## 
 ## data:  IntermediateStockSize ~ BL + U + R + TR
-## BP = 26.826, df = 4, p-value = 2.156e-05</code></pre>
+## BP = 11.52, df = 4, p-value = 0.0213</code></pre>
 </div>
 </div>
 </div>
