@@ -461,20 +461,52 @@ g
 summary (dat)
 str(dat)
 
-gini <- filter(dat, part == 1) %>%
+gini0 <- filter(dat, part == 0) %>%
   group_by (ID_player, group) %>%
-  summarize(earning = sum(value)) %>%
-  group_by (group)%>%
-  summarize (gini = ineq(earning, type = 'Gini'))
+  summarize(earning = sum (value)) %>%
+  group_by (group) %>%
+  summarize (gini_st1 = ineq(earning, type = 'Gini'))
+
+gini1 <- filter(dat, part == 1) %>%
+  group_by (ID_player, group) %>%
+  summarize(earning = sum (value)) %>%
+  group_by (group) %>%
+  summarize (gini_st2 = ineq(earning, type = 'Gini'))
+
+gini_round <- dat %>%
+  group_by (ID_player, group, Round) %>%
+  summarize(earning = sum (value)) %>%
+  group_by (group, Round) %>%
+  summarize (gini_round = ineq(earning, type = 'Gini'))
+
 
 gini <- left_join(gini, dplyr::select(dat, Treatment, Place, group) , by = 'group')
-  
+gini$low <- gini$gini < 0.015 
+
+ 
 g <- ggplot(gini, aes(Treatment, gini)) + 
   geom_jitter (width = 0.5, aes (color = Place, alpha = 0.2), show.legend = T) +
   geom_boxplot(aes (alpha = 0.1))  + facet_grid(. ~ Place) + coord_flip() + ggtitle ('Gini on fishers earnings\n Stage 2')
 g
 
 quartz.save(file='coop_place_byStage.png', type = 'png')  
+
+
+
+## join gini and original data
+dat <- left_join (dat, gini, by = c('group', 'Place', 'Treatment'))
+
+
+c <- ggplot(data=dat, aes(y=NewStockSize, x=StockSizeBegining), group=group) + 
+  stat_density_2d(aes(color=low, alpha=0.5), n=100, h=15, show.legend = T) + 
+  facet_grid( Treatment ~ Place)
+c
+
+
+
+# quartz.save('GeneralSummary_contours_groups_lowGini.png', type='png')
+
+
 
 
 ## Now calculate Gini's on expected values for next round
