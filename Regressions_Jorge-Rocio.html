@@ -1,0 +1,5600 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Juan Rocha" />
+
+
+<title>Regressions tests</title>
+
+<script src="Regressions_Jorge-Rocio_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="Regressions_Jorge-Rocio_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="Regressions_Jorge-Rocio_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="Regressions_Jorge-Rocio_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="Regressions_Jorge-Rocio_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="Regressions_Jorge-Rocio_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="Regressions_Jorge-Rocio_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="Regressions_Jorge-Rocio_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="Regressions_Jorge-Rocio_files/navigation-1.1/tabsets.js"></script>
+<script src="Regressions_Jorge-Rocio_files/navigation-1.1/codefolding.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; background-color: #f8f8f8; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+pre, code { background-color: #f8f8f8; }
+code > span.kw { color: #204a87; font-weight: bold; } /* Keyword */
+code > span.dt { color: #204a87; } /* DataType */
+code > span.dv { color: #0000cf; } /* DecVal */
+code > span.bn { color: #0000cf; } /* BaseN */
+code > span.fl { color: #0000cf; } /* Float */
+code > span.ch { color: #4e9a06; } /* Char */
+code > span.st { color: #4e9a06; } /* String */
+code > span.co { color: #8f5902; font-style: italic; } /* Comment */
+code > span.ot { color: #8f5902; } /* Other */
+code > span.al { color: #ef2929; } /* Alert */
+code > span.fu { color: #000000; } /* Function */
+code > span.er { color: #a40000; font-weight: bold; } /* Error */
+code > span.wa { color: #8f5902; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #000000; } /* Constant */
+code > span.sc { color: #000000; } /* SpecialChar */
+code > span.vs { color: #4e9a06; } /* VerbatimString */
+code > span.ss { color: #4e9a06; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #000000; } /* Variable */
+code > span.cf { color: #204a87; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #ce5c00; font-weight: bold; } /* Operator */
+code > span.pp { color: #8f5902; font-style: italic; } /* Preprocessor */
+code > span.ex { } /* Extension */
+code > span.at { color: #c4a000; } /* Attribute */
+code > span.do { color: #8f5902; font-weight: bold; font-style: italic; } /* Documentation */
+code > span.an { color: #8f5902; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #8f5902; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Information */
+div.sourceCode {
+  overflow-x: visible;
+}
+</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = false;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+}
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Regressions tests</h1>
+<h4 class="author"><em>Juan Rocha</em></h4>
+<h4 class="date"><em>3/12/2018</em></h4>
+
+</div>
+
+
+<p>This document explores new regressions for the analysis of game data of Cienaga Grande de Santa Marta. Most ideas were discussed with Jorge Maldonado and Rocio Moreno in our last meeting in Colombia. All code is visible in case any of the authors wants to reproduce the analysis in R. First, import and clean the data:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">### load dataset
+## Survey data
+<span class="kw">source</span>(<span class="st">&#39;~/Documents/Projects/BEST - Beijer/BEST/160525_ErrorIdentificationSurvey.R&#39;</span>)</code></pre></div>
+<pre><code>## Warning in scan(file = file, what = what, sep = sep, quote = quote, dec =
+## dec, : embedded nul(s) found in input</code></pre>
+<pre><code>## Warning in strptime(x, format, tz = &quot;GMT&quot;): unknown timezone &#39;zone/tz/
+## 2018c.1.0/zoneinfo/Europe/Stockholm&#39;</code></pre>
+<pre><code>## Warning in eval(ei, envir): NAs introduced by coercion</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#key</span>
+key &lt;-<span class="st"> </span><span class="kw">read.csv2</span>(<span class="dt">file =</span> <span class="st">&#39;~/Dropbox/BEST/Colombia/Survey/key_consolidado_survey.csv&#39;</span>, <span class="dt">encoding =</span> <span class="st">&quot;Latin-1&quot;</span> )
+key &lt;-<span class="st"> </span>key [<span class="kw">c</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">16</span>,<span class="dv">23</span><span class="op">:</span><span class="dv">240</span>),<span class="kw">c</span>(<span class="dv">2</span><span class="op">:</span><span class="dv">5</span>)]
+  key<span class="op">$</span>Name.in.datasheet &lt;-<span class="st"> </span><span class="kw">as.character</span>(key<span class="op">$</span>Name.in.datasheet)
+  <span class="kw">levels</span>(key<span class="op">$</span>Data.type)[<span class="dv">3</span>] &lt;-<span class="st"> &quot;binary&quot;</span>
+  key &lt;-<span class="st"> </span><span class="kw">droplevels</span>(key)
+  key<span class="op">$</span>Column.datasheet &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">234</span>)
+
+<span class="co"># load game data in long format, short format also available</span>
+dat &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="dt">file=</span><span class="st">&quot;~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv&quot;</span>, <span class="dt">row.names=</span><span class="dv">1</span>)
+
+<span class="co"># Create player ID&#39;s as in Surveys.R</span>
+dat &lt;-<span class="st"> </span><span class="kw">transform</span>(dat, <span class="dt">ID_player =</span> <span class="kw">interaction</span>(Date, Treatment, Session, Player, <span class="dt">drop =</span> <span class="ot">TRUE</span>))
+<span class="co"># Create ID group</span>
+dat &lt;-<span class="st"> </span><span class="kw">transform</span>(dat, <span class="dt">group =</span> <span class="kw">interaction</span> (Date, Treatment, Session, <span class="dt">drop=</span>T))
+dat &lt;-<span class="st"> </span><span class="kw">as_tibble</span>(dat) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">rename</span>(<span class="dt">ind_extraction =</span> value)
+
+<span class="co"># reorder levels</span>
+dat<span class="op">$</span>Treatment &lt;-<span class="st"> </span><span class="kw">factor</span>(dat<span class="op">$</span>Treatment, <span class="kw">levels</span>(dat<span class="op">$</span>Treatment)[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">2</span>,<span class="dv">4</span>)])
+<span class="co"># levels(dat$Treatment)</span>
+
+### For the analysis proposed by Jorge I need to get rid of missing values, set all NA to zero before calculating anything else.
+dat &lt;-<span class="st">  </span>dat <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">replace_na</span>(<span class="kw">list</span>(<span class="dt">StockSizeBegining =</span> <span class="dv">0</span>, <span class="dt">SumTotalCatch =</span> <span class="dv">0</span>, <span class="dt">IntermediateStockSize =</span> <span class="dv">0</span>, <span class="dt">Regeneration =</span> <span class="dv">0</span>, <span class="dt">NewStockSize =</span> <span class="dv">0</span>))
+
+
+dat &lt;-<span class="st"> </span><span class="kw">mutate</span> (dat, <span class="dt">threshold =</span> <span class="kw">ifelse</span> (dat<span class="op">$</span>Treatment <span class="op">==</span><span class="st"> &quot;Base line&quot;</span> <span class="op">|</span><span class="st"> </span>dat<span class="op">$</span>part <span class="op">==</span><span class="st"> </span><span class="ot">FALSE</span>, <span class="dv">20</span>, <span class="dv">28</span> ))
+dat &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(
+  <span class="dt">dummy_threshold =</span> <span class="kw">ifelse</span>(NewStockSize <span class="op">-</span><span class="st"> </span>threshold <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>, <span class="ot">FALSE</span>, <span class="ot">TRUE</span>))
+
+## Use the deviation from threshold, and dev_t_divided by 4
+dat &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span> (<span class="dt">dev_drop =</span> <span class="kw">ifelse</span>(dat<span class="op">$</span>Treatment <span class="op">==</span><span class="st"> &#39;Base line&#39;</span> <span class="op">|</span><span class="st"> </span>dat<span class="op">$</span>part <span class="op">==</span><span class="st"> </span><span class="ot">FALSE</span>,
+                                ((dat<span class="op">$</span>IntermediateStockSize <span class="op">-</span><span class="st"> </span><span class="dv">20</span>)) ,  <span class="co"># - dat$value</span>
+                                 ((dat<span class="op">$</span>IntermediateStockSize <span class="op">-</span><span class="st"> </span><span class="dv">28</span>))   )) <span class="co">#- dat$value</span>
+## here cooperation is calculated.
+dat &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span> (<span class="dt">optimal =</span> (StockSizeBegining <span class="op">-</span><span class="st"> </span>threshold) <span class="op">/</span><span class="st"> </span><span class="dv">4</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span> (<span class="dt">cooperation =</span> <span class="kw">ifelse</span>(
+    StockSizeBegining <span class="op">==</span><span class="st"> </span><span class="dv">0</span>, <span class="ot">NA</span>, 
+    <span class="kw">ifelse</span>((<span class="dv">4</span><span class="op">*</span>optimal) <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span>ind_extraction <span class="op">==</span><span class="st"> </span><span class="dv">0</span>, <span class="dv">0</span>, optimal <span class="op">-</span><span class="st"> </span>ind_extraction)))
+
+## coordination is calculated next
+
+dist_group &lt;-<span class="st"> </span><span class="cf">function</span>(x){ <span class="co"># x will be the character identifier for each player</span>
+  y &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(ID_player, Round, ind_extraction, group) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">filter</span>(group <span class="op">==</span><span class="st"> </span><span class="kw">substr</span>(x,<span class="dt">start =</span> <span class="dv">1</span>, <span class="dt">stop =</span> <span class="kw">nchar</span>(x) <span class="op">-</span><span class="st"> </span><span class="dv">2</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># filter per group based on ID_player</span>
+<span class="st">    </span><span class="kw">select</span>(<span class="op">-</span>group) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">spread</span>(Round, ind_extraction)
+  z &lt;-<span class="st"> </span>vegan<span class="op">::</span><span class="kw">vegdist</span>(y[<span class="op">-</span><span class="dv">1</span>], <span class="st">&quot;bray&quot;</span>) <span class="co"># Bray-curtis is bounded 0:1 with zero absolute similarity and 1 complete different</span>
+  player &lt;-<span class="st"> </span><span class="kw">substr</span>(x, <span class="dt">start =</span> <span class="kw">nchar</span>(x), <span class="dt">stop =</span> <span class="kw">nchar</span>(x)) <span class="co"># the player is the last number of the string</span>
+  mean_dist &lt;-<span class="st"> </span><span class="kw">colSums</span>(<span class="kw">as.matrix</span>(z))[<span class="kw">as.numeric</span>(player)] <span class="op">/</span><span class="st"> </span><span class="dv">3</span> <span class="co"># divided by the other 3 players. Note the dist to self is 0</span>
+  df &lt;-<span class="st"> </span><span class="kw">data_frame</span>(<span class="dt">ID_player =</span> x, <span class="dt">mean_dist =</span> mean_dist)
+  <span class="kw">return</span>(df)
+}
+
+x &lt;-<span class="st"> </span><span class="kw">lapply</span>(<span class="kw">levels</span>(dat<span class="op">$</span>ID_player), dist_group)
+x &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(x)
+x<span class="op">$</span>ID_player &lt;-<span class="st"> </span><span class="kw">as.factor</span>(x<span class="op">$</span>ID_player)
+x &lt;-<span class="st"> </span><span class="kw">mutate</span>(x, <span class="dt">coordination =</span> <span class="dv">1</span><span class="op">-</span>mean_dist)
+
+<span class="co"># rm(y , z, player, mean_dist, df)</span>
+
+ind_coop &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#filter(part == TRUE) %&gt;%</span>
+<span class="st">  </span><span class="kw">select</span>( Treatment, Place, ID_player, group, Round, cooperation, part, Player) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(Treatment, Place, ID_player, group, part, Player) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">Cooperation =</span> <span class="kw">mean</span>(cooperation, <span class="dt">na.rm =</span> T),
+            <span class="dt">variance =</span> <span class="kw">var</span>(cooperation, <span class="dt">na.rm =</span> T),
+            <span class="dt">skewness =</span> <span class="kw">skewness</span>(cooperation, <span class="dt">na.rm =</span> T),
+            <span class="dt">med_coop =</span> <span class="kw">median</span>(cooperation, <span class="dt">na.rm =</span> T))
+
+exp_notes &lt;-<span class="st"> </span><span class="kw">as_tibble</span>(exp_notes)
+risk_amb &lt;-<span class="st"> </span>exp_notes <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="dv">119</span><span class="op">:</span><span class="dv">130</span>,<span class="dv">132</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">unique</span>()
+
+risk &lt;-<span class="st"> </span>risk_amb <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="dv">13</span>,
+    <span class="dt">Risk_0_38k =</span> <span class="dv">1</span>, <span class="dt">Risk_13k =</span><span class="dv">2</span>, <span class="dt">Risk_10_19k =</span> <span class="dv">3</span>,
+    <span class="dt">Risk_7_25k =</span> <span class="dv">4</span>, <span class="dt">Risk_4_31k =</span> <span class="dv">5</span>, <span class="dt">Risk_2_36k =</span> <span class="dv">6</span>)
+
+risk &lt;-<span class="st"> </span>risk <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Risk_0_38k =</span> forcats<span class="op">::</span><span class="kw">fct_recode</span>(Risk_0_38k, <span class="dt">NULL =</span> <span class="st">&#39;&#39;</span>, <span class="st">&#39;1&#39;</span> =<span class="st"> &#39;|&#39;</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">Risk_0_38k =</span> <span class="kw">as.numeric</span>(<span class="kw">as.character</span>(Risk_0_38k))) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">gather</span>(<span class="dt">key =</span> Risk, <span class="dt">value =</span> choice, <span class="dv">2</span><span class="op">:</span><span class="dv">7</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">filter</span>(choice <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)
+
+risk<span class="op">$</span>Risk &lt;-<span class="st"> </span><span class="kw">as.factor</span>(risk<span class="op">$</span>Risk)
+<span class="kw">levels</span>(risk<span class="op">$</span>Risk) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">6</span>,<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">3</span>)
+risk<span class="op">$</span>Risk &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(risk<span class="op">$</span>Risk)
+
+### J180102: There is errors also on the ambiguity elicitation task data. The group of 2016-02-09.Threshold.am all players have NAs.
+amb &lt;-<span class="st"> </span>risk_amb <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="dv">13</span>, <span class="dt">Amb_0_38k =</span> <span class="dv">7</span>, <span class="dt">Amb_13k =</span><span class="dv">8</span>, <span class="dt">Amb_10_19k =</span> <span class="dv">9</span>, <span class="dt">Amb_7_25k =</span> <span class="dv">10</span>, <span class="dt">Amb_4_31k =</span> <span class="dv">11</span>, <span class="dt">Amb_2_36k =</span> <span class="dv">12</span>)
+
+## for the people with two choices, I leave only one manually, but note, this needs to be checked with raw data and change afterwards here to correct for the right one.
+<span class="co"># this command shows the errors:</span>
+
+<span class="co"># amb %&gt;% group_by(ID_player) %&gt;% summarize(choice = sum(Amb_0_38k, Amb_13k, Amb_10_19k, Amb_7_25k ,Amb_4_31k ,Amb_2_36k)) %&gt;% filter(choice == 0 | choice == 2 | is.na(choice))</span>
+## Manual corrections
+amb[amb<span class="op">$</span>ID_player <span class="op">==</span><span class="st"> &quot;2016-02-01.Threshold.am.2&quot;</span>, <span class="st">&quot;Amb_4_31k&quot;</span>] &lt;-<span class="st"> </span><span class="dv">0</span>
+amb[amb<span class="op">$</span>ID_player <span class="op">==</span><span class="st"> &quot;2016-02-05.Uncertainty.am.2&quot;</span>, <span class="st">&quot;Amb_10_19k&quot;</span>] &lt;-<span class="st"> </span><span class="dv">0</span>
+amb[amb<span class="op">$</span>ID_player <span class="op">==</span><span class="st"> &quot;2016-02-02.Base line.am.4&quot;</span>, <span class="st">&quot;Amb_10_19k&quot;</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+
+## note, this still keeps the NA players and they are dropped when choice == 1, but at least there is no duplicates now.
+
+amb &lt;-<span class="st"> </span>amb <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">gather</span>(<span class="dt">key =</span> Amb, <span class="dt">value =</span> choice, <span class="dv">2</span><span class="op">:</span><span class="dv">7</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(choice <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)
+
+amb<span class="op">$</span>Amb &lt;-<span class="st"> </span><span class="kw">as.factor</span>(amb<span class="op">$</span>Amb)
+<span class="kw">levels</span>(amb<span class="op">$</span>Amb) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">6</span>,<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">3</span>)
+amb<span class="op">$</span>Amb &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(amb<span class="op">$</span>Amb)
+
+ind_coop &lt;-<span class="st"> </span><span class="kw">left_join</span>(ind_coop, surv, <span class="dt">by =</span> <span class="st">&quot;ID_player&quot;</span>) <span class="op">%&gt;%</span><span class="st">  </span>## Now drop the columns that are not useful for now in the regression
+<span class="st">  </span><span class="kw">select</span>( <span class="kw">c</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">21</span>, <span class="dt">life_satisfaction =</span> <span class="dv">29</span>, <span class="dt">EE_before =</span> <span class="dv">30</span>, <span class="dt">partner_in_group =</span> <span class="dv">31</span>,
+            <span class="dt">fishing_age=</span><span class="dv">35</span>,<span class="dt">fishing_last_yr =</span> <span class="dv">39</span>, <span class="dt">week_days =</span> <span class="dv">53</span>, <span class="dt">ND_hrs =</span> <span class="dv">54</span>, <span class="dt">ND_kg =</span> <span class="dv">55</span>, <span class="dt">ND_pesos =</span><span class="dv">56</span>,
+            <span class="dt">BD_kg =</span> <span class="dv">59</span>, <span class="dt">BD_pesos =</span> <span class="dv">60</span>, <span class="dt">BD_how_often =</span> <span class="dv">61</span>, <span class="dt">group_fishing =</span> <span class="dv">62</span>, <span class="dt">boat =</span> <span class="dv">68</span>,
+            <span class="dt">take_home=</span> <span class="dv">94</span>, <span class="dt">sale=</span> <span class="dv">95</span>, <span class="dt">give_away =</span> <span class="dv">97</span>,
+            <span class="dt">fishing_future =</span> <span class="dv">98</span>, <span class="dt">fishing_children=</span><span class="dv">100</span>, <span class="dt">history_rs =</span> <span class="dv">106</span>,  <span class="dt">sharing_art=</span><span class="dv">147</span>,
+            <span class="dt">belongs_coop=</span><span class="dv">149</span>, <span class="dt">age=</span><span class="dv">167</span>, <span class="dt">education =</span> <span class="dv">168</span>, <span class="dt">education_yrs=</span><span class="dv">169</span> ))
+
+ind_coop<span class="op">$</span>BD_how_often[<span class="kw">is.na</span>(ind_coop<span class="op">$</span>BD_how_often)] &lt;-<span class="st"> </span><span class="dv">0</span>
+
+ind_coop<span class="op">$</span>ID_player &lt;-<span class="st"> </span><span class="kw">as.character</span>(ind_coop<span class="op">$</span>ID_player)
+risk<span class="op">$</span>ID_player &lt;-<span class="st"> </span><span class="kw">as.character</span>(risk<span class="op">$</span>ID_player)
+amb<span class="op">$</span>ID_player &lt;-<span class="st"> </span><span class="kw">as.character</span>(amb<span class="op">$</span>ID_player)
+x<span class="op">$</span>ID_player &lt;-<span class="st"> </span><span class="kw">as.character</span>(x<span class="op">$</span>ID_player)
+
+ind_coop &lt;-<span class="st"> </span><span class="kw">left_join</span>(ind_coop, x, <span class="dt">by =</span> <span class="st">&quot;ID_player&quot;</span>)
+
+ind_coop &lt;-<span class="st"> </span><span class="kw">left_join</span>(ind_coop, <span class="kw">select</span>(risk, <span class="dv">1</span>,<span class="dv">2</span>), <span class="dt">by =</span> <span class="st">&quot;ID_player&quot;</span>)
+
+
+### here is the error now
+ind_coop &lt;-<span class="st"> </span><span class="kw">left_join</span>(ind_coop, <span class="kw">select</span>(amb, <span class="dv">1</span>,<span class="dv">2</span>), <span class="dt">by =</span> <span class="st">&quot;ID_player&quot;</span>)
+
+## log-transform money related variables
+
+ind_coop &lt;-<span class="st"> </span><span class="kw">mutate</span>(ind_coop, <span class="dt">ND_log_pesos =</span> <span class="kw">log</span>(ND_pesos), <span class="dt">BD_log_pesos =</span> <span class="kw">log1p</span>(BD_pesos))</code></pre></div>
+<div id="treatment-effects" class="section level3">
+<h3>Treatment effects</h3>
+<p>The first idea was to identify treatment effects via a diff-in-diff approach. Jorge suggested dropping for now ‘cooperation’ as response variable due to problems of endogeneity and an issue with negative values (when stock size is under the threshold, even if people fish zero they will get negative values of cooperation). Jorge recommends instead using the individual extraction directly and test the following regressions:</p>
+<p><span class="math display">\[X_{i,t} = \alpha_0 + \alpha_1 T\]</span></p>
+<p><span class="math display">\[X_{i,t} = \alpha_0 + \alpha_1F + \alpha_2T + \alpha_3 FT\]</span></p>
+<p>Where <span class="math inline">\(X_{i,t}\)</span> is the individual extraction of fishermen <span class="math inline">\(i\)</span> in round <span class="math inline">\(t\)</span>, <span class="math inline">\(T\)</span> is the term for treatments, and <span class="math inline">\(F\)</span> is the term for ‘fase’ or whether we are on part (1) before treatment or part (2) after treatment of the game. The interaction term should account for the extra effect of the treatment on the second part of the game, accounting for example for cases where people might have a tendency to extract more / less that does not correspond to the treatment effect but that was present on the baseline.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># df &lt;- left_join(dat, ind_coop)</span>
+
+## First regression
+
+mod1 &lt;-<span class="st"> </span><span class="kw">plm</span>(ind_extraction <span class="op">~</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>part , 
+            <span class="dt">data =</span> dat, <span class="dt">index =</span> <span class="kw">c</span>(<span class="st">&#39;ID_player&#39;</span> ,<span class="st">&#39;Round&#39;</span>), <span class="dt">model =</span> <span class="st">&quot;pooling&quot;</span>, <span class="dt">effect =</span> <span class="st">&quot;twoway&quot;</span> )
+mod2 &lt;-<span class="st"> </span><span class="kw">plm</span>(ind_extraction <span class="op">~</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>part <span class="op">+</span><span class="st"> </span>Treatment<span class="op">*</span>part , 
+            <span class="dt">data =</span> dat, <span class="dt">index =</span> <span class="kw">c</span>(<span class="st">&#39;ID_player&#39;</span> ,<span class="st">&#39;Round&#39;</span>), <span class="dt">model =</span> <span class="st">&quot;pooling&quot;</span>, <span class="dt">effect =</span> <span class="st">&quot;twoway&quot;</span>)
+mod3 &lt;-<span class="st"> </span><span class="kw">plm</span>(ind_extraction <span class="op">~</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>part <span class="op">+</span><span class="st"> </span>Treatment<span class="op">*</span>part , 
+            <span class="dt">data =</span> dat, <span class="dt">index =</span> <span class="kw">c</span>(<span class="st">&#39;ID_player&#39;</span> ,<span class="st">&#39;Round&#39;</span>), <span class="dt">model =</span> <span class="st">&quot;between&quot;</span>)
+mod4 &lt;-<span class="st"> </span><span class="kw">plm</span>(ind_extraction <span class="op">~</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>part <span class="op">+</span><span class="st"> </span>Treatment<span class="op">*</span>part , 
+            <span class="dt">data =</span> dat, <span class="dt">index =</span> <span class="kw">c</span>(<span class="st">&#39;ID_player&#39;</span> ,<span class="st">&#39;Round&#39;</span>), <span class="dt">model =</span> <span class="st">&quot;within&quot;</span>, <span class="dt">effect =</span> <span class="st">&quot;twoway&quot;</span>)
+mod5 &lt;-<span class="st"> </span><span class="kw">plm</span>(ind_extraction <span class="op">~</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>part <span class="op">+</span><span class="st"> </span>Treatment<span class="op">*</span>part , 
+            <span class="dt">data =</span> dat, <span class="dt">index =</span> <span class="kw">c</span>(<span class="st">&#39;ID_player&#39;</span> ,<span class="st">&#39;Round&#39;</span>), <span class="dt">model =</span> <span class="st">&quot;random&quot;</span>, <span class="dt">effect =</span> <span class="st">&quot;twoway&quot;</span>)
+
+stargazer<span class="op">::</span><span class="kw">stargazer</span>(
+  mod1, mod2, mod3, mod4, mod5, <span class="dt">type =</span> <span class="st">&quot;html&quot;</span>, <span class="dt">multicolumn =</span> <span class="ot">FALSE</span>, <span class="dt">header =</span> <span class="ot">FALSE</span>, 
+  <span class="dt">intercept.bottom =</span> <span class="ot">FALSE</span>, <span class="dt">digits =</span> <span class="dv">2</span>
+  )</code></pre></div>
+<table style="text-align:center">
+<tr>
+<td colspan="6" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td colspan="5">
+<em>Dependent variable:</em>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td colspan="5" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+ind_extraction
+</td>
+<td>
+ind_extraction
+</td>
+<td>
+ind_extraction
+</td>
+<td>
+ind_extraction
+</td>
+<td>
+ind_extraction
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(1)
+</td>
+<td>
+(2)
+</td>
+<td>
+(3)
+</td>
+<td>
+(4)
+</td>
+<td>
+(5)
+</td>
+</tr>
+<tr>
+<td colspan="6" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Constant
+</td>
+<td>
+2.88<sup>***</sup>
+</td>
+<td>
+2.85<sup>***</sup>
+</td>
+<td>
+2.52<sup>***</sup>
+</td>
+<td>
+</td>
+<td>
+2.85<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.06)
+</td>
+<td>
+(0.09)
+</td>
+<td>
+(0.08)
+</td>
+<td>
+</td>
+<td>
+(0.27)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentThreshold
+</td>
+<td>
+-0.21<sup>***</sup>
+</td>
+<td>
+-0.11
+</td>
+<td>
+-0.21<sup>*</sup>
+</td>
+<td>
+</td>
+<td>
+-0.11
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.08)
+</td>
+<td>
+(0.12)
+</td>
+<td>
+(0.11)
+</td>
+<td>
+</td>
+<td>
+(0.14)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentRisk
+</td>
+<td>
+-0.04
+</td>
+<td>
+0.07
+</td>
+<td>
+-0.04
+</td>
+<td>
+</td>
+<td>
+0.07
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.08)
+</td>
+<td>
+(0.12)
+</td>
+<td>
+(0.11)
+</td>
+<td>
+</td>
+<td>
+(0.14)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentUncertainty
+</td>
+<td>
+-0.08
+</td>
+<td>
+-0.17
+</td>
+<td>
+-0.08
+</td>
+<td>
+</td>
+<td>
+-0.17
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.08)
+</td>
+<td>
+(0.12)
+</td>
+<td>
+(0.11)
+</td>
+<td>
+</td>
+<td>
+(0.14)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+part
+</td>
+<td>
+-0.57<sup>***</sup>
+</td>
+<td>
+-0.53<sup>***</sup>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+-0.53
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.06)
+</td>
+<td>
+(0.11)
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+(0.33)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentThreshold:part
+</td>
+<td>
+</td>
+<td>
+-0.15
+</td>
+<td>
+</td>
+<td>
+-0.15
+</td>
+<td>
+-0.15
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.16)
+</td>
+<td>
+</td>
+<td>
+(0.14)
+</td>
+<td>
+(0.14)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentRisk:part
+</td>
+<td>
+</td>
+<td>
+-0.17
+</td>
+<td>
+</td>
+<td>
+-0.17
+</td>
+<td>
+-0.17
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.16)
+</td>
+<td>
+</td>
+<td>
+(0.14)
+</td>
+<td>
+(0.14)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentUncertainty:part
+</td>
+<td>
+</td>
+<td>
+0.15
+</td>
+<td>
+</td>
+<td>
+0.15
+</td>
+<td>
+0.15
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.16)
+</td>
+<td>
+</td>
+<td>
+(0.14)
+</td>
+<td>
+(0.14)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td colspan="6" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Observations
+</td>
+<td>
+4,096
+</td>
+<td>
+4,096
+</td>
+<td>
+256
+</td>
+<td>
+4,096
+</td>
+<td>
+4,096
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+R<sup>2</sup>
+</td>
+<td>
+0.03
+</td>
+<td>
+0.03
+</td>
+<td>
+0.02
+</td>
+<td>
+0.002
+</td>
+<td>
+0.003
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Adjusted R<sup>2</sup>
+</td>
+<td>
+0.03
+</td>
+<td>
+0.03
+</td>
+<td>
+0.004
+</td>
+<td>
+-0.07
+</td>
+<td>
+0.002
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+F Statistic
+</td>
+<td>
+28.66<sup>***</sup> (df = 4; 4091)
+</td>
+<td>
+17.17<sup>***</sup> (df = 7; 4088)
+</td>
+<td>
+1.31 (df = 3; 252)
+</td>
+<td>
+2.28<sup>*</sup> (df = 3; 3822)
+</td>
+<td>
+1.99<sup>*</sup> (df = 7; 4088)
+</td>
+</tr>
+<tr>
+<td colspan="6" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+<em>Note:</em>
+</td>
+<td colspan="5" style="text-align:right">
+<sup><em></sup>p&lt;0.1; <sup><strong></sup>p&lt;0.05; <sup></strong></em></sup>p&lt;0.01
+</td>
+</tr>
+</table>
+<p>In the table above, the interaction term <code>Treatment*part</code> accounts for the diff-in-diff effect. The table shows that with <code>ind_extraction</code> as response variable, there is no significant effects on treatment, all the variance explained is taken over by the <code>part</code> term. Model 1 shows the regression that corresponds to equation (1) with no interaction effect. Models 2-5 use the interaction effect in a pooled model (2), between model (3), fixed-effects within model (4) and random effects model (5). Note that for between model, only 256 obs are used corresponding to the 256 fishermen, the <code>part</code> term is therfore dropped. The same occurs with model (4) that searches for within differences but drops the treatment term since it does not change on the panel (as constant is colinear in time), only the interaction term that varies over time is estimated. All models were estimated with <code>twoways</code> effects, that is, it accounts for variability per individual and over time. For the same regression but estimating only individual effects, the only significant coefficients are for the <code>part</code> term, or <span class="math inline">\(F\)</span> in the equations above.</p>
+<p>Jorge also suggested to run an F-test to check whether the coefficients of treatments are truly different. I found two options available in <code>R</code>: an F-test that works for panel data to distinguish whether <code>within</code> or <code>pooled</code> models are more appropriate. The results are shown below:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fstat &lt;-<span class="st"> </span><span class="kw">pFtest</span>(mod4, mod1) <span class="co"># the first argument has to be the within model, the second the pooling.</span>
+fstat</code></pre></div>
+<pre><code>## 
+##  F test for twoways effects
+## 
+## data:  ind_extraction ~ Treatment + part + Treatment * part
+## F = 4.707, df1 = 269, df2 = 3822, p-value &lt; 2.2e-16
+## alternative hypothesis: significant effects</code></pre>
+<p>The second option is to test whether the coefficients for treatments are different before and after. This is if <span class="math inline">\(\alpha_{2}T_i \neq \alpha_{3}FT_i\)</span> for all treatments <span class="math inline">\(T_i\)</span>. Or whether the coefficient for an specific treatment in the interaction term <span class="math inline">\(\alpha_3FT_i\)</span> is different from other treatment <span class="math inline">\(\alpha_3FT_j\)</span> for all pair-wise comparisons of treatments, that is if <span class="math inline">\(\alpha_{3}FT_i \neq \alpha_{3}FT_j\)</span>. <strong>Jorge, could you clarify here?</strong> My notes are not good enough to remember what comparison to make. The coefficients are not significant so I’m not sure is worth checking, but in any case, here is how to do it in R with the “pooling” model assuming the relevant comparison is <span class="math inline">\(\alpha_{2}T_i \neq \alpha_{3}FT_i\)</span> for treatment <code>Threshold</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">linearHypothesis</span>(mod2, <span class="st">&quot;TreatmentThreshold = TreatmentThreshold:partTRUE&quot;</span>, <span class="dt">test =</span> <span class="st">&quot;F&quot;</span>)</code></pre></div>
+<pre><code>## Linear hypothesis test
+## 
+## Hypothesis:
+## TreatmentThreshold - TreatmentThreshold:partTRUE = 0
+## 
+## Model 1: restricted model
+## Model 2: ind_extraction ~ Treatment + part + Treatment * part
+## 
+##   Res.Df Df      F Pr(&gt;F)
+## 1   4089                 
+## 2   4088  1 0.0145 0.9043</code></pre>
+<div id="cooperation" class="section level4">
+<h4>Cooperation</h4>
+<p>For the sake of comparison I ran the same regressions with the diff-in-diff approach on our previous response variable <code>cooperation</code>. Jorge and Rocio pointed out that, although the measure is appealing, it suffers from endogeneity when using stock size as part of the calculation, because stock size depends on actions performed in the past. Thus, the measure is not independent in time. They also pointed out that negative values might be missleading in the cases where stock size is under the threshold, producing by default negative values. I corrected the issue with an <code>ifelse</code> statement and checked whether it performs better on the regression given the above results.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># df &lt;- left_join(dat, ind_coop)</span>
+
+## First regression
+
+mod1 &lt;-<span class="st"> </span><span class="kw">plm</span>(cooperation <span class="op">~</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>part , 
+            <span class="dt">data =</span> dat, <span class="dt">index =</span> <span class="kw">c</span>(<span class="st">&#39;ID_player&#39;</span> ,<span class="st">&#39;Round&#39;</span>), <span class="dt">model =</span> <span class="st">&quot;pooling&quot;</span>, <span class="dt">effect =</span> <span class="st">&quot;twoway&quot;</span> )
+mod2 &lt;-<span class="st"> </span><span class="kw">plm</span>(cooperation <span class="op">~</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>part <span class="op">+</span><span class="st"> </span>Treatment<span class="op">*</span>part , 
+            <span class="dt">data =</span> dat, <span class="dt">index =</span> <span class="kw">c</span>(<span class="st">&#39;ID_player&#39;</span> ,<span class="st">&#39;Round&#39;</span>), <span class="dt">model =</span> <span class="st">&quot;pooling&quot;</span>, <span class="dt">effect =</span> <span class="st">&quot;twoway&quot;</span>)
+mod3 &lt;-<span class="st"> </span><span class="kw">plm</span>(cooperation <span class="op">~</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>part <span class="op">+</span><span class="st"> </span>Treatment<span class="op">*</span>part , 
+            <span class="dt">data =</span> dat, <span class="dt">index =</span> <span class="kw">c</span>(<span class="st">&#39;ID_player&#39;</span> ,<span class="st">&#39;Round&#39;</span>), <span class="dt">model =</span> <span class="st">&quot;between&quot;</span>)
+mod4 &lt;-<span class="st"> </span><span class="kw">plm</span>(cooperation <span class="op">~</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>part <span class="op">+</span><span class="st"> </span>Treatment<span class="op">*</span>part , 
+            <span class="dt">data =</span> dat, <span class="dt">index =</span> <span class="kw">c</span>(<span class="st">&#39;ID_player&#39;</span> ,<span class="st">&#39;Round&#39;</span>), <span class="dt">model =</span> <span class="st">&quot;within&quot;</span>, <span class="dt">effect =</span> <span class="st">&quot;twoway&quot;</span>)
+
+
+stargazer<span class="op">::</span><span class="kw">stargazer</span>(
+  mod1, mod2, mod3, mod4, <span class="dt">type =</span> <span class="st">&quot;html&quot;</span>, <span class="dt">multicolumn =</span> <span class="ot">FALSE</span>, <span class="dt">header =</span> <span class="ot">FALSE</span>, 
+  <span class="dt">intercept.bottom =</span> <span class="ot">FALSE</span>, <span class="dt">digits =</span> <span class="dv">2</span>
+  )</code></pre></div>
+<table style="text-align:center">
+<tr>
+<td colspan="5" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td colspan="4">
+<em>Dependent variable:</em>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td colspan="4" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+cooperation
+</td>
+<td>
+cooperation
+</td>
+<td>
+cooperation
+</td>
+<td>
+cooperation
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(1)
+</td>
+<td>
+(2)
+</td>
+<td>
+(3)
+</td>
+<td>
+(4)
+</td>
+</tr>
+<tr>
+<td colspan="5" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Constant
+</td>
+<td>
+2.26<sup>***</sup>
+</td>
+<td>
+1.59<sup>***</sup>
+</td>
+<td>
+-16.85<sup>***</sup>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.10)
+</td>
+<td>
+(0.13)
+</td>
+<td>
+(2.62)
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentThreshold
+</td>
+<td>
+-0.64<sup>***</sup>
+</td>
+<td>
+0.51<sup>***</sup>
+</td>
+<td>
+2.11
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.12)
+</td>
+<td>
+(0.19)
+</td>
+<td>
+(4.07)
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentRisk
+</td>
+<td>
+-0.64<sup>***</sup>
+</td>
+<td>
+-0.04
+</td>
+<td>
+4.48
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.12)
+</td>
+<td>
+(0.19)
+</td>
+<td>
+(4.08)
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentUncertainty
+</td>
+<td>
+-0.38<sup>***</sup>
+</td>
+<td>
+0.52<sup>***</sup>
+</td>
+<td>
+-0.97<sup>***</sup>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.12)
+</td>
+<td>
+(0.19)
+</td>
+<td>
+(0.30)
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+part
+</td>
+<td>
+-1.19<sup>***</sup>
+</td>
+<td>
+-0.09
+</td>
+<td>
+30.33<sup>***</sup>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.08)
+</td>
+<td>
+(0.17)
+</td>
+<td>
+(4.36)
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentThreshold:part
+</td>
+<td>
+</td>
+<td>
+-1.88<sup>***</sup>
+</td>
+<td>
+-4.93
+</td>
+<td>
+-1.77<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.24)
+</td>
+<td>
+(6.70)
+</td>
+<td>
+(0.16)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentRisk:part
+</td>
+<td>
+</td>
+<td>
+-1.00<sup>***</sup>
+</td>
+<td>
+-9.09
+</td>
+<td>
+-0.88<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.24)
+</td>
+<td>
+(6.70)
+</td>
+<td>
+(0.17)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentUncertainty:part
+</td>
+<td>
+</td>
+<td>
+-1.47<sup>***</sup>
+</td>
+<td>
+</td>
+<td>
+-1.20<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.24)
+</td>
+<td>
+</td>
+<td>
+(0.16)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td colspan="5" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Observations
+</td>
+<td>
+3,908
+</td>
+<td>
+3,908
+</td>
+<td>
+256
+</td>
+<td>
+3,908
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+R<sup>2</sup>
+</td>
+<td>
+0.06
+</td>
+<td>
+0.07
+</td>
+<td>
+0.28
+</td>
+<td>
+0.03
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Adjusted R<sup>2</sup>
+</td>
+<td>
+0.06
+</td>
+<td>
+0.07
+</td>
+<td>
+0.26
+</td>
+<td>
+-0.04
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+F Statistic
+</td>
+<td>
+59.65<sup>***</sup> (df = 4; 3903)
+</td>
+<td>
+44.46<sup>***</sup> (df = 7; 3900)
+</td>
+<td>
+16.28<sup>***</sup> (df = 6; 249)
+</td>
+<td>
+40.33<sup>***</sup> (df = 3; 3634)
+</td>
+</tr>
+<tr>
+<td colspan="5" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+<em>Note:</em>
+</td>
+<td colspan="4" style="text-align:right">
+<sup><em></sup>p&lt;0.1; <sup><strong></sup>p&lt;0.05; <sup></strong></em></sup>p&lt;0.01
+</td>
+</tr>
+</table>
+<p>Model (5) did not run due to a singularity error, models 3 and 4 behave similary to the results presented above with individual extraction, but I’m not sure whether the coefficient for uncertainty is dropped due to colinearity or missing values. Note that I’ve been using an umbalaced panel when regressing on cooperation, rounds that were not played due to resource collapse are dropped.</p>
+<p><strong>Jorge and Rocio: do you think it’s possible to control for the endogeneity with an instrumental variable? For example, regressing on cooperation and controlling for <span class="math inline">\(StockSize_{t-1}\)</span> as instrument? I’m not well versed on instrumental variables but given that <span class="math inline">\(X_{i,t}\)</span> is not working properly, would be nice to think on other options</strong></p>
+<p>Here it seems to make more sense to test whether the coefficients are different with the F test. Using the pooling model and assuming the comparison of interest is before / after treatment (<span class="math inline">\(\alpha_{2}T_i \neq \alpha_{3}FT_i\)</span>) the results are:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">linearHypothesis</span>(mod2, <span class="st">&quot;TreatmentThreshold = TreatmentThreshold:partTRUE&quot;</span>, <span class="dt">test =</span> <span class="st">&quot;F&quot;</span>)</code></pre></div>
+<pre><code>## Linear hypothesis test
+## 
+## Hypothesis:
+## TreatmentThreshold - TreatmentThreshold:partTRUE = 0
+## 
+## Model 1: restricted model
+## Model 2: cooperation ~ Treatment + part + Treatment * part
+## 
+##   Res.Df Df     F  Pr(&gt;F)    
+## 1   3901                     
+## 2   3900  1 35.16 3.3e-09 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">linearHypothesis</span>(mod2, <span class="st">&quot;TreatmentRisk = TreatmentRisk:partTRUE&quot;</span>, <span class="dt">test =</span> <span class="st">&quot;F&quot;</span>)</code></pre></div>
+<pre><code>## Linear hypothesis test
+## 
+## Hypothesis:
+## TreatmentRisk - TreatmentRisk:partTRUE = 0
+## 
+## Model 1: restricted model
+## Model 2: cooperation ~ Treatment + part + Treatment * part
+## 
+##   Res.Df Df      F  Pr(&gt;F)  
+## 1   3901                    
+## 2   3900  1 5.5789 0.01823 *
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">linearHypothesis</span>(mod2, <span class="st">&quot;TreatmentUncertainty = TreatmentUncertainty:partTRUE&quot;</span>, <span class="dt">test =</span> <span class="st">&quot;F&quot;</span>)</code></pre></div>
+<pre><code>## Linear hypothesis test
+## 
+## Hypothesis:
+## TreatmentUncertainty - TreatmentUncertainty:partTRUE = 0
+## 
+## Model 1: restricted model
+## Model 2: cooperation ~ Treatment + part + Treatment * part
+## 
+##   Res.Df Df      F    Pr(&gt;F)    
+## 1   3901                        
+## 2   3900  1 24.665 7.114e-07 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Now assuming that the comparison of interest is <span class="math inline">\(\alpha_{3}FT_i \neq \alpha_{3}FT_j\)</span>, the results for F test are:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">linearHypothesis</span>(mod2, <span class="st">&quot;TreatmentUncertainty:partTRUE = TreatmentThreshold:partTRUE&quot;</span>, <span class="dt">test =</span> <span class="st">&quot;F&quot;</span>)</code></pre></div>
+<pre><code>## Linear hypothesis test
+## 
+## Hypothesis:
+## - TreatmentThreshold:partTRUE  + TreatmentUncertainty:partTRUE = 0
+## 
+## Model 1: restricted model
+## Model 2: cooperation ~ Treatment + part + Treatment * part
+## 
+##   Res.Df Df     F Pr(&gt;F)  
+## 1   3901                  
+## 2   3900  1 2.968  0.085 .
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">linearHypothesis</span>(mod2, <span class="st">&quot;TreatmentUncertainty:partTRUE = TreatmentRisk:partTRUE&quot;</span>, <span class="dt">test =</span> <span class="st">&quot;F&quot;</span>)</code></pre></div>
+<pre><code>## Linear hypothesis test
+## 
+## Hypothesis:
+## - TreatmentRisk:partTRUE  + TreatmentUncertainty:partTRUE = 0
+## 
+## Model 1: restricted model
+## Model 2: cooperation ~ Treatment + part + Treatment * part
+## 
+##   Res.Df Df      F  Pr(&gt;F)  
+## 1   3901                    
+## 2   3900  1 4.0151 0.04516 *
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">linearHypothesis</span>(mod2, <span class="st">&quot;TreatmentRisk:partTRUE = TreatmentThreshold:partTRUE&quot;</span>, <span class="dt">test =</span> <span class="st">&quot;F&quot;</span>)</code></pre></div>
+<pre><code>## Linear hypothesis test
+## 
+## Hypothesis:
+## - TreatmentThreshold:partTRUE  + TreatmentRisk:partTRUE = 0
+## 
+## Model 1: restricted model
+## Model 2: cooperation ~ Treatment + part + Treatment * part
+## 
+##   Res.Df Df      F    Pr(&gt;F)    
+## 1   3901                        
+## 2   3900  1 13.607 0.0002284 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>The comparison with <code>baseline</code> is the coefficient on the regression table.</p>
+</div>
+</div>
+<div id="other-regressors" class="section level3">
+<h3>Other regressors</h3>
+<p>We also thought of an additional regression with variables purely comming from the game, wihtout getting into other socio-economic factors from the survey yet. Jorge proposed the following:</p>
+<p><span class="math display">\[X_{i,t} = \alpha_0 + \alpha_1StockSize_t + \alpha_2D_t + \alpha_3T_i + \alpha_4\theta + \alpha_5 T_iD_t+ \alpha_6F + \alpha_7FT_i\]</span> Where <span class="math inline">\(X_{i,t}\)</span> is the individual extraction of fisherman <span class="math inline">\(i\)</span> in round <span class="math inline">\(t\)</span>, <span class="math inline">\(StockSize_t\)</span> is the stock size at the beginning of the round <span class="math inline">\(t\)</span>, <span class="math inline">\(D_t\)</span> is a dummy variable that takes <span class="math inline">\(0\)</span> if the threshold is not being played and <span class="math inline">\(1\)</span> if the threshold is played (here I mean if the lottery activated the climate event), <span class="math inline">\(T_i\)</span> is the treatment effect for treatment <span class="math inline">\(i\)</span>, <span class="math inline">\(\theta\)</span> is the value of the threshold in the treatment (<span class="math inline">\(0\)</span> for <code>baseline</code>, <span class="math inline">\(28\)</span> for all other treatments), <span class="math inline">\(T_iD_t\)</span> is an interaction term that accounts when the treatment is de facto playing the threshold payoff table, <span class="math inline">\(F\)</span> is the part of the game (before / after treatment) and <span class="math inline">\(FT_i\)</span> accounts for the interaction effect of the treatment in the second part of the game. The results are shown below, for comparison I also used cooperation on the same table, both models are pooled with two way effects (individuals and time).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod1 &lt;-<span class="st"> </span><span class="kw">plm</span>(ind_extraction <span class="op">~</span><span class="st"> </span>StockSizeBegining <span class="op">+</span><span class="st"> </span>dummy_threshold <span class="op">+</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>threshold <span class="op">+</span><span class="st"> </span>Treatment<span class="op">*</span>dummy_threshold <span class="op">+</span><span class="st"> </span>part <span class="op">+</span><span class="st"> </span>part<span class="op">*</span>Treatment, 
+            <span class="dt">data =</span> dat, <span class="dt">index =</span> <span class="kw">c</span>(<span class="st">&#39;ID_player&#39;</span> ,<span class="st">&#39;Round&#39;</span>), <span class="dt">model =</span> <span class="st">&quot;pooling&quot;</span>, <span class="dt">effect =</span> <span class="st">&quot;twoway&quot;</span>)
+mod2 &lt;-<span class="st"> </span><span class="kw">plm</span>(cooperation <span class="op">~</span><span class="st"> </span>StockSizeBegining <span class="op">+</span><span class="st"> </span>dummy_threshold <span class="op">+</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>threshold <span class="op">+</span><span class="st"> </span>Treatment<span class="op">*</span>dummy_threshold <span class="op">+</span><span class="st"> </span>part <span class="op">+</span><span class="st"> </span>part<span class="op">*</span>Treatment, 
+            <span class="dt">data =</span> dat, <span class="dt">index =</span> <span class="kw">c</span>(<span class="st">&#39;ID_player&#39;</span> ,<span class="st">&#39;Round&#39;</span>), <span class="dt">model =</span> <span class="st">&quot;pooling&quot;</span>, <span class="dt">effect =</span> <span class="st">&quot;twoway&quot;</span>)
+
+stargazer<span class="op">::</span><span class="kw">stargazer</span>(mod1, mod2, <span class="dt">type =</span> <span class="st">&quot;html&quot;</span>, <span class="dt">multicolumn =</span> <span class="ot">FALSE</span>, <span class="dt">header =</span> <span class="ot">FALSE</span>, <span class="dt">intercept.bottom =</span> <span class="ot">FALSE</span>, <span class="dt">digits =</span> <span class="dv">2</span>)</code></pre></div>
+<table style="text-align:center">
+<tr>
+<td colspan="3" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td colspan="2">
+<em>Dependent variable:</em>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td colspan="2" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+ind_extraction
+</td>
+<td>
+cooperation
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(1)
+</td>
+<td>
+(2)
+</td>
+</tr>
+<tr>
+<td colspan="3" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Constant
+</td>
+<td>
+-0.72<sup>**</sup>
+</td>
+<td>
+1.84<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.33)
+</td>
+<td>
+(0.40)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+StockSizeBegining
+</td>
+<td>
+0.10<sup>***</sup>
+</td>
+<td>
+0.12<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.003)
+</td>
+<td>
+(0.004)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+dummy_threshold
+</td>
+<td>
+1.82<sup>***</sup>
+</td>
+<td>
+-2.48<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.14)
+</td>
+<td>
+(0.18)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentThreshold
+</td>
+<td>
+-0.14
+</td>
+<td>
+0.16
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.11)
+</td>
+<td>
+(0.13)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentRisk
+</td>
+<td>
+0.13
+</td>
+<td>
+-0.20
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.11)
+</td>
+<td>
+(0.13)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentUncertainty
+</td>
+<td>
+-0.26<sup>**</sup>
+</td>
+<td>
+0.22<sup>*</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.11)
+</td>
+<td>
+(0.13)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+threshold
+</td>
+<td>
+-0.02
+</td>
+<td>
+-0.22<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.02)
+</td>
+<td>
+(0.02)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+part
+</td>
+<td>
+-0.28<sup>***</sup>
+</td>
+<td>
+0.32<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.10)
+</td>
+<td>
+(0.12)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+dummy_thresholdTRUE:TreatmentThreshold
+</td>
+<td>
+-0.53<sup>***</sup>
+</td>
+<td>
+1.36<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.15)
+</td>
+<td>
+(0.20)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+dummy_thresholdTRUE:TreatmentRisk
+</td>
+<td>
+-0.23
+</td>
+<td>
+0.85<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.15)
+</td>
+<td>
+(0.20)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+dummy_thresholdTRUE:TreatmentUncertainty
+</td>
+<td>
+-0.37<sup>**</sup>
+</td>
+<td>
+1.02<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.17)
+</td>
+<td>
+(0.20)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentThreshold:part
+</td>
+<td>
+-0.12
+</td>
+<td>
+0.03
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.14)
+</td>
+<td>
+(0.16)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentRisk:part
+</td>
+<td>
+-0.36<sup>***</sup>
+</td>
+<td>
+0.40<sup>**</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.14)
+</td>
+<td>
+(0.16)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td colspan="3" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Observations
+</td>
+<td>
+4,096
+</td>
+<td>
+3,908
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+R<sup>2</sup>
+</td>
+<td>
+0.26
+</td>
+<td>
+0.58
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Adjusted R<sup>2</sup>
+</td>
+<td>
+0.25
+</td>
+<td>
+0.58
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+F Statistic
+</td>
+<td>
+117.15<sup>***</sup> (df = 12; 4083)
+</td>
+<td>
+441.60<sup>***</sup> (df = 12; 3895)
+</td>
+</tr>
+<tr>
+<td colspan="3" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+<em>Note:</em>
+</td>
+<td colspan="2" style="text-align:right">
+<sup><em></sup>p&lt;0.1; <sup><strong></sup>p&lt;0.05; <sup></strong></em></sup>p&lt;0.01
+</td>
+</tr>
+</table>
+</div>
+<div id="summary-statistic-approach" class="section level3">
+<h3>Summary statistic approach</h3>
+<p>Besides the option of the panel model, we can also fit the data using a summary statistic. This could be the average of individual extraction, its sum or its median.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">### This chunk loads the data again but makes slight modifications to preserve missing values, that is, to avoid biasing the estimates with inflated zeroes.
+### load dataset
+## Survey data
+<span class="kw">source</span>(<span class="st">&#39;~/Documents/Projects/BEST - Beijer/BEST/160525_ErrorIdentificationSurvey.R&#39;</span>)</code></pre></div>
+<pre><code>## Warning in scan(file = file, what = what, sep = sep, quote = quote, dec =
+## dec, : embedded nul(s) found in input</code></pre>
+<pre><code>## Warning in eval(ei, envir): NAs introduced by coercion</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#key</span>
+key &lt;-<span class="st"> </span><span class="kw">read.csv2</span>(<span class="dt">file =</span> <span class="st">&#39;~/Dropbox/BEST/Colombia/Survey/key_consolidado_survey.csv&#39;</span>, <span class="dt">encoding =</span> <span class="st">&quot;Latin-1&quot;</span> )
+key &lt;-<span class="st"> </span>key [<span class="kw">c</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">16</span>,<span class="dv">23</span><span class="op">:</span><span class="dv">240</span>),<span class="kw">c</span>(<span class="dv">2</span><span class="op">:</span><span class="dv">5</span>)]
+  key<span class="op">$</span>Name.in.datasheet &lt;-<span class="st"> </span><span class="kw">as.character</span>(key<span class="op">$</span>Name.in.datasheet)
+  <span class="kw">levels</span>(key<span class="op">$</span>Data.type)[<span class="dv">3</span>] &lt;-<span class="st"> &quot;binary&quot;</span>
+  key &lt;-<span class="st"> </span><span class="kw">droplevels</span>(key)
+  key<span class="op">$</span>Column.datasheet &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">234</span>)
+
+<span class="co"># load game data in long format, short format also available</span>
+dat &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="dt">file=</span><span class="st">&quot;~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv&quot;</span>, <span class="dt">row.names=</span><span class="dv">1</span>)
+
+<span class="co"># Create player ID&#39;s as in Surveys.R</span>
+dat &lt;-<span class="st"> </span><span class="kw">transform</span>(dat, <span class="dt">ID_player =</span> <span class="kw">interaction</span>(Date, Treatment, Session, Player, <span class="dt">drop =</span> <span class="ot">TRUE</span>))
+<span class="co"># Create ID group</span>
+dat &lt;-<span class="st"> </span><span class="kw">transform</span>(dat, <span class="dt">group =</span> <span class="kw">interaction</span> (Date, Treatment, Session, <span class="dt">drop=</span>T))
+dat &lt;-<span class="st"> </span><span class="kw">as_tibble</span>(dat) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">rename</span>(<span class="dt">ind_extraction =</span> value)
+
+<span class="co"># reorder levels</span>
+dat<span class="op">$</span>Treatment &lt;-<span class="st"> </span><span class="kw">factor</span>(dat<span class="op">$</span>Treatment, <span class="kw">levels</span>(dat<span class="op">$</span>Treatment)[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">2</span>,<span class="dv">4</span>)])
+<span class="co"># levels(dat$Treatment)</span>
+
+### For the analysis proposed by Jorge I need to get rid of missing values, set all NA to zero before calculating anything else.
+<span class="co"># dat &lt;-  dat %&gt;%</span>
+<span class="co">#   replace_na(list(StockSizeBegining = 0, SumTotalCatch = 0, IntermediateStockSize = 0, Regeneration = 0, NewStockSize = 0))</span>
+
+
+dat &lt;-<span class="st"> </span><span class="kw">mutate</span> (dat, <span class="dt">threshold =</span> <span class="kw">ifelse</span> (dat<span class="op">$</span>Treatment <span class="op">==</span><span class="st"> &quot;Base line&quot;</span> <span class="op">|</span><span class="st"> </span>dat<span class="op">$</span>part <span class="op">==</span><span class="st"> </span><span class="ot">FALSE</span>, <span class="dv">20</span>, <span class="dv">28</span> ))
+dat &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(
+  <span class="dt">dummy_threshold =</span> <span class="kw">ifelse</span>(NewStockSize <span class="op">-</span><span class="st"> </span>threshold <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>, <span class="ot">FALSE</span>, <span class="ot">TRUE</span>))
+
+## Use the deviation from threshold, and dev_t_divided by 4
+dat &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span> (<span class="dt">dev_drop =</span> <span class="kw">ifelse</span>(dat<span class="op">$</span>Treatment <span class="op">==</span><span class="st"> &#39;Base line&#39;</span> <span class="op">|</span><span class="st"> </span>dat<span class="op">$</span>part <span class="op">==</span><span class="st"> </span><span class="ot">FALSE</span>,
+                                ((dat<span class="op">$</span>IntermediateStockSize <span class="op">-</span><span class="st"> </span><span class="dv">20</span>)) ,  <span class="co"># - dat$value</span>
+                                 ((dat<span class="op">$</span>IntermediateStockSize <span class="op">-</span><span class="st"> </span><span class="dv">28</span>))   )) <span class="co">#- dat$value</span>
+## here cooperation is calculated.
+dat &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span> (<span class="dt">optimal =</span> (StockSizeBegining <span class="op">-</span><span class="st"> </span>threshold) <span class="op">/</span><span class="st"> </span><span class="dv">4</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span> (<span class="dt">cooperation =</span> <span class="kw">ifelse</span>(
+    <span class="kw">is.na</span>(StockSizeBegining), <span class="ot">NA</span>, 
+    <span class="kw">ifelse</span>((<span class="dv">4</span><span class="op">*</span>optimal) <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span>ind_extraction <span class="op">==</span><span class="st"> </span><span class="dv">0</span>, <span class="dv">0</span>, optimal <span class="op">-</span><span class="st"> </span>ind_extraction)))
+
+## coordination is calculated next
+
+dist_group &lt;-<span class="st"> </span><span class="cf">function</span>(x){ <span class="co"># x will be the character identifier for each player</span>
+  y &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(ID_player, Round, ind_extraction, group) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">filter</span>(group <span class="op">==</span><span class="st"> </span><span class="kw">substr</span>(x,<span class="dt">start =</span> <span class="dv">1</span>, <span class="dt">stop =</span> <span class="kw">nchar</span>(x) <span class="op">-</span><span class="st"> </span><span class="dv">2</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># filter per group based on ID_player</span>
+<span class="st">    </span><span class="kw">select</span>(<span class="op">-</span>group) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">spread</span>(Round, ind_extraction)
+  z &lt;-<span class="st"> </span>vegan<span class="op">::</span><span class="kw">vegdist</span>(y[<span class="op">-</span><span class="dv">1</span>], <span class="st">&quot;bray&quot;</span>) <span class="co"># Bray-curtis is bounded 0:1 with zero absolute similarity and 1 complete different</span>
+  player &lt;-<span class="st"> </span><span class="kw">substr</span>(x, <span class="dt">start =</span> <span class="kw">nchar</span>(x), <span class="dt">stop =</span> <span class="kw">nchar</span>(x)) <span class="co"># the player is the last number of the string</span>
+  mean_dist &lt;-<span class="st"> </span><span class="kw">colSums</span>(<span class="kw">as.matrix</span>(z))[<span class="kw">as.numeric</span>(player)] <span class="op">/</span><span class="st"> </span><span class="dv">3</span> <span class="co"># divided by the other 3 players. Note the dist to self is 0</span>
+  df &lt;-<span class="st"> </span><span class="kw">data_frame</span>(<span class="dt">ID_player =</span> x, <span class="dt">mean_dist =</span> mean_dist)
+  <span class="kw">return</span>(df)
+}
+
+x &lt;-<span class="st"> </span><span class="kw">lapply</span>(<span class="kw">levels</span>(dat<span class="op">$</span>ID_player), dist_group)
+x &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(x)
+x<span class="op">$</span>ID_player &lt;-<span class="st"> </span><span class="kw">as.factor</span>(x<span class="op">$</span>ID_player)
+x &lt;-<span class="st"> </span><span class="kw">mutate</span>(x, <span class="dt">coordination =</span> <span class="dv">1</span><span class="op">-</span>mean_dist)
+
+<span class="co"># rm(y , z, player, mean_dist, df)</span>
+
+ind_coop &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#filter(part == TRUE) %&gt;%</span>
+<span class="st">  </span><span class="co">#select( Treatment, Place, ID_player, group, Round, cooperation, part, Player, ind_extraction, Regeneration) %&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(Treatment, Place, ID_player, group, part, Player) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">Cooperation =</span> <span class="kw">mean</span>(cooperation, <span class="dt">na.rm =</span> T),
+            <span class="dt">variance =</span> <span class="kw">var</span>(cooperation, <span class="dt">na.rm =</span> T),
+            <span class="dt">skewness =</span> <span class="kw">skewness</span>(cooperation, <span class="dt">na.rm =</span> T),
+            <span class="dt">med_coop =</span> <span class="kw">median</span>(cooperation, <span class="dt">na.rm =</span> T),
+            <span class="dt">fishing_mean =</span> <span class="kw">mean</span>(ind_extraction, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>), 
+            <span class="dt">fishing_sum =</span> <span class="kw">sum</span>(ind_extraction, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>),
+            <span class="dt">fishing_median =</span> <span class="kw">median</span>(ind_extraction, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>), 
+            <span class="dt">fishing_var =</span> <span class="kw">var</span>(ind_extraction, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>), 
+            <span class="dt">recovery_sum =</span> <span class="kw">sum</span>(Regeneration, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>),
+            <span class="dt">ratio_round_threshold =</span> <span class="kw">sum</span>(dummy_threshold, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>)<span class="op">/</span><span class="kw">n</span>(),
+            <span class="dt">mean_stock_minus_threshold =</span> <span class="kw">sum</span>((<span class="dv">4</span><span class="op">*</span>optimal), <span class="dt">na.rm =</span> <span class="ot">TRUE</span>)
+            )
+
+ind_coop &lt;-<span class="st"> </span><span class="kw">left_join</span>(
+  ind_coop, 
+  dat <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(Round <span class="op">==</span><span class="st"> </span><span class="dv">16</span>) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">select</span>(Treatment, Place, ID_player, group, part, Player,
+           <span class="dt">last_round =</span> StockSizeBegining)
+  ) 
+<span class="co"># </span>
+<span class="co"># exp_notes &lt;- as_tibble(exp_notes)</span>
+<span class="co"># risk_amb &lt;- exp_notes %&gt;% select(119:130,132) %&gt;% unique()</span>
+<span class="co"># </span>
+<span class="co"># risk &lt;- risk_amb %&gt;% select(13,</span>
+<span class="co">#     Risk_0_38k = 1, Risk_13k =2, Risk_10_19k = 3,</span>
+<span class="co">#     Risk_7_25k = 4, Risk_4_31k = 5, Risk_2_36k = 6)</span>
+<span class="co"># </span>
+<span class="co"># risk &lt;- risk %&gt;%</span>
+<span class="co">#     mutate(Risk_0_38k = forcats::fct_recode(Risk_0_38k, NULL = &#39;&#39;, &#39;1&#39; = &#39;|&#39;)) %&gt;% mutate(Risk_0_38k = as.numeric(as.character(Risk_0_38k))) %&gt;%</span>
+<span class="co">#     gather(key = Risk, value = choice, 2:7) %&gt;%</span>
+<span class="co">#     filter(choice == 1)</span>
+<span class="co"># </span>
+<span class="co"># risk$Risk &lt;- as.factor(risk$Risk)</span>
+<span class="co"># levels(risk$Risk) &lt;- c(6,2,1,5,4,3)</span>
+<span class="co"># risk$Risk &lt;- as.numeric(risk$Risk)</span>
+<span class="co"># </span>
+<span class="co"># </span><span class="al">###</span><span class="co"> J180102: There is errors also on the ambiguity elicitation task data. The group of 2016-02-09.Threshold.am all players have NAs.</span>
+<span class="co"># amb &lt;- risk_amb %&gt;% select(13, Amb_0_38k = 7, Amb_13k =8, Amb_10_19k = 9, Amb_7_25k = 10, Amb_4_31k = 11, Amb_2_36k = 12)</span>
+<span class="co"># </span>
+<span class="co"># ## for the people with two choices, I leave only one manually, but note, this needs to be checked with raw data and change afterwards here to correct for the right one.</span>
+<span class="co"># # this command shows the errors:</span>
+<span class="co"># </span>
+<span class="co"># # amb %&gt;% group_by(ID_player) %&gt;% summarize(choice = sum(Amb_0_38k, Amb_13k, Amb_10_19k, Amb_7_25k ,Amb_4_31k ,Amb_2_36k)) %&gt;% filter(choice == 0 | choice == 2 | is.na(choice))</span>
+<span class="co"># ## Manual corrections</span>
+<span class="co"># amb[amb$ID_player == &quot;2016-02-01.Threshold.am.2&quot;, &quot;Amb_4_31k&quot;] &lt;- 0</span>
+<span class="co"># amb[amb$ID_player == &quot;2016-02-05.Uncertainty.am.2&quot;, &quot;Amb_10_19k&quot;] &lt;- 0</span>
+<span class="co"># amb[amb$ID_player == &quot;2016-02-02.Base line.am.4&quot;, &quot;Amb_10_19k&quot;] &lt;- 1</span>
+<span class="co"># </span>
+<span class="co"># ## note, this still keeps the NA players and they are dropped when choice == 1, but at least there is no duplicates now.</span>
+<span class="co"># </span>
+<span class="co"># amb &lt;- amb %&gt;%</span>
+<span class="co">#   gather(key = Amb, value = choice, 2:7) %&gt;%</span>
+<span class="co">#   filter(choice == 1)</span>
+<span class="co"># </span>
+<span class="co"># amb$Amb &lt;- as.factor(amb$Amb)</span>
+<span class="co"># levels(amb$Amb) &lt;- c(6,2,1,5,4,3)</span>
+<span class="co"># amb$Amb &lt;- as.numeric(amb$Amb)</span>
+
+<span class="co"># ind_coop &lt;- left_join(ind_coop, surv, by = &quot;ID_player&quot;) %&gt;%  ## Now drop the columns that are not useful for now in the regression</span>
+<span class="co">#   select( c(1:21, life_satisfaction = 29, EE_before = 30, partner_in_group = 31,</span>
+<span class="co">#             fishing_age=35,fishing_last_yr = 39, week_days = 53, ND_hrs = 54, ND_kg = 55, ND_pesos =56,</span>
+<span class="co">#             BD_kg = 59, BD_pesos = 60, BD_how_often = 61, group_fishing = 62, boat = 68,</span>
+<span class="co">#             take_home= 94, sale= 95, give_away = 97,</span>
+<span class="co">#             fishing_future = 98, fishing_children=100, history_rs = 106,  sharing_art=147,</span>
+<span class="co">#             belongs_coop=149, age=167, education = 168, education_yrs=169 ))</span>
+<span class="co"># </span>
+<span class="co"># ind_coop$BD_how_often[is.na(ind_coop$BD_how_often)] &lt;- 0</span>
+<span class="co"># </span>
+<span class="co"># ind_coop$ID_player &lt;- as.character(ind_coop$ID_player)</span>
+<span class="co"># risk$ID_player &lt;- as.character(risk$ID_player)</span>
+<span class="co"># amb$ID_player &lt;- as.character(amb$ID_player)</span>
+<span class="co"># x$ID_player &lt;- as.character(x$ID_player)</span>
+<span class="co"># </span>
+<span class="co"># ind_coop &lt;- left_join(ind_coop, x, by = &quot;ID_player&quot;)</span>
+<span class="co"># </span>
+<span class="co"># ind_coop &lt;- left_join(ind_coop, select(risk, 1,2), by = &quot;ID_player&quot;)</span>
+<span class="co"># </span>
+<span class="co"># </span>
+<span class="co"># </span><span class="al">###</span><span class="co"> here is the error now</span>
+<span class="co"># ind_coop &lt;- left_join(ind_coop, select(amb, 1,2), by = &quot;ID_player&quot;)</span>
+<span class="co"># </span>
+<span class="co"># ## log-transform money related variables</span>
+<span class="co"># </span>
+<span class="co"># ind_coop &lt;- mutate(ind_coop, ND_log_pesos = log(ND_pesos), BD_log_pesos = log1p(BD_pesos))</span></code></pre></div>
+<p>Jorge proposes the following regression:</p>
+<p><span class="math display">\[\overline{X_n} = \alpha_0 + \alpha_1T_i + \alpha_2R + \alpha_3\sum{F(S)} + \alpha_4S_{16}\]</span></p>
+<p>Where <span class="math inline">\(\overline{X_n}\)</span> is one of the summary statistics mentioned above, <span class="math inline">\(T_i\)</span> is the treatment term, <span class="math inline">\(R\)</span> is the number of rounds that people actually played with the threshold crossed (stock size - threshold is negative), the <span class="math inline">\(\alpha_3\sum{F(S)}\)</span> term is the sum of the recovery rate for all rounds, and <span class="math inline">\(S_{16}\)</span> is the stock size in the final round. Jorge and Rocio suggested the last two terms as proxies of group cooperation. However, I’m not sure this regression is a meaningful summary for the game at the individual level because terms 2:5 on the right hand side of the equation are constant for the group generating dependencies or colinearity. The results are below:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod1 &lt;-<span class="st"> </span><span class="kw">lm</span>(fishing_mean <span class="op">~</span><span class="st"> </span>Treatment<span class="op">*</span>part <span class="op">+</span><span class="st"> </span>ratio_round_threshold <span class="op">+</span><span class="st"> </span>recovery_sum <span class="op">+</span><span class="st"> </span>mean_stock_minus_threshold, <span class="dt">data =</span> ind_coop)
+mod2 &lt;-<span class="st"> </span><span class="kw">lm</span>(fishing_sum <span class="op">~</span><span class="st"> </span>Treatment<span class="op">*</span>part <span class="op">+</span><span class="st"> </span>ratio_round_threshold <span class="op">+</span><span class="st"> </span>recovery_sum <span class="op">+</span><span class="st"> </span>mean_stock_minus_threshold, <span class="dt">data =</span> ind_coop)
+mod3 &lt;-<span class="st"> </span><span class="kw">lm</span>(fishing_median <span class="op">~</span><span class="st"> </span>Treatment<span class="op">*</span>part <span class="op">+</span><span class="st"> </span>ratio_round_threshold <span class="op">+</span><span class="st"> </span>recovery_sum <span class="op">+</span><span class="st"> </span>mean_stock_minus_threshold, <span class="dt">data =</span> ind_coop)
+mod4 &lt;-<span class="st"> </span><span class="kw">lm</span>(fishing_var <span class="op">~</span><span class="st"> </span>Treatment<span class="op">*</span>part <span class="op">+</span><span class="st"> </span>ratio_round_threshold <span class="op">+</span><span class="st"> </span>recovery_sum <span class="op">+</span><span class="st"> </span>mean_stock_minus_threshold, <span class="dt">data =</span> ind_coop)
+mod5 &lt;-<span class="st"> </span><span class="kw">lm</span>(Cooperation <span class="op">~</span><span class="st"> </span>Treatment<span class="op">*</span>part <span class="op">+</span><span class="st"> </span>ratio_round_threshold <span class="op">+</span><span class="st"> </span>recovery_sum <span class="op">+</span><span class="st"> </span>mean_stock_minus_threshold, <span class="dt">data =</span> ind_coop)
+mod6 &lt;-<span class="st"> </span><span class="kw">lm</span>(med_coop <span class="op">~</span><span class="st"> </span>Treatment<span class="op">*</span>part <span class="op">+</span><span class="st"> </span>ratio_round_threshold <span class="op">+</span><span class="st"> </span>recovery_sum <span class="op">+</span><span class="st"> </span>mean_stock_minus_threshold, <span class="dt">data =</span> ind_coop)
+mod7 &lt;-<span class="st"> </span><span class="kw">lm</span>(variance <span class="op">~</span><span class="st"> </span>Treatment<span class="op">*</span>part <span class="op">+</span><span class="st"> </span>ratio_round_threshold <span class="op">+</span><span class="st"> </span>recovery_sum <span class="op">+</span><span class="st"> </span>mean_stock_minus_threshold, <span class="dt">data =</span> ind_coop)
+
+stargazer<span class="op">::</span><span class="kw">stargazer</span>(mod1, mod2,mod3, mod4, <span class="dt">type =</span> <span class="st">&quot;html&quot;</span>, <span class="dt">multicolumn =</span> <span class="ot">FALSE</span>, <span class="dt">header =</span> <span class="ot">FALSE</span>, <span class="dt">intercept.bottom =</span> <span class="ot">FALSE</span>, <span class="dt">digits =</span> <span class="dv">2</span>)</code></pre></div>
+<table style="text-align:center">
+<tr>
+<td colspan="5" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td colspan="4">
+<em>Dependent variable:</em>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td colspan="4" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+fishing_mean
+</td>
+<td>
+fishing_sum
+</td>
+<td>
+fishing_median
+</td>
+<td>
+fishing_var
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(1)
+</td>
+<td>
+(2)
+</td>
+<td>
+(3)
+</td>
+<td>
+(4)
+</td>
+</tr>
+<tr>
+<td colspan="5" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Constant
+</td>
+<td>
+2.30<sup>***</sup>
+</td>
+<td>
+12.13<sup>***</sup>
+</td>
+<td>
+1.60<sup>***</sup>
+</td>
+<td>
+9.92<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.17)
+</td>
+<td>
+(1.29)
+</td>
+<td>
+(0.18)
+</td>
+<td>
+(3.32)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentThreshold
+</td>
+<td>
+-0.19
+</td>
+<td>
+-1.33
+</td>
+<td>
+-0.20
+</td>
+<td>
+0.47
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.13)
+</td>
+<td>
+(0.95)
+</td>
+<td>
+(0.14)
+</td>
+<td>
+(2.46)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentRisk
+</td>
+<td>
+0.002
+</td>
+<td>
+-0.14
+</td>
+<td>
+-0.24<sup>*</sup>
+</td>
+<td>
+4.82<sup>*</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.13)
+</td>
+<td>
+(0.95)
+</td>
+<td>
+(0.14)
+</td>
+<td>
+(2.46)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentUncertainty
+</td>
+<td>
+-0.22<sup>*</sup>
+</td>
+<td>
+-1.49
+</td>
+<td>
+-0.27<sup>**</sup>
+</td>
+<td>
+-0.24
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.13)
+</td>
+<td>
+(0.95)
+</td>
+<td>
+(0.14)
+</td>
+<td>
+(2.46)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+part
+</td>
+<td>
+-0.90<sup>***</sup>
+</td>
+<td>
+2.86<sup>***</sup>
+</td>
+<td>
+-1.29<sup>***</sup>
+</td>
+<td>
+3.13
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.14)
+</td>
+<td>
+(1.05)
+</td>
+<td>
+(0.15)
+</td>
+<td>
+(2.71)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+ratio_round_threshold
+</td>
+<td>
+0.20
+</td>
+<td>
+1.11
+</td>
+<td>
+0.63<sup>**</sup>
+</td>
+<td>
+-5.13
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.26)
+</td>
+<td>
+(1.92)
+</td>
+<td>
+(0.27)
+</td>
+<td>
+(4.96)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+recovery_sum
+</td>
+<td>
+0.03<sup>***</sup>
+</td>
+<td>
+0.21<sup>***</sup>
+</td>
+<td>
+0.03<sup>***</sup>
+</td>
+<td>
+-0.09<sup>*</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.003)
+</td>
+<td>
+(0.02)
+</td>
+<td>
+(0.003)
+</td>
+<td>
+(0.05)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+mean_stock_minus_threshold
+</td>
+<td>
+-0.01<sup>***</sup>
+</td>
+<td>
+-0.04<sup>***</sup>
+</td>
+<td>
+-0.003<sup>**</sup>
+</td>
+<td>
+-0.02
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.001)
+</td>
+<td>
+(0.01)
+</td>
+<td>
+(0.001)
+</td>
+<td>
+(0.03)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentThreshold:part
+</td>
+<td>
+-0.31<sup>*</sup>
+</td>
+<td>
+-2.91<sup>**</sup>
+</td>
+<td>
+-0.13
+</td>
+<td>
+-2.24
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.19)
+</td>
+<td>
+(1.42)
+</td>
+<td>
+(0.20)
+</td>
+<td>
+(3.66)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentRisk:part
+</td>
+<td>
+-0.35<sup>*</sup>
+</td>
+<td>
+-2.70<sup>*</sup>
+</td>
+<td>
+0.01
+</td>
+<td>
+-6.22<sup>*</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.19)
+</td>
+<td>
+(1.39)
+</td>
+<td>
+(0.20)
+</td>
+<td>
+(3.60)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentUncertainty:part
+</td>
+<td>
+-0.13
+</td>
+<td>
+-1.32
+</td>
+<td>
+0.10
+</td>
+<td>
+-1.47
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.19)
+</td>
+<td>
+(1.42)
+</td>
+<td>
+(0.20)
+</td>
+<td>
+(3.66)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td colspan="5" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Observations
+</td>
+<td>
+512
+</td>
+<td>
+512
+</td>
+<td>
+512
+</td>
+<td>
+512
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+R<sup>2</sup>
+</td>
+<td>
+0.27
+</td>
+<td>
+0.36
+</td>
+<td>
+0.37
+</td>
+<td>
+0.04
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Adjusted R<sup>2</sup>
+</td>
+<td>
+0.25
+</td>
+<td>
+0.35
+</td>
+<td>
+0.35
+</td>
+<td>
+0.03
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Residual Std. Error (df = 501)
+</td>
+<td>
+0.73
+</td>
+<td>
+5.37
+</td>
+<td>
+0.77
+</td>
+<td>
+13.88
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+F Statistic (df = 10; 501)
+</td>
+<td>
+18.48<sup>***</sup>
+</td>
+<td>
+28.11<sup>***</sup>
+</td>
+<td>
+28.80<sup>***</sup>
+</td>
+<td>
+2.32<sup>**</sup>
+</td>
+</tr>
+<tr>
+<td colspan="5" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+<em>Note:</em>
+</td>
+<td colspan="4" style="text-align:right">
+<sup><em></sup>p&lt;0.1; <sup><strong></sup>p&lt;0.05; <sup></strong></em></sup>p&lt;0.01
+</td>
+</tr>
+</table>
+</div>
+<div id="clustered-standard-errors-by-individual-time-and-group" class="section level3">
+<h3>Clustered standard errors by individual, time and group</h3>
+<p>Regarding the issue of controlling for groups, Jorge and Rocio suggested the following scheme:</p>
+<ol style="list-style-type: decimal">
+<li>First control for group dropping a dummy variable for each group, the same approach I did in the draft paper.</li>
+<li>Cluster around groups: this is equivalent to the <code>cluster(group)</code> command in Stata. Previously I clustered starndard errors around individuals and time with the Double-Clustering robust covariance matrix estimator and the Newey and West equivalent. Here I used the most recent Double-Clustering that takes care of the time and individual dimension. In addition I followed the protocol outlined by <a href="http://www.richard-bluhm.com/clustered-ses-in-r-and-stata-2/">Richard Bluhm</a> to implement the third dimension for group in R but failed, I explain the challenges below.</li>
+<li>Combine both the fixed effects by group and the cluster around group.</li>
+</ol>
+<p>The three approaches are described below:</p>
+</div>
+<div id="fixed-group-effects" class="section level3">
+<h3>1. Fixed group effects:</h3>
+<p>In the following regression controlling for group inproves the fit, both F statistics are significant and the <span class="math inline">\(R^2\)</span> slightly increases. However, I don’t understand why the interaction term drops the treatment <code>uncertainty</code>. There is no informative errors from R.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod1 &lt;-<span class="st"> </span><span class="kw">plm</span>(
+  ind_extraction <span class="op">~</span><span class="st"> </span>StockSizeBegining <span class="op">+</span><span class="st"> </span>dummy_threshold <span class="op">+</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>threshold <span class="op">+</span><span class="st"> </span>
+<span class="st">     </span>part <span class="op">+</span><span class="st"> </span>part<span class="op">*</span>Treatment, 
+  <span class="dt">data =</span> dat, <span class="dt">index =</span> <span class="kw">c</span>(<span class="st">&#39;ID_player&#39;</span> ,<span class="st">&#39;Round&#39;</span>), <span class="dt">model =</span> <span class="st">&quot;pooling&quot;</span>, <span class="dt">effect =</span> <span class="st">&quot;twoway&quot;</span>)
+
+mod2 &lt;-<span class="st"> </span><span class="kw">plm</span>(
+  ind_extraction <span class="op">~</span><span class="st"> </span>StockSizeBegining <span class="op">+</span><span class="st"> </span>dummy_threshold <span class="op">+</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>threshold <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span>part <span class="op">+</span><span class="st"> </span>part<span class="op">*</span>Treatment <span class="op">+</span><span class="st"> </span>group, 
+  <span class="dt">data =</span> dat, <span class="dt">index =</span> <span class="kw">c</span>(<span class="st">&#39;ID_player&#39;</span> ,<span class="st">&#39;Round&#39;</span>), <span class="dt">model =</span> <span class="st">&quot;pooling&quot;</span>, <span class="dt">effect =</span> <span class="st">&quot;twoway&quot;</span>)
+
+
+stargazer<span class="op">::</span><span class="kw">stargazer</span>(mod1, mod2, <span class="dt">type =</span> <span class="st">&quot;html&quot;</span>, <span class="dt">multicolumn =</span> <span class="ot">FALSE</span>, <span class="dt">header =</span> <span class="ot">FALSE</span>, <span class="dt">intercept.bottom =</span> <span class="ot">FALSE</span>, <span class="dt">digits =</span> <span class="dv">2</span>)</code></pre></div>
+<table style="text-align:center">
+<tr>
+<td colspan="3" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td colspan="2">
+<em>Dependent variable:</em>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td colspan="2" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+ind_extraction
+</td>
+<td>
+ind_extraction
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(1)
+</td>
+<td>
+(2)
+</td>
+</tr>
+<tr>
+<td colspan="3" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Constant
+</td>
+<td>
+-0.33
+</td>
+<td>
+-1.21<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.35)
+</td>
+<td>
+(0.37)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+StockSizeBegining
+</td>
+<td>
+0.09<sup>***</sup>
+</td>
+<td>
+0.11<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.004)
+</td>
+<td>
+(0.004)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+dummy_threshold
+</td>
+<td>
+1.47<sup>***</sup>
+</td>
+<td>
+1.13<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.10)
+</td>
+<td>
+(0.11)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentThreshold
+</td>
+<td>
+-0.20<sup>*</sup>
+</td>
+<td>
+-1.25<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.11)
+</td>
+<td>
+(0.26)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentRisk
+</td>
+<td>
+0.13
+</td>
+<td>
+3.37<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.11)
+</td>
+<td>
+(0.35)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentUncertainty
+</td>
+<td>
+-0.31<sup>***</sup>
+</td>
+<td>
+0.25
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.11)
+</td>
+<td>
+(0.26)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+threshold
+</td>
+<td>
+-0.03
+</td>
+<td>
+-0.04<sup>**</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.02)
+</td>
+<td>
+(0.02)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+part
+</td>
+<td>
+-0.20<sup>**</sup>
+</td>
+<td>
+-0.05
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.10)
+</td>
+<td>
+(0.10)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-02.Base line.am
+</td>
+<td>
+</td>
+<td>
+1.13<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-03.Base line.am
+</td>
+<td>
+</td>
+<td>
+-0.86<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-04.Base line.am
+</td>
+<td>
+</td>
+<td>
+1.74<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.27)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-05.Base line.am
+</td>
+<td>
+</td>
+<td>
+-0.46<sup>*</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-09.Base line.am
+</td>
+<td>
+</td>
+<td>
+1.15<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-10.Base line.am
+</td>
+<td>
+</td>
+<td>
+0.43<sup>*</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-12.Base line.am
+</td>
+<td>
+</td>
+<td>
+1.68<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.27)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-01.Risk.am
+</td>
+<td>
+</td>
+<td>
+-2.46<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.34)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-02.Risk.am
+</td>
+<td>
+</td>
+<td>
+-3.04<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.34)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-03.Risk.am
+</td>
+<td>
+</td>
+<td>
+-2.67<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.34)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-04.Risk.am
+</td>
+<td>
+</td>
+<td>
+-1.35<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.36)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-05.Risk.am
+</td>
+<td>
+</td>
+<td>
+-2.49<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.35)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-09.Risk.am
+</td>
+<td>
+</td>
+<td>
+-2.90<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.34)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-10.Risk.am
+</td>
+<td>
+</td>
+<td>
+-2.64<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.34)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-12.Risk.am
+</td>
+<td>
+</td>
+<td>
+-3.35<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.34)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-01.Threshold.am
+</td>
+<td>
+</td>
+<td>
+1.13<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-02.Threshold.am
+</td>
+<td>
+</td>
+<td>
+1.21<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-03.Threshold.am
+</td>
+<td>
+</td>
+<td>
+2.41<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.27)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-04.Threshold.am
+</td>
+<td>
+</td>
+<td>
+3.12<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.28)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-05.Threshold.am
+</td>
+<td>
+</td>
+<td>
+1.53<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-09.Threshold.am
+</td>
+<td>
+</td>
+<td>
+1.47<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-10.Threshold.am
+</td>
+<td>
+</td>
+<td>
+1.11<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-12.Threshold.am
+</td>
+<td>
+</td>
+<td>
+2.20<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.26)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-01.Uncertainty.am
+</td>
+<td>
+</td>
+<td>
+0.26
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-02.Uncertainty.am
+</td>
+<td>
+</td>
+<td>
+0.36
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-03.Uncertainty.am
+</td>
+<td>
+</td>
+<td>
+0.32
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-04.Uncertainty.am
+</td>
+<td>
+</td>
+<td>
+0.45<sup>*</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-05.Uncertainty.am
+</td>
+<td>
+</td>
+<td>
+-0.59<sup>**</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-09.Uncertainty.am
+</td>
+<td>
+</td>
+<td>
+0.46<sup>*</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-10.Uncertainty.am
+</td>
+<td>
+</td>
+<td>
+-0.91<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-12.Uncertainty.am
+</td>
+<td>
+</td>
+<td>
+-0.81<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-01.Base line.pm
+</td>
+<td>
+</td>
+<td>
+-0.58<sup>**</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-02.Base line.pm
+</td>
+<td>
+</td>
+<td>
+0.18
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-03.Base line.pm
+</td>
+<td>
+</td>
+<td>
+1.86<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.31)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-04.Base line.pm
+</td>
+<td>
+</td>
+<td>
+2.00<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.29)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-05.Base line.pm
+</td>
+<td>
+</td>
+<td>
+1.14<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.27)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-09.Base line.pm
+</td>
+<td>
+</td>
+<td>
+0.03
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-10.Base line.pm
+</td>
+<td>
+</td>
+<td>
+0.51<sup>**</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-12.Base line.pm
+</td>
+<td>
+</td>
+<td>
+0.60<sup>**</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-01.Risk.pm
+</td>
+<td>
+</td>
+<td>
+-2.79<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.34)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-02.Risk.pm
+</td>
+<td>
+</td>
+<td>
+-2.93<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.34)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-03.Risk.pm
+</td>
+<td>
+</td>
+<td>
+-1.59<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.36)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-04.Risk.pm
+</td>
+<td>
+</td>
+<td>
+-3.35<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.34)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-05.Risk.pm
+</td>
+<td>
+</td>
+<td>
+-3.30<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.34)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-09.Risk.pm
+</td>
+<td>
+</td>
+<td>
+-2.36<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.34)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-10.Risk.pm
+</td>
+<td>
+</td>
+<td>
+-3.07<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.34)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-01.Threshold.pm
+</td>
+<td>
+</td>
+<td>
+1.34<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-02.Threshold.pm
+</td>
+<td>
+</td>
+<td>
+1.66<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-03.Threshold.pm
+</td>
+<td>
+</td>
+<td>
+2.10<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.26)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-04.Threshold.pm
+</td>
+<td>
+</td>
+<td>
+1.57<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-05.Threshold.pm
+</td>
+<td>
+</td>
+<td>
+2.30<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.26)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-09.Threshold.pm
+</td>
+<td>
+</td>
+<td>
+1.59<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-10.Threshold.pm
+</td>
+<td>
+</td>
+<td>
+1.30<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-01.Uncertainty.pm
+</td>
+<td>
+</td>
+<td>
+0.09
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-02.Uncertainty.pm
+</td>
+<td>
+</td>
+<td>
+-0.27
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-03.Uncertainty.pm
+</td>
+<td>
+</td>
+<td>
+0.52<sup>**</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.26)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-04.Uncertainty.pm
+</td>
+<td>
+</td>
+<td>
+-0.13
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-05.Uncertainty.pm
+</td>
+<td>
+</td>
+<td>
+0.26
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-09.Uncertainty.pm
+</td>
+<td>
+</td>
+<td>
+0.07
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+group2016-02-10.Uncertainty.pm
+</td>
+<td>
+</td>
+<td>
+0.49<sup>*</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+(0.25)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentThreshold:part
+</td>
+<td>
+-0.20
+</td>
+<td>
+-0.04
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.14)
+</td>
+<td>
+(0.13)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentRisk:part
+</td>
+<td>
+-0.39<sup>***</sup>
+</td>
+<td>
+-0.36<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.14)
+</td>
+<td>
+(0.13)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td colspan="3" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Observations
+</td>
+<td>
+3,892
+</td>
+<td>
+3,892
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+R<sup>2</sup>
+</td>
+<td>
+0.18
+</td>
+<td>
+0.30
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Adjusted R<sup>2</sup>
+</td>
+<td>
+0.18
+</td>
+<td>
+0.29
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+F Statistic
+</td>
+<td>
+93.35<sup>***</sup> (df = 9; 3882)
+</td>
+<td>
+24.09<sup>***</sup> (df = 69; 3822)
+</td>
+</tr>
+<tr>
+<td colspan="3" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+<em>Note:</em>
+</td>
+<td colspan="2" style="text-align:right">
+<sup><em></sup>p&lt;0.1; <sup><strong></sup>p&lt;0.05; <sup></strong></em></sup>p&lt;0.01
+</td>
+</tr>
+</table>
+</div>
+<div id="clustering-around-groups" class="section level3">
+<h3>2. Clustering around groups:</h3>
+<p>I’m not proficient in Stata, but what seems to be the option is to use <code>cluster(group)</code> from my notes with Jorge and Rocio. However, from Stata documentation it is unclear whether is possible to cluster three dimensions on the same regression. <a href="http://www.richard-bluhm.com/clustered-ses-in-r-and-stata-2/">Richard Bluhm</a> post clarify some technicalities on how to implement in R the stata’s <code>cluster()</code> option. Note that in his post (from 2013) he only cluster in two dimensions, in his example <code>firmid</code> and <code>time</code>. R currently implements an option for double clustering that does exactly that in a cleaner way, called <code>vcovDC()</code> or Double-Clustering covariance matrix estimator. It was implemented on the last release of the panel model packages after Thompson (2011) and Cameron et al (2011) [see <code>help(&quot;vcovDC&quot;)</code> for references]. However, the <code>vcovDC</code> function rely on a generic function <code>vcovG</code> that only accepts two indexes for clustering: group (in our case individual IDs) and time. This is because the working object for panel data are data frames with only two indexes <code>[group, time]</code>.</p>
+<p>In fact, when I try to replicate Bluhms procedure adding a third dimension I get the following error:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## compute Stata like df-adjustment
+G &lt;-<span class="st"> </span><span class="kw">length</span>(<span class="kw">unique</span>(dat<span class="op">$</span>ID_player))
+N &lt;-<span class="st"> </span><span class="kw">length</span>(dat<span class="op">$</span>ID_player)
+dfa &lt;-<span class="st"> </span>(G<span class="op">/</span>(G <span class="op">-</span><span class="st"> </span><span class="dv">1</span>)) <span class="op">*</span><span class="st"> </span>(N <span class="op">-</span><span class="st"> </span><span class="dv">1</span>)<span class="op">/</span>mod1<span class="op">$</span>df.residual
+
+<span class="co"># display with cluster VCE and df-adjustment</span>
+group_c_vcov &lt;-<span class="st"> </span>dfa <span class="op">*</span><span class="st"> </span><span class="kw">vcovDC</span>(mod1, <span class="dt">type =</span> <span class="st">&quot;HC4&quot;</span>, <span class="dt">cluster =</span> <span class="st">&quot;group&quot;</span>, <span class="dt">adjust =</span> T)</code></pre></div>
+<pre><code>## Error in vcovG.plm(x, type = type, cluster = &quot;group&quot;, l = 0, inner = &quot;cluster&quot;, : formal argument &quot;cluster&quot; matched by multiple actual arguments</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">coeftest</span>(mod1, <span class="dt">vcov =</span> group_c_vcov)</code></pre></div>
+<pre><code>## Error in coeftest.default(mod1, vcov = group_c_vcov): object &#39;group_c_vcov&#39; not found</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># stargazer::stargazer(</span>
+<span class="co">#   coeftest(mod1, vcov = group_c_vcov),</span>
+<span class="co">#   type = &quot;html&quot;, multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2)</span></code></pre></div>
+<p>Here is the code for the <code>vcovDC</code>, it shows how it is implemented for two dimensions, but looking on the help of the generic function <code>vcovG</code> one realizes that it only accepts two indexes <code>['group', 'time']</code>, so it won’t work modifying it for a third dimension non idexed on the original panel data frame.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">getS3method</span>(<span class="st">&quot;vcovDC&quot;</span>, <span class="st">&quot;plm&quot;</span>)</code></pre></div>
+<pre><code>function (x, type = c(&quot;HC0&quot;, &quot;sss&quot;, &quot;HC1&quot;, &quot;HC2&quot;, &quot;HC3&quot;, &quot;HC4&quot;), 
+    ...) 
+{
+    Vcx &lt;- vcovG(x, type = type, cluster = &quot;group&quot;, l = 0, inner = &quot;cluster&quot;, 
+        ...)
+    Vct &lt;- vcovG(x, type = type, cluster = &quot;time&quot;, l = 0, inner = &quot;cluster&quot;, 
+        ...)
+    Vw &lt;- vcovG(x, type = type, l = 0, inner = &quot;white&quot;, ...)
+    res &lt;- Vcx + Vct - Vw
+    attr(res, which = &quot;cluster&quot;) &lt;- &quot;group-time&quot;
+    return(res)
+}
+&lt;environment: namespace:plm&gt;</code></pre>
+<p><strong>Question: does the following code in Stata works with any of your experiment datasets? Can you declare 3 indexes in Stata and cluster around the three of them simultaneously?</strong></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## supose you have imported a different dataset instead of test_data here
+webuse set http<span class="op">:</span><span class="er">//</span>www.kellogg.northwestern.edu<span class="op">/</span>faculty<span class="op">/</span>petersen<span class="op">/</span>htm<span class="op">/</span>papers<span class="op">/</span>se
+webuse test_data, clear
+xtset playerid round group <span class="co"># I assume here you declare what are the indexes</span>
+reg y x
+reg y x, robust
+reg y x, <span class="kw">cluster</span>(playerid)
+reg y x, <span class="kw">cluster</span>(round)
+reg y x, <span class="kw">cluster</span>(group)</code></pre></div>
+<p>The most recent release of <code>plm</code> (2017-10-31) also implements a “nested” method that allows for indexing the third dimension. However two problems arise: the covariance matrix estimators only allow for 2 dimensions, I could try to code it for the third one. But the problem is, when running the regression with the third dimension I get an error that the <code>system is singular</code>, meaning that one of the matrices of the model does not have inverse. Here is the code for the nested model:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pdat &lt;-<span class="st"> </span><span class="kw">pdata.frame</span>(dat, <span class="dt">index =</span> <span class="kw">c</span>(<span class="st">&#39;ID_player&#39;</span> ,<span class="st">&#39;Round&#39;</span>, <span class="st">&#39;group&#39;</span>))
+
+## here I follow the example from the help(&quot;plm&quot;)
+mod &lt;-<span class="st"> </span><span class="kw">plm</span>(ind_extraction <span class="op">~</span><span class="st">  </span>Treatment <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span>part <span class="op">+</span><span class="st"> </span>part<span class="op">*</span>Treatment, <span class="dt">data =</span> pdat, <span class="dt">model =</span> <span class="st">&quot;random&quot;</span>, <span class="dt">effect =</span> <span class="st">&quot;nested&quot;</span>)</code></pre></div>
+<pre><code>## Error in solve.default(crossprod(XBetaBlambda)): Lapack routine dgesv: system is exactly singular: U[1,1] = 0</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># stargazer::stargazer(mod1, type = &quot;html&quot;, multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2)</span></code></pre></div>
+<p>While current software allows for indexing the third dimension <code>group</code>, the regression is not working. For now it’s a dead end.</p>
+<p>There is another option that I’d like to explore to control for groups. Last year I was invited to SESYNC participating in a workshop on causality detection in ecology and economics. There I meet <a href="https://www.joshuakabbott.com/aboutcv.html">Joshua Abbot</a> (ASU and editor of Marine Resource Economics and JAERE) and talked to him about my problem of controling for group effects on a panel regression at the individual level. He pointed me towards spatial econometrics and models on panel data with network effects, both approaches are similar in that they use an adjacency matrix to control for groups (or distance effects in space). If you are interested in the literature let me know and I send you the papers. After reviewing the literature I found out that for causality detection purposes, the matrix only works if the group size varies; so I left the idea there and decide to dig further into the covariance matrix estimation techniques. But now that I’ve exhausted the state of the art options in R with the <code>vcovDC</code> and still have my groups problem unresolved, I will give it a try.</p>
+<p>First I create an adjacency matrix <span class="math inline">\(A_{i,j}\)</span> where two players are connected to each other if they participated in the same group:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dfA &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">arrange</span>(group, ID_player, Round) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">select</span> (ID_player, group) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">unique</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>( <span class="dt">value =</span> <span class="dv">1</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">spread</span>(<span class="dt">key =</span> group, <span class="dt">value =</span> value, <span class="dt">fill =</span> <span class="dv">0</span>)
+
+## A is the bipartite matrix of players and groups
+A &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(dfA[<span class="op">-</span><span class="dv">1</span>])
+<span class="kw">rownames</span>(A) &lt;-<span class="st"> </span>dfA<span class="op">$</span>ID_player
+
+## Now is transformed of the one-mode projection of players by players
+A &lt;-<span class="st"> </span>A <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(A) 
+<span class="kw">diag</span>(A) &lt;-<span class="st"> </span><span class="dv">0</span></code></pre></div>
+<p>Next I use an implementation of the spatial panel data models <code>splm</code> different from the package <code>plm</code> that I’ve been using so far. Syntax is a bit different and the underlying mathematical assumptions vary a lot (e.g. it combines maximum-likelihood estimation and feasible generalized least squares). Note that to fit this model, the available software only allows for balanced panels, so one need to fulfill with zeroes all variables for rounds not played due to collapse. The following results were obtained for a random effects spatial panel model. I’m having error problems with the fixed effects version that have not been able to solve for now.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">### load dataset
+## Survey data
+<span class="co">#source(&#39;~/Documents/Projects/BEST - Beijer/BEST/160525_ErrorIdentificationSurvey.R&#39;)</span>
+
+<span class="co">#key</span>
+key &lt;-<span class="st"> </span><span class="kw">read.csv2</span>(<span class="dt">file =</span> <span class="st">&#39;~/Dropbox/BEST/Colombia/Survey/key_consolidado_survey.csv&#39;</span>, <span class="dt">encoding =</span> <span class="st">&quot;Latin-1&quot;</span> )
+key &lt;-<span class="st"> </span>key [<span class="kw">c</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">16</span>,<span class="dv">23</span><span class="op">:</span><span class="dv">240</span>),<span class="kw">c</span>(<span class="dv">2</span><span class="op">:</span><span class="dv">5</span>)]
+  key<span class="op">$</span>Name.in.datasheet &lt;-<span class="st"> </span><span class="kw">as.character</span>(key<span class="op">$</span>Name.in.datasheet)
+  <span class="kw">levels</span>(key<span class="op">$</span>Data.type)[<span class="dv">3</span>] &lt;-<span class="st"> &quot;binary&quot;</span>
+  key &lt;-<span class="st"> </span><span class="kw">droplevels</span>(key)
+  key<span class="op">$</span>Column.datasheet &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">234</span>)
+
+<span class="co"># load game data in long format, short format also available</span>
+dat &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="dt">file=</span><span class="st">&quot;~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv&quot;</span>, <span class="dt">row.names=</span><span class="dv">1</span>)
+
+<span class="co"># Create player ID&#39;s as in Surveys.R</span>
+dat &lt;-<span class="st"> </span><span class="kw">transform</span>(dat, <span class="dt">ID_player =</span> <span class="kw">interaction</span>(Date, Treatment, Session, Player, <span class="dt">drop =</span> <span class="ot">TRUE</span>))
+<span class="co"># Create ID group</span>
+dat &lt;-<span class="st"> </span><span class="kw">transform</span>(dat, <span class="dt">group =</span> <span class="kw">interaction</span> (Date, Treatment, Session, <span class="dt">drop=</span>T))
+dat &lt;-<span class="st"> </span><span class="kw">as_tibble</span>(dat) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">rename</span>(<span class="dt">ind_extraction =</span> value)
+
+<span class="co"># reorder levels</span>
+dat<span class="op">$</span>Treatment &lt;-<span class="st"> </span><span class="kw">factor</span>(dat<span class="op">$</span>Treatment, <span class="kw">levels</span>(dat<span class="op">$</span>Treatment)[<span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">2</span>,<span class="dv">4</span>)])
+<span class="co"># levels(dat$Treatment)</span>
+
+### For the analysis proposed by Jorge I need to get rid of missing values, set all NA to zero before calculating anything else.
+dat &lt;-<span class="st">  </span>dat <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">replace_na</span>(<span class="kw">list</span>(<span class="dt">StockSizeBegining =</span> <span class="dv">0</span>, <span class="dt">SumTotalCatch =</span> <span class="dv">0</span>, <span class="dt">IntermediateStockSize =</span> <span class="dv">0</span>, <span class="dt">Regeneration =</span> <span class="dv">0</span>, <span class="dt">NewStockSize =</span> <span class="dv">0</span>))
+
+
+dat &lt;-<span class="st"> </span><span class="kw">mutate</span> (dat, <span class="dt">threshold =</span> <span class="kw">ifelse</span> (dat<span class="op">$</span>Treatment <span class="op">==</span><span class="st"> &quot;Base line&quot;</span> <span class="op">|</span><span class="st"> </span>dat<span class="op">$</span>part <span class="op">==</span><span class="st"> </span><span class="ot">FALSE</span>, <span class="dv">20</span>, <span class="dv">28</span> ))
+dat &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(
+  <span class="dt">dummy_threshold =</span> <span class="kw">ifelse</span>(NewStockSize <span class="op">-</span><span class="st"> </span>threshold <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>, <span class="ot">FALSE</span>, <span class="ot">TRUE</span>))
+
+## Use the deviation from threshold, and dev_t_divided by 4
+dat &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span> (<span class="dt">dev_drop =</span> <span class="kw">ifelse</span>(dat<span class="op">$</span>Treatment <span class="op">==</span><span class="st"> &#39;Base line&#39;</span> <span class="op">|</span><span class="st"> </span>dat<span class="op">$</span>part <span class="op">==</span><span class="st"> </span><span class="ot">FALSE</span>,
+                                ((dat<span class="op">$</span>IntermediateStockSize <span class="op">-</span><span class="st"> </span><span class="dv">20</span>)) ,  <span class="co"># - dat$value</span>
+                                 ((dat<span class="op">$</span>IntermediateStockSize <span class="op">-</span><span class="st"> </span><span class="dv">28</span>))   )) <span class="co">#- dat$value</span>
+## here cooperation is calculated.
+dat &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span> (<span class="dt">optimal =</span> (StockSizeBegining <span class="op">-</span><span class="st"> </span>threshold) <span class="op">/</span><span class="st"> </span><span class="dv">4</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span> (<span class="dt">cooperation =</span> <span class="kw">ifelse</span>(
+    StockSizeBegining <span class="op">==</span><span class="st"> </span><span class="dv">0</span>, <span class="ot">NA</span>, 
+    <span class="kw">ifelse</span>((<span class="dv">4</span><span class="op">*</span>optimal) <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span>ind_extraction <span class="op">==</span><span class="st"> </span><span class="dv">0</span>, <span class="dv">0</span>, optimal <span class="op">-</span><span class="st"> </span>ind_extraction)))
+
+## coordination is calculated next
+
+dist_group &lt;-<span class="st"> </span><span class="cf">function</span>(x){ <span class="co"># x will be the character identifier for each player</span>
+  y &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(ID_player, Round, ind_extraction, group) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">filter</span>(group <span class="op">==</span><span class="st"> </span><span class="kw">substr</span>(x,<span class="dt">start =</span> <span class="dv">1</span>, <span class="dt">stop =</span> <span class="kw">nchar</span>(x) <span class="op">-</span><span class="st"> </span><span class="dv">2</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># filter per group based on ID_player</span>
+<span class="st">    </span><span class="kw">select</span>(<span class="op">-</span>group) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">spread</span>(Round, ind_extraction)
+  z &lt;-<span class="st"> </span>vegan<span class="op">::</span><span class="kw">vegdist</span>(y[<span class="op">-</span><span class="dv">1</span>], <span class="st">&quot;bray&quot;</span>) <span class="co"># Bray-curtis is bounded 0:1 with zero absolute similarity and 1 complete different</span>
+  player &lt;-<span class="st"> </span><span class="kw">substr</span>(x, <span class="dt">start =</span> <span class="kw">nchar</span>(x), <span class="dt">stop =</span> <span class="kw">nchar</span>(x)) <span class="co"># the player is the last number of the string</span>
+  mean_dist &lt;-<span class="st"> </span><span class="kw">colSums</span>(<span class="kw">as.matrix</span>(z))[<span class="kw">as.numeric</span>(player)] <span class="op">/</span><span class="st"> </span><span class="dv">3</span> <span class="co"># divided by the other 3 players. Note the dist to self is 0</span>
+  df &lt;-<span class="st"> </span><span class="kw">data_frame</span>(<span class="dt">ID_player =</span> x, <span class="dt">mean_dist =</span> mean_dist)
+  <span class="kw">return</span>(df)
+}
+
+x &lt;-<span class="st"> </span><span class="kw">lapply</span>(<span class="kw">levels</span>(dat<span class="op">$</span>ID_player), dist_group)
+x &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(x)
+x<span class="op">$</span>ID_player &lt;-<span class="st"> </span><span class="kw">as.factor</span>(x<span class="op">$</span>ID_player)
+x &lt;-<span class="st"> </span><span class="kw">mutate</span>(x, <span class="dt">coordination =</span> <span class="dv">1</span><span class="op">-</span>mean_dist)
+
+<span class="co"># rm(y , z, player, mean_dist, df)</span>
+
+ind_coop &lt;-<span class="st"> </span>dat <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#filter(part == TRUE) %&gt;%</span>
+<span class="st">  </span><span class="kw">select</span>( Treatment, Place, ID_player, group, Round, cooperation, part, Player) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(Treatment, Place, ID_player, group, part, Player) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">Cooperation =</span> <span class="kw">mean</span>(cooperation, <span class="dt">na.rm =</span> T),
+            <span class="dt">variance =</span> <span class="kw">var</span>(cooperation, <span class="dt">na.rm =</span> T),
+            <span class="dt">skewness =</span> <span class="kw">skewness</span>(cooperation, <span class="dt">na.rm =</span> T),
+            <span class="dt">med_coop =</span> <span class="kw">median</span>(cooperation, <span class="dt">na.rm =</span> T))
+
+exp_notes &lt;-<span class="st"> </span><span class="kw">as_tibble</span>(exp_notes)
+risk_amb &lt;-<span class="st"> </span>exp_notes <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="dv">119</span><span class="op">:</span><span class="dv">130</span>,<span class="dv">132</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">unique</span>()
+
+risk &lt;-<span class="st"> </span>risk_amb <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="dv">13</span>,
+    <span class="dt">Risk_0_38k =</span> <span class="dv">1</span>, <span class="dt">Risk_13k =</span><span class="dv">2</span>, <span class="dt">Risk_10_19k =</span> <span class="dv">3</span>,
+    <span class="dt">Risk_7_25k =</span> <span class="dv">4</span>, <span class="dt">Risk_4_31k =</span> <span class="dv">5</span>, <span class="dt">Risk_2_36k =</span> <span class="dv">6</span>)
+
+risk &lt;-<span class="st"> </span>risk <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Risk_0_38k =</span> forcats<span class="op">::</span><span class="kw">fct_recode</span>(Risk_0_38k, <span class="dt">NULL =</span> <span class="st">&#39;&#39;</span>, <span class="st">&#39;1&#39;</span> =<span class="st"> &#39;|&#39;</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">Risk_0_38k =</span> <span class="kw">as.numeric</span>(<span class="kw">as.character</span>(Risk_0_38k))) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">gather</span>(<span class="dt">key =</span> Risk, <span class="dt">value =</span> choice, <span class="dv">2</span><span class="op">:</span><span class="dv">7</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">filter</span>(choice <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)
+
+risk<span class="op">$</span>Risk &lt;-<span class="st"> </span><span class="kw">as.factor</span>(risk<span class="op">$</span>Risk)
+<span class="kw">levels</span>(risk<span class="op">$</span>Risk) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">6</span>,<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">3</span>)
+risk<span class="op">$</span>Risk &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(risk<span class="op">$</span>Risk)
+
+### J180102: There is errors also on the ambiguity elicitation task data. The group of 2016-02-09.Threshold.am all players have NAs.
+amb &lt;-<span class="st"> </span>risk_amb <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="dv">13</span>, <span class="dt">Amb_0_38k =</span> <span class="dv">7</span>, <span class="dt">Amb_13k =</span><span class="dv">8</span>, <span class="dt">Amb_10_19k =</span> <span class="dv">9</span>, <span class="dt">Amb_7_25k =</span> <span class="dv">10</span>, <span class="dt">Amb_4_31k =</span> <span class="dv">11</span>, <span class="dt">Amb_2_36k =</span> <span class="dv">12</span>)
+
+## for the people with two choices, I leave only one manually, but note, this needs to be checked with raw data and change afterwards here to correct for the right one.
+<span class="co"># this command shows the errors:</span>
+
+<span class="co"># amb %&gt;% group_by(ID_player) %&gt;% summarize(choice = sum(Amb_0_38k, Amb_13k, Amb_10_19k, Amb_7_25k ,Amb_4_31k ,Amb_2_36k)) %&gt;% filter(choice == 0 | choice == 2 | is.na(choice))</span>
+## Manual corrections
+amb[amb<span class="op">$</span>ID_player <span class="op">==</span><span class="st"> &quot;2016-02-01.Threshold.am.2&quot;</span>, <span class="st">&quot;Amb_4_31k&quot;</span>] &lt;-<span class="st"> </span><span class="dv">0</span>
+amb[amb<span class="op">$</span>ID_player <span class="op">==</span><span class="st"> &quot;2016-02-05.Uncertainty.am.2&quot;</span>, <span class="st">&quot;Amb_10_19k&quot;</span>] &lt;-<span class="st"> </span><span class="dv">0</span>
+amb[amb<span class="op">$</span>ID_player <span class="op">==</span><span class="st"> &quot;2016-02-02.Base line.am.4&quot;</span>, <span class="st">&quot;Amb_10_19k&quot;</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+
+## note, this still keeps the NA players and they are dropped when choice == 1, but at least there is no duplicates now.
+
+amb &lt;-<span class="st"> </span>amb <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">gather</span>(<span class="dt">key =</span> Amb, <span class="dt">value =</span> choice, <span class="dv">2</span><span class="op">:</span><span class="dv">7</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(choice <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)
+
+amb<span class="op">$</span>Amb &lt;-<span class="st"> </span><span class="kw">as.factor</span>(amb<span class="op">$</span>Amb)
+<span class="kw">levels</span>(amb<span class="op">$</span>Amb) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">6</span>,<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">3</span>)
+amb<span class="op">$</span>Amb &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(amb<span class="op">$</span>Amb)
+
+ind_coop &lt;-<span class="st"> </span><span class="kw">left_join</span>(ind_coop, surv, <span class="dt">by =</span> <span class="st">&quot;ID_player&quot;</span>) <span class="op">%&gt;%</span><span class="st">  </span>## Now drop the columns that are not useful for now in the regression
+<span class="st">  </span><span class="kw">select</span>( <span class="kw">c</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">21</span>, <span class="dt">life_satisfaction =</span> <span class="dv">29</span>, <span class="dt">EE_before =</span> <span class="dv">30</span>, <span class="dt">partner_in_group =</span> <span class="dv">31</span>,
+            <span class="dt">fishing_age=</span><span class="dv">35</span>,<span class="dt">fishing_last_yr =</span> <span class="dv">39</span>, <span class="dt">week_days =</span> <span class="dv">53</span>, <span class="dt">ND_hrs =</span> <span class="dv">54</span>, <span class="dt">ND_kg =</span> <span class="dv">55</span>, <span class="dt">ND_pesos =</span><span class="dv">56</span>,
+            <span class="dt">BD_kg =</span> <span class="dv">59</span>, <span class="dt">BD_pesos =</span> <span class="dv">60</span>, <span class="dt">BD_how_often =</span> <span class="dv">61</span>, <span class="dt">group_fishing =</span> <span class="dv">62</span>, <span class="dt">boat =</span> <span class="dv">68</span>,
+            <span class="dt">take_home=</span> <span class="dv">94</span>, <span class="dt">sale=</span> <span class="dv">95</span>, <span class="dt">give_away =</span> <span class="dv">97</span>,
+            <span class="dt">fishing_future =</span> <span class="dv">98</span>, <span class="dt">fishing_children=</span><span class="dv">100</span>, <span class="dt">history_rs =</span> <span class="dv">106</span>,  <span class="dt">sharing_art=</span><span class="dv">147</span>,
+            <span class="dt">belongs_coop=</span><span class="dv">149</span>, <span class="dt">age=</span><span class="dv">167</span>, <span class="dt">education =</span> <span class="dv">168</span>, <span class="dt">education_yrs=</span><span class="dv">169</span> ))
+
+ind_coop<span class="op">$</span>BD_how_often[<span class="kw">is.na</span>(ind_coop<span class="op">$</span>BD_how_often)] &lt;-<span class="st"> </span><span class="dv">0</span>
+
+ind_coop<span class="op">$</span>ID_player &lt;-<span class="st"> </span><span class="kw">as.character</span>(ind_coop<span class="op">$</span>ID_player)
+risk<span class="op">$</span>ID_player &lt;-<span class="st"> </span><span class="kw">as.character</span>(risk<span class="op">$</span>ID_player)
+amb<span class="op">$</span>ID_player &lt;-<span class="st"> </span><span class="kw">as.character</span>(amb<span class="op">$</span>ID_player)
+x<span class="op">$</span>ID_player &lt;-<span class="st"> </span><span class="kw">as.character</span>(x<span class="op">$</span>ID_player)
+
+ind_coop &lt;-<span class="st"> </span><span class="kw">left_join</span>(ind_coop, x, <span class="dt">by =</span> <span class="st">&quot;ID_player&quot;</span>)
+
+ind_coop &lt;-<span class="st"> </span><span class="kw">left_join</span>(ind_coop, <span class="kw">select</span>(risk, <span class="dv">1</span>,<span class="dv">2</span>), <span class="dt">by =</span> <span class="st">&quot;ID_player&quot;</span>)
+
+
+### here is the error now
+ind_coop &lt;-<span class="st"> </span><span class="kw">left_join</span>(ind_coop, <span class="kw">select</span>(amb, <span class="dv">1</span>,<span class="dv">2</span>), <span class="dt">by =</span> <span class="st">&quot;ID_player&quot;</span>)
+
+## log-transform money related variables
+
+ind_coop &lt;-<span class="st"> </span><span class="kw">mutate</span>(ind_coop, <span class="dt">ND_log_pesos =</span> <span class="kw">log</span>(ND_pesos), <span class="dt">BD_log_pesos =</span> <span class="kw">log1p</span>(BD_pesos))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(splm)
+
+pdat &lt;-<span class="st"> </span><span class="kw">pdata.frame</span>(
+  dat <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">arrange</span>(ID_player, Round) , 
+  <span class="dt">index =</span> <span class="kw">c</span>(<span class="st">&#39;ID_player&#39;</span> ,<span class="st">&#39;Round&#39;</span>))
+
+mod_re &lt;-<span class="st"> </span><span class="kw">spml</span>(
+  ind_extraction <span class="op">~</span><span class="st"> </span>StockSizeBegining <span class="op">+</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span>part <span class="op">+</span><span class="st"> </span>part<span class="op">*</span>Treatment, <span class="dt">data =</span> pdat, <span class="dt">index =</span> <span class="ot">NULL</span>, 
+  <span class="dt">listw =</span> spdep<span class="op">::</span><span class="kw">mat2listw</span>(A), <span class="dt">model =</span> <span class="st">&quot;random&quot;</span>, <span class="dt">lag =</span> <span class="ot">TRUE</span>, <span class="dt">spatial.error =</span> <span class="st">&quot;b&quot;</span>)
+
+mod_pool &lt;-<span class="st"> </span><span class="kw">spml</span>(
+  ind_extraction <span class="op">~</span><span class="st"> </span>StockSizeBegining <span class="op">+</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span>part <span class="op">+</span><span class="st"> </span>part<span class="op">*</span>Treatment, <span class="dt">data =</span> pdat, <span class="dt">index =</span> <span class="ot">NULL</span>, 
+  <span class="dt">listw =</span> spdep<span class="op">::</span><span class="kw">mat2listw</span>(A), <span class="dt">model =</span> <span class="st">&quot;random&quot;</span>, <span class="dt">lag =</span> <span class="ot">TRUE</span>, <span class="dt">spatial.error =</span> <span class="st">&quot;b&quot;</span>)
+
+<span class="co"># mod_fe &lt;- spml(</span>
+<span class="co">#   ind_extraction ~ StockSizeBegining + Treatment + </span>
+<span class="co">#   part + part*Treatment, data = pdat , index = NULL,</span>
+<span class="co">#   listw = spdep::mat2listw(A), lag = TRUE, spatial.error = &quot;b&quot;, model = &quot;within&quot;,</span>
+<span class="co">#   effect = &quot;twoways&quot;, method = &quot;eigen&quot;, na.action = na.fail,</span>
+<span class="co">#   quiet = TRUE, zero.policy = NULL,</span>
+<span class="co">#   tol.solve = 1e-10, control = list(), legacy = FALSE)</span>
+<span class="co">#summary(mod1)</span>
+stargazer<span class="op">::</span><span class="kw">stargazer</span>(<span class="kw">coeftest</span>(mod_re),  <span class="dt">type =</span> <span class="st">&quot;html&quot;</span>, <span class="dt">multicolumn =</span> <span class="ot">FALSE</span>, <span class="dt">header =</span> <span class="ot">FALSE</span>, <span class="dt">intercept.bottom =</span> <span class="ot">FALSE</span>, <span class="dt">digits =</span> <span class="dv">2</span>)</code></pre></div>
+<table style="text-align:center">
+<tr>
+<td colspan="2" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+<em>Dependent variable:</em>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td colspan="1" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td colspan="2" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+Constant
+</td>
+<td>
+-0.14
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.10)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+StockSizeBegining
+</td>
+<td>
+0.04<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.001)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentThreshold
+</td>
+<td>
+-0.13
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.13)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentRisk
+</td>
+<td>
+0.04
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.13)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentUncertainty
+</td>
+<td>
+-0.17
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.13)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+part
+</td>
+<td>
+-0.05
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.06)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentThreshold:part
+</td>
+<td>
+-0.10
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.08)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentRisk:part
+</td>
+<td>
+-0.25<sup>***</sup>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.08)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+TreatmentUncertainty:part
+</td>
+<td>
+-0.11
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+(0.08)
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td colspan="2" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td colspan="2" style="border-bottom: 1px solid black">
+</td>
+</tr>
+<tr>
+<td style="text-align:left">
+<em>Note:</em>
+</td>
+<td style="text-align:right">
+<sup><em></sup>p&lt;0.1; <sup><strong></sup>p&lt;0.05; <sup></strong></em></sup>p&lt;0.01
+</td>
+</tr>
+</table>
+<p>The Lagrange multiplier test for spatial panel linear model test several hypothesis. The first test below checks if there is random effects:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">bsktest</span>( ind_extraction <span class="op">~</span><span class="st"> </span>StockSizeBegining <span class="op">+</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span>part <span class="op">+</span><span class="st"> </span>part<span class="op">*</span>Treatment, <span class="dt">data =</span> pdat, <span class="dt">listw =</span> spdep<span class="op">::</span><span class="kw">mat2listw</span>(A), <span class="dt">test =</span> <span class="st">&quot;LM1&quot;</span>)</code></pre></div>
+<pre><code>## 
+##  Baltagi, Song and Koh SLM1 marginal test
+## 
+## data:  ind_extraction ~ StockSizeBegining + Treatment + part + part *     Treatment
+## LM1 = -0.33854, p-value = 1.265
+## alternative hypothesis: Random effects</code></pre>
+<p>The second hypothesis test for spatial autocorrelation (group dependence in our case), at the moment also produces errors:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">bsktest</span>( ind_extraction <span class="op">~</span><span class="st"> </span>StockSizeBegining <span class="op">+</span><span class="st"> </span>Treatment <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span>part <span class="op">+</span><span class="st"> </span>part<span class="op">*</span>Treatment, <span class="dt">data =</span> pdat, <span class="dt">listw =</span> spdep<span class="op">::</span><span class="kw">mat2listw</span>(A), <span class="dt">test =</span> <span class="st">&quot;LM2&quot;</span>)</code></pre></div>
+<pre><code>## Error in WWp %*% q: Cholmod error &#39;X and/or Y have wrong dimensions&#39; at file ../MatrixOps/cholmod_sdmult.c, line 90</code></pre>
+</div>
+<div id="combine-both" class="section level3">
+<h3>3. Combine both:</h3>
+<p>With current software (in R) both cannot be combined. With <code>plm</code> (normal panel model) we can control for groups with dummy variables as fixed effects as shown above, and cluster on errors around individuals and time. There exist the ‘nested’ functionality for adding a third dimension, but when tried it cannot be solved due to a singularity matrix error. The second option tried is <code>splm</code> (for spatial panel models) given that a social network or the group effects coded as a network can be interchanged by space theoretically speaking. The second approach allows me to fit a random effect model (and pooling) but not fixed effects at the moment. In addition, there is limitations to use <code>vcov</code> procedure to (robust error estimation with variance-covariance matrix) on the objects produced by <code>splm</code>, one cannot use the same functionality of <code>plm</code> on <code>splm</code> objects because their structure is very different.</p>
+<p><strong>What do you think is the best avenue to control for the third dimension? Option A is keep the simple panel model with fixed effects on group. Option B is go in with the random effect model on the spatial framework and try to solve the <code>vcov</code> clustering issue around the two dimensions in their framework. The second option is not guarantee to work at the moment.</strong></p>
+</div>
+<div id="check-for-correlations" class="section level3">
+<h3>Check for correlations</h3>
+<p>Jorge and Rocio also asked me to check for correlations on the variables from the survey I’m currently using on the paper regression. The variables used in the current paper are:</p>
+<ul>
+<li>Socio economic variables:
+<ul>
+<li><em>age</em>: age in years (6 missing values).</li>
+<li><em>fishing_age</em>: age at which the person started fishing (6 missing values).</li>
+<li><em>sale</em>: How much of the catch is for sale? (0 = none : 4 = all, 6 missing values).</li>
+<li><em>take_home</em>: How much of the catch is for take home? (0 = none : 4 = all, 10 missing values).</li>
+<li><em>life_satisfaction</em>: Self assessment of life satisfaction where 1 is very satisfied and 4 very dissatisfied (6 missing values).</li>
+</ul></li>
+<li>Fishing variables:
+<ul>
+<li><em>ND_log_pesos</em>: normal day earning in pesos (log scale, 12 missing values).</li>
+<li><em>BD_log_pesos</em>: Bad day earning in pesos (in log scale, added 1 to 0 to avoid -Inf values, 6 missing values).</li>
+<li><em>week_days</em>: Number of fishing days in a normal week (10 missing values).</li>
+<li><em>ND_hours</em>: Number of hours per day in a normal day (10 missing values).</li>
+<li><em>BD_how_often</em>: How often do you have a bad day? (once a year = 1, once a month = 2, once a week = 3, &gt; once a week = 4, 0 missing values)</li>
+<li><em>group_fishing</em>: Is fishing done in groups (1 = yes, 0 = no, 6 missing values)</li>
+<li><em>boat</em>: Do you own the boat? yes =1, no = 0 (10 missing values).</li>
+<li><em>sharing_art</em>: Do you share your fishing gear? yes = 1, no = 0 (22 missing values).</li>
+<li><em>fishing_children</em>: Do you expect your children to become fishermen (0=definitely no, 1=no, 2=definitely yes, 3=yes, 4=don’t know, 8 missing values)</li>
+<li><em>history_rs</em>: Have you experience dramatic changes (regime shifts)? yes = 1, no = 0 (8 missing values).</li>
+</ul></li>
+<li>Risk and ambiguity task:
+<ul>
+<li><em>Risk</em>: Risk elicitation task where 1 is risk-taker and 6 risk-averse (14 missing values).</li>
+<li><em>Amb</em>: Ambiguity elicitation task where 1 is ambiguity-taker, and 6 ambiguity-averse (8 missing values).</li>
+</ul></li>
+</ul>
+<p>Below the correlograms for the complete survey and nested by Location and Treatment:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(corrgram)
+
+ind_coop <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(part <span class="op">==</span><span class="st"> </span><span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">select</span>(age, fishing_age, sale, take_home,life_satisfaction,ND_log_pesos,
+                    BD_log_pesos, week_days, ND_hrs, BD_how_often, group_fishing,
+                    boat, sharing_art, fishing_children,history_rs) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">as_data_frame</span>() <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">corrgram</span>(<span class="dt">order =</span> <span class="st">&quot;PCA&quot;</span>, <span class="dt">lower.panel =</span> panel.pts, <span class="dt">upper.panel =</span> panel.cor,
+           <span class="dt">diag.panel =</span> panel.density, <span class="dt">pch =</span> <span class="dv">46</span>)</code></pre></div>
+<p><img src="Regressions_Jorge-Rocio_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p>Note that many of these variables are categorical but so far treated as numeric to avoid fitting too many terms on the regressions. If fitted as categorical it will add as many categories -1 to the model, and at the ‘summary level statistic regression’ we only have 256 observations. Below I recover the categorical aspect of some of the variables (the ones with higher correlation coefficient) and use aesthetics to highligh the nested structure of the design, namely 4 different treatments and 4 different places.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(GGally) <span class="co"># for pair plots with categorical variables</span>
+
+ind_coop <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(part <span class="op">==</span><span class="st"> </span><span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">select</span>(Treatment, Place, age, fishing_age, sale, take_home,life_satisfaction,ND_log_pesos,
+                    BD_log_pesos, week_days, ND_hrs, BD_how_often, group_fishing,
+                    boat, sharing_art, fishing_children,history_rs) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(
+    <span class="dt">sale =</span> <span class="kw">as.factor</span>(sale),
+    <span class="dt">take_home =</span>  <span class="kw">as.factor</span>(take_home), 
+    <span class="dt">life_satisfaction =</span> <span class="kw">as.factor</span>(life_satisfaction),
+    <span class="dt">BD_how_often =</span> <span class="kw">as.factor</span>(BD_how_often),
+    <span class="dt">group_fishing =</span> <span class="kw">as.factor</span>(group_fishing),
+    <span class="dt">boat =</span> <span class="kw">as.factor</span>(boat), 
+    <span class="dt">sharing_art =</span> <span class="kw">as.factor</span>(sharing_art),
+    <span class="dt">fishing_children =</span> <span class="kw">as.factor</span>(fishing_children),
+    <span class="dt">history_rs =</span> <span class="kw">as.factor</span>(history_rs)
+  ) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">select</span>(Treatment, Place, take_home, sale, BD_how_often, BD_log_pesos) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">as_data_frame</span>() <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">ggpairs</span>(<span class="dt">columns =</span> <span class="dv">3</span><span class="op">:</span><span class="dv">6</span>,
+    <span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">color =</span> Treatment, <span class="dt">fill =</span> Treatment, <span class="dt">alpha =</span> <span class="fl">0.4</span>), 
+  <span class="dt">title =</span><span class="st">&quot;Categorical variables coloured by Treatment&quot;</span>, <span class="dt">legend =</span> <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">3</span>) ) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_light</span>(<span class="dt">base_size =</span> <span class="dv">7</span>) <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;right&quot;</span>)</code></pre></div>
+<p><img src="Regressions_Jorge-Rocio_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(GGally) <span class="co"># for pair plots with categorical variables</span>
+
+ind_coop <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">ungroup</span>() <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(part <span class="op">==</span><span class="st"> </span><span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">select</span>(Treatment, Place, age, fishing_age, sale, take_home,life_satisfaction,ND_log_pesos,
+                    BD_log_pesos, week_days, ND_hrs, BD_how_often, group_fishing,
+                    boat, sharing_art, fishing_children,history_rs) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(
+    <span class="dt">sale =</span> <span class="kw">as.factor</span>(sale),
+    <span class="dt">take_home =</span>  <span class="kw">as.factor</span>(take_home), 
+    <span class="dt">life_satisfaction =</span> <span class="kw">as.factor</span>(life_satisfaction),
+    <span class="dt">BD_how_often =</span> <span class="kw">as.factor</span>(BD_how_often),
+    <span class="dt">group_fishing =</span> <span class="kw">as.factor</span>(group_fishing),
+    <span class="dt">boat =</span> <span class="kw">as.factor</span>(boat), 
+    <span class="dt">sharing_art =</span> <span class="kw">as.factor</span>(sharing_art),
+    <span class="dt">fishing_children =</span> <span class="kw">as.factor</span>(fishing_children),
+    <span class="dt">history_rs =</span> <span class="kw">as.factor</span>(history_rs)
+  ) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">select</span>(Treatment, Place, take_home, sale, BD_how_often, BD_log_pesos) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">as_data_frame</span>() <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">ggpairs</span>(<span class="dt">columns =</span> <span class="dv">3</span><span class="op">:</span><span class="dv">6</span>,
+    <span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">color =</span> Place, <span class="dt">fill =</span> Place, <span class="dt">alpha =</span> <span class="fl">0.4</span>), 
+  <span class="dt">title =</span><span class="st">&quot;Categorical variables coloured by Place&quot;</span>, <span class="dt">legend =</span> <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">3</span>) ) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_light</span>(<span class="dt">base_size =</span> <span class="dv">7</span>) <span class="op">+</span><span class="st"> </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;right&quot;</span>)</code></pre></div>
+<p><img src="Regressions_Jorge-Rocio_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p>Since there are categorical variables correlations are hard to see. What is important is that for each category the size of the sample is roughly equal, so there is no “correlation” between a categorical value and a particular treatment or place. Note that for treatment all boxes are approximately equally distributed and the box plots do not show outstanding differences.</p>
+</div>
+<div id="feedback-from-you" class="section level3">
+<h3>Feedback from you:</h3>
+<p>In summary here are the points I’d like to hear an opinion from you:</p>
+<ol style="list-style-type: decimal">
+<li>Could you remind me what is the comparison I need to make with the F-test on the first regression exercise? Is it before / after treatment <span class="math inline">\(\alpha_{2}T_i \neq \alpha_{3}FT_i\)</span> for all treatments <span class="math inline">\(T_i\)</span>, or between treatments in the interaction terms <span class="math inline">\(\alpha_{3}FT_i \neq \alpha_{3}FT_j\)</span>?</li>
+<li>Do you think is possible to control for endogeneity with an instrumental variable int he panel model? Do you think is useful to revisit cooperation and coordination on the “summary statistic regression”? Would it be endogenous too in a non-panel regression? The reason to ask is that it seems to be working better than <span class="math inline">\(X_{i,t}\)</span>.</li>
+<li>Can you cluster three dimensions in Stata with your game data?</li>
+<li>What do you think is the best avenue to control for the third dimension?</li>
+<li>Should we drop any of the correlated variables from the survey in future regressions? The highest correlation coefficents were -0.87 (how often you get bad fishing days, and how much do you make on a bad fishing day) and -0.64 (how much of the catch is for sale, how much of the catch is for home).</li>
+</ol>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -114,7 +114,7 @@ surv [ surv$ID_Obs == '2016-02-01.Base line.pm.3.12', 32] <- 0
 surv [ surv$ID_Obs == '2016-02-02.Risk.pm.3.16', 35] <- 0
 # Q 51
 # table (surv[51])
-str(surv[,51])
+# str(surv[,51])
 surv[,51] <- as.numeric(gsub("([.])", ",", surv[,51], fixed = T))
 # Q 53
 surv[,53] <- as.numeric(surv[,53])
@@ -257,7 +257,13 @@ surv [surv$ID_player == '2016-02-04.Uncertainty.am.1' , 'X35.5.causes1'] <- 'sed
 surv [surv$ID_player == '2016-02-04.Risk.pm.2' , 'X32...what.changed.'] <- "jurel, carito, sierra, pargo"
 surv [surv$ID_player == '2016-02-01.Uncertainty.am.4' , 'X16.b.COP.normal.day'] <- 15000
 
+exp_notes <- surv[241:374]
 surv <- unique(surv[c(1:16,23:240, 372)]) # cleaned survey
+
+## summary of missing values
+# df <- bind_cols(lapply(surv, function(x) sum(is.na(x))))
+# 
+# write_csv(df, "missing_values.csv")
 
 ####### Once the survey is corrected, one can select the unique values
 # names(surv)

@@ -1,0 +1,890 @@
+---
+title: "Regressions tests"
+author: "Juan Rocha"
+date: "3/12/2018"
+output:
+  html_document:
+    code_folding: hide
+    dev: png
+    highlight: tango
+    self_contained: no
+    # theme: paper
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: no
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+set.seed(12345)
+library(tidyverse)
+library(stringr)
+library(forcats)
+library(RColorBrewer)
+library(ggplot2)
+library(GGally)
+library(moments)
+library(broom)
+
+library(grid)
+library(gridExtra)
+library(plm)
+library(lmtest)
+library(splm)
+library(car)
+```
+
+This document explores new regressions for the analysis of game data of Cienaga Grande de Santa Marta. Most ideas were discussed with Jorge Maldonado and Rocio Moreno in our last meeting in Colombia. All code is visible in case any of the authors wants to reproduce the analysis in R. First, import and clean the data:
+
+```{r data, warnings = FALSE, message = FALSE}
+
+### load dataset
+## Survey data
+source('~/Documents/Projects/BEST - Beijer/BEST/160525_ErrorIdentificationSurvey.R')
+
+#key
+key <- read.csv2(file = '~/Dropbox/BEST/Colombia/Survey/key_consolidado_survey.csv', encoding = "Latin-1" )
+key <- key [c(1:16,23:240),c(2:5)]
+  key$Name.in.datasheet <- as.character(key$Name.in.datasheet)
+  levels(key$Data.type)[3] <- "binary"
+  key <- droplevels(key)
+  key$Column.datasheet <- seq(1:234)
+
+# load game data in long format, short format also available
+dat <- read.csv(file="~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv", row.names=1)
+
+# Create player ID's as in Surveys.R
+dat <- transform(dat, ID_player = interaction(Date, Treatment, Session, Player, drop = TRUE))
+# Create ID group
+dat <- transform(dat, group = interaction (Date, Treatment, Session, drop=T))
+dat <- as_tibble(dat) %>%
+  rename(ind_extraction = value)
+
+# reorder levels
+dat$Treatment <- factor(dat$Treatment, levels(dat$Treatment)[c(1,3,2,4)])
+# levels(dat$Treatment)
+
+### For the analysis proposed by Jorge I need to get rid of missing values, set all NA to zero before calculating anything else.
+dat <-  dat %>%
+  replace_na(list(StockSizeBegining = 0, SumTotalCatch = 0, IntermediateStockSize = 0, Regeneration = 0, NewStockSize = 0))
+
+
+dat <- mutate (dat, threshold = ifelse (dat$Treatment == "Base line" | dat$part == FALSE, 20, 28 ))
+dat <- dat %>% mutate(
+  dummy_threshold = ifelse(NewStockSize - threshold > 0, FALSE, TRUE))
+
+## Use the deviation from threshold, and dev_t_divided by 4
+dat <- dat %>%
+  mutate (dev_drop = ifelse(dat$Treatment == 'Base line' | dat$part == FALSE,
+                                ((dat$IntermediateStockSize - 20)) ,  # - dat$value
+                                 ((dat$IntermediateStockSize - 28))   )) #- dat$value
+## here cooperation is calculated.
+dat <- dat %>%
+  mutate (optimal = (StockSizeBegining - threshold) / 4) %>%
+  mutate (cooperation = ifelse(
+    StockSizeBegining == 0, NA, 
+    ifelse((4*optimal) < 0 & ind_extraction == 0, 0, optimal - ind_extraction)))
+
+## coordination is calculated next
+
+dist_group <- function(x){ # x will be the character identifier for each player
+  y <- dat %>% select(ID_player, Round, ind_extraction, group) %>%
+    filter(group == substr(x,start = 1, stop = nchar(x) - 2)) %>% # filter per group based on ID_player
+    select(-group) %>% spread(Round, ind_extraction)
+  z <- vegan::vegdist(y[-1], "bray") # Bray-curtis is bounded 0:1 with zero absolute similarity and 1 complete different
+  player <- substr(x, start = nchar(x), stop = nchar(x)) # the player is the last number of the string
+  mean_dist <- colSums(as.matrix(z))[as.numeric(player)] / 3 # divided by the other 3 players. Note the dist to self is 0
+  df <- data_frame(ID_player = x, mean_dist = mean_dist)
+  return(df)
+}
+
+x <- lapply(levels(dat$ID_player), dist_group)
+x <- bind_rows(x)
+x$ID_player <- as.factor(x$ID_player)
+x <- mutate(x, coordination = 1-mean_dist)
+
+# rm(y , z, player, mean_dist, df)
+
+ind_coop <- dat %>% #filter(part == TRUE) %>%
+  select( Treatment, Place, ID_player, group, Round, cooperation, part, Player) %>%
+  group_by(Treatment, Place, ID_player, group, part, Player) %>%
+  summarize(Cooperation = mean(cooperation, na.rm = T),
+            variance = var(cooperation, na.rm = T),
+            skewness = skewness(cooperation, na.rm = T),
+            med_coop = median(cooperation, na.rm = T))
+
+exp_notes <- as_tibble(exp_notes)
+risk_amb <- exp_notes %>% select(119:130,132) %>% unique()
+
+risk <- risk_amb %>% select(13,
+    Risk_0_38k = 1, Risk_13k =2, Risk_10_19k = 3,
+    Risk_7_25k = 4, Risk_4_31k = 5, Risk_2_36k = 6)
+
+risk <- risk %>%
+    mutate(Risk_0_38k = forcats::fct_recode(Risk_0_38k, NULL = '', '1' = '|')) %>% mutate(Risk_0_38k = as.numeric(as.character(Risk_0_38k))) %>%
+    gather(key = Risk, value = choice, 2:7) %>%
+    filter(choice == 1)
+
+risk$Risk <- as.factor(risk$Risk)
+levels(risk$Risk) <- c(6,2,1,5,4,3)
+risk$Risk <- as.numeric(risk$Risk)
+
+### J180102: There is errors also on the ambiguity elicitation task data. The group of 2016-02-09.Threshold.am all players have NAs.
+amb <- risk_amb %>% select(13, Amb_0_38k = 7, Amb_13k =8, Amb_10_19k = 9, Amb_7_25k = 10, Amb_4_31k = 11, Amb_2_36k = 12)
+
+## for the people with two choices, I leave only one manually, but note, this needs to be checked with raw data and change afterwards here to correct for the right one.
+# this command shows the errors:
+
+# amb %>% group_by(ID_player) %>% summarize(choice = sum(Amb_0_38k, Amb_13k, Amb_10_19k, Amb_7_25k ,Amb_4_31k ,Amb_2_36k)) %>% filter(choice == 0 | choice == 2 | is.na(choice))
+## Manual corrections
+amb[amb$ID_player == "2016-02-01.Threshold.am.2", "Amb_4_31k"] <- 0
+amb[amb$ID_player == "2016-02-05.Uncertainty.am.2", "Amb_10_19k"] <- 0
+amb[amb$ID_player == "2016-02-02.Base line.am.4", "Amb_10_19k"] <- 1
+
+## note, this still keeps the NA players and they are dropped when choice == 1, but at least there is no duplicates now.
+
+amb <- amb %>%
+  gather(key = Amb, value = choice, 2:7) %>%
+  filter(choice == 1)
+
+amb$Amb <- as.factor(amb$Amb)
+levels(amb$Amb) <- c(6,2,1,5,4,3)
+amb$Amb <- as.numeric(amb$Amb)
+
+ind_coop <- left_join(ind_coop, surv, by = "ID_player") %>%  ## Now drop the columns that are not useful for now in the regression
+  select( c(1:21, life_satisfaction = 29, EE_before = 30, partner_in_group = 31,
+            fishing_age=35,fishing_last_yr = 39, week_days = 53, ND_hrs = 54, ND_kg = 55, ND_pesos =56,
+            BD_kg = 59, BD_pesos = 60, BD_how_often = 61, group_fishing = 62, boat = 68,
+            take_home= 94, sale= 95, give_away = 97,
+            fishing_future = 98, fishing_children=100, history_rs = 106,  sharing_art=147,
+            belongs_coop=149, age=167, education = 168, education_yrs=169 ))
+
+ind_coop$BD_how_often[is.na(ind_coop$BD_how_often)] <- 0
+
+ind_coop$ID_player <- as.character(ind_coop$ID_player)
+risk$ID_player <- as.character(risk$ID_player)
+amb$ID_player <- as.character(amb$ID_player)
+x$ID_player <- as.character(x$ID_player)
+
+ind_coop <- left_join(ind_coop, x, by = "ID_player")
+
+ind_coop <- left_join(ind_coop, select(risk, 1,2), by = "ID_player")
+
+
+### here is the error now
+ind_coop <- left_join(ind_coop, select(amb, 1,2), by = "ID_player")
+
+## log-transform money related variables
+
+ind_coop <- mutate(ind_coop, ND_log_pesos = log(ND_pesos), BD_log_pesos = log1p(BD_pesos))
+
+```
+
+### Treatment effects
+
+The first idea was to identify treatment effects via a diff-in-diff approach. Jorge suggested dropping for now 'cooperation' as response variable due to problems of endogeneity and an issue with negative values (when stock size is under the threshold, even if people fish zero they will get negative values of cooperation). Jorge recommends instead using the individual extraction directly and test the following regressions:
+
+ $$X_{i,t} = \alpha_0 + \alpha_1 T$$
+
+ $$X_{i,t} = \alpha_0 + \alpha_1F + \alpha_2T + \alpha_3 FT$$ 
+
+Where $X_{i,t}$ is the individual extraction of fishermen $i$ in round $t$, $T$ is the term for treatments, and $F$ is the term for 'fase' or whether we are on part (1) before treatment or part (2) after treatment of the game. The interaction term should account for the extra effect of the treatment on the second part of the game, accounting for example for cases where people might have a tendency to extract more / less that does not correspond to the treatment effect but that was present on the baseline. 
+
+```{r treatments,  results = 'asis'}
+# df <- left_join(dat, ind_coop)
+
+## First regression
+
+mod1 <- plm(ind_extraction ~ Treatment + part , 
+            data = dat, index = c('ID_player' ,'Round'), model = "pooling", effect = "twoway" )
+mod2 <- plm(ind_extraction ~ Treatment + part + Treatment*part , 
+            data = dat, index = c('ID_player' ,'Round'), model = "pooling", effect = "twoway")
+mod3 <- plm(ind_extraction ~ Treatment + part + Treatment*part , 
+            data = dat, index = c('ID_player' ,'Round'), model = "between")
+mod4 <- plm(ind_extraction ~ Treatment + part + Treatment*part , 
+            data = dat, index = c('ID_player' ,'Round'), model = "within", effect = "twoway")
+mod5 <- plm(ind_extraction ~ Treatment + part + Treatment*part , 
+            data = dat, index = c('ID_player' ,'Round'), model = "random", effect = "twoway")
+
+stargazer::stargazer(
+  mod1, mod2, mod3, mod4, mod5, type = "html", multicolumn = FALSE, header = FALSE, 
+  intercept.bottom = FALSE, digits = 2
+  )
+```
+
+In the table above, the interaction term `Treatment*part` accounts for the diff-in-diff effect. The table shows that with `ind_extraction` as response variable, there is no significant effects on treatment, all the variance explained is taken over by the `part` term. Model 1 shows the regression that corresponds to equation (1) with no interaction effect. Models 2-5 use the interaction effect in a pooled model (2), between model (3), fixed-effects within model (4) and random effects model (5). Note that for between model, only 256 obs are used corresponding to the 256 fishermen, the `part` term is therfore dropped. The same occurs with model (4) that searches for within differences but drops the treatment term since it does not change on the panel (as constant is colinear in time), only the interaction term that varies over time is estimated. All models were estimated with `twoways` effects, that is, it accounts for variability per individual and over time. For the same regression but estimating only individual effects, the only significant coefficients are for the `part` term, or $F$ in the equations above.
+
+Jorge also suggested to run an F-test to check whether the coefficients of treatments are truly different. I found two options available in `R`: an F-test that works for panel data to distinguish whether `within` or `pooled` models are more appropriate. The results are shown below:
+
+
+```{r}
+fstat <- pFtest(mod4, mod1) # the first argument has to be the within model, the second the pooling.
+fstat
+```
+
+The second option is to test whether the coefficients for treatments are different before and after. This is if $\alpha_{2}T_i \neq \alpha_{3}FT_i$ for all treatments $T_i$. Or whether the coefficient for an specific treatment in the interaction term $\alpha_3FT_i$ is different from other treatment $\alpha_3FT_j$ for all pair-wise comparisons of treatments, that is if $\alpha_{3}FT_i \neq \alpha_{3}FT_j$. **Jorge, could you clarify here?** My notes are not good enough to remember what comparison to make. The coefficients are not significant so I'm not sure is worth checking, but in any case, here is how to do it in R with the "pooling" model assuming the relevant comparison is $\alpha_{2}T_i \neq \alpha_{3}FT_i$ for treatment `Threshold`:
+
+```{r}
+linearHypothesis(mod2, "TreatmentThreshold = TreatmentThreshold:partTRUE", test = "F")
+```
+
+
+#### Cooperation
+
+For the sake of comparison I ran the same regressions with the diff-in-diff approach on our previous response variable `cooperation`. Jorge and Rocio pointed out that, although the measure is appealing, it suffers from endogeneity when using stock size as part of the calculation, because stock size depends on actions performed in the past. Thus, the measure is not independent in time. They also pointed out that negative values might be missleading in the cases where stock size is under the threshold, producing by default negative values. I corrected the issue with an `ifelse` statement and checked whether it performs better on the regression given the above results.
+
+
+```{r treatments2,  results = 'asis'}
+# df <- left_join(dat, ind_coop)
+
+## First regression
+
+mod1 <- plm(cooperation ~ Treatment + part , 
+            data = dat, index = c('ID_player' ,'Round'), model = "pooling", effect = "twoway" )
+mod2 <- plm(cooperation ~ Treatment + part + Treatment*part , 
+            data = dat, index = c('ID_player' ,'Round'), model = "pooling", effect = "twoway")
+mod3 <- plm(cooperation ~ Treatment + part + Treatment*part , 
+            data = dat, index = c('ID_player' ,'Round'), model = "between")
+mod4 <- plm(cooperation ~ Treatment + part + Treatment*part , 
+            data = dat, index = c('ID_player' ,'Round'), model = "within", effect = "twoway")
+
+
+stargazer::stargazer(
+  mod1, mod2, mod3, mod4, type = "html", multicolumn = FALSE, header = FALSE, 
+  intercept.bottom = FALSE, digits = 2
+  )
+```
+
+Model (5) did not run due to a singularity error, models 3 and 4 behave similary to the results presented above with individual extraction, but I'm not sure whether the coefficient for uncertainty is dropped due to colinearity or missing values. Note that I've been using an umbalaced panel when regressing on cooperation, rounds that were not played due to resource collapse are dropped. 
+
+**Jorge and Rocio: do you think it's possible to control for the endogeneity with an instrumental variable? For example, regressing on cooperation and controlling for $StockSize_{t-1}$ as instrument? I'm not well versed on instrumental variables but given that $X_{i,t}$ is not working properly, would be nice to think on other options**
+
+Here it seems to make more sense to test whether the coefficients are different with the F test. Using the pooling model and assuming the comparison of interest is before / after treatment ($\alpha_{2}T_i \neq \alpha_{3}FT_i$) the results are:
+
+```{r}
+linearHypothesis(mod2, "TreatmentThreshold = TreatmentThreshold:partTRUE", test = "F")
+linearHypothesis(mod2, "TreatmentRisk = TreatmentRisk:partTRUE", test = "F")
+linearHypothesis(mod2, "TreatmentUncertainty = TreatmentUncertainty:partTRUE", test = "F")
+
+```
+
+Now assuming that the comparison of interest is $\alpha_{3}FT_i \neq \alpha_{3}FT_j$, the results for F test are:
+```{r}
+linearHypothesis(mod2, "TreatmentUncertainty:partTRUE = TreatmentThreshold:partTRUE", test = "F")
+linearHypothesis(mod2, "TreatmentUncertainty:partTRUE = TreatmentRisk:partTRUE", test = "F")
+linearHypothesis(mod2, "TreatmentRisk:partTRUE = TreatmentThreshold:partTRUE", test = "F")
+
+```
+The comparison with `baseline` is the coefficient on the regression table.
+
+### Other regressors
+We also thought of an additional regression with variables purely comming from the game, wihtout getting into other socio-economic factors from the survey yet. Jorge proposed the following:
+
+$$X_{i,t} = \alpha_0 + \alpha_1StockSize_t + \alpha_2D_t + \alpha_3T_i + \alpha_4\theta + \alpha_5 T_iD_t+ \alpha_6F + \alpha_7FT_i$$
+Where $X_{i,t}$ is the individual extraction of fisherman $i$ in round $t$, $StockSize_t$ is the stock size at the beginning of the round $t$, $D_t$ is a dummy variable that takes $0$ if the threshold is not being played and $1$ if the threshold is played (here I mean if the lottery activated the climate event), $T_i$ is the treatment effect for treatment $i$, $\theta$ is the value of the threshold in the treatment ($0$ for `baseline`, $28$ for all other treatments), $T_iD_t$ is an interaction term that accounts when the treatment is de facto playing the threshold payoff table, $F$ is the part of the game (before / after treatment) and $FT_i$ accounts for the interaction effect of the treatment in the second part of the game. The results are shown below, for comparison I also used cooperation on the same table, both models are pooled with two way effects (individuals and time).
+
+```{r results = "asis"}
+mod1 <- plm(ind_extraction ~ StockSizeBegining + dummy_threshold + Treatment + threshold + Treatment*dummy_threshold + part + part*Treatment, 
+            data = dat, index = c('ID_player' ,'Round'), model = "pooling", effect = "twoway")
+mod2 <- plm(cooperation ~ StockSizeBegining + dummy_threshold + Treatment + threshold + Treatment*dummy_threshold + part + part*Treatment, 
+            data = dat, index = c('ID_player' ,'Round'), model = "pooling", effect = "twoway")
+
+stargazer::stargazer(mod1, mod2, type = "html", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2)
+```
+
+
+### Summary statistic approach
+
+Besides the option of the panel model, we can also fit the data using a summary statistic. This could be the average of individual extraction, its sum or its median. 
+
+```{r data2, warnings = FALSE, message = FALSE}
+### This chunk loads the data again but makes slight modifications to preserve missing values, that is, to avoid biasing the estimates with inflated zeroes.
+### load dataset
+## Survey data
+source('~/Documents/Projects/BEST - Beijer/BEST/160525_ErrorIdentificationSurvey.R')
+
+#key
+key <- read.csv2(file = '~/Dropbox/BEST/Colombia/Survey/key_consolidado_survey.csv', encoding = "Latin-1" )
+key <- key [c(1:16,23:240),c(2:5)]
+  key$Name.in.datasheet <- as.character(key$Name.in.datasheet)
+  levels(key$Data.type)[3] <- "binary"
+  key <- droplevels(key)
+  key$Column.datasheet <- seq(1:234)
+
+# load game data in long format, short format also available
+dat <- read.csv(file="~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv", row.names=1)
+
+# Create player ID's as in Surveys.R
+dat <- transform(dat, ID_player = interaction(Date, Treatment, Session, Player, drop = TRUE))
+# Create ID group
+dat <- transform(dat, group = interaction (Date, Treatment, Session, drop=T))
+dat <- as_tibble(dat) %>%
+  rename(ind_extraction = value)
+
+# reorder levels
+dat$Treatment <- factor(dat$Treatment, levels(dat$Treatment)[c(1,3,2,4)])
+# levels(dat$Treatment)
+
+### For the analysis proposed by Jorge I need to get rid of missing values, set all NA to zero before calculating anything else.
+# dat <-  dat %>%
+#   replace_na(list(StockSizeBegining = 0, SumTotalCatch = 0, IntermediateStockSize = 0, Regeneration = 0, NewStockSize = 0))
+
+
+dat <- mutate (dat, threshold = ifelse (dat$Treatment == "Base line" | dat$part == FALSE, 20, 28 ))
+dat <- dat %>% mutate(
+  dummy_threshold = ifelse(NewStockSize - threshold > 0, FALSE, TRUE))
+
+## Use the deviation from threshold, and dev_t_divided by 4
+dat <- dat %>%
+  mutate (dev_drop = ifelse(dat$Treatment == 'Base line' | dat$part == FALSE,
+                                ((dat$IntermediateStockSize - 20)) ,  # - dat$value
+                                 ((dat$IntermediateStockSize - 28))   )) #- dat$value
+## here cooperation is calculated.
+dat <- dat %>%
+  mutate (optimal = (StockSizeBegining - threshold) / 4) %>%
+  mutate (cooperation = ifelse(
+    is.na(StockSizeBegining), NA, 
+    ifelse((4*optimal) < 0 & ind_extraction == 0, 0, optimal - ind_extraction)))
+
+## coordination is calculated next
+
+dist_group <- function(x){ # x will be the character identifier for each player
+  y <- dat %>% select(ID_player, Round, ind_extraction, group) %>%
+    filter(group == substr(x,start = 1, stop = nchar(x) - 2)) %>% # filter per group based on ID_player
+    select(-group) %>% spread(Round, ind_extraction)
+  z <- vegan::vegdist(y[-1], "bray") # Bray-curtis is bounded 0:1 with zero absolute similarity and 1 complete different
+  player <- substr(x, start = nchar(x), stop = nchar(x)) # the player is the last number of the string
+  mean_dist <- colSums(as.matrix(z))[as.numeric(player)] / 3 # divided by the other 3 players. Note the dist to self is 0
+  df <- data_frame(ID_player = x, mean_dist = mean_dist)
+  return(df)
+}
+
+x <- lapply(levels(dat$ID_player), dist_group)
+x <- bind_rows(x)
+x$ID_player <- as.factor(x$ID_player)
+x <- mutate(x, coordination = 1-mean_dist)
+
+# rm(y , z, player, mean_dist, df)
+
+ind_coop <- dat %>% #filter(part == TRUE) %>%
+  #select( Treatment, Place, ID_player, group, Round, cooperation, part, Player, ind_extraction, Regeneration) %>%
+  group_by(Treatment, Place, ID_player, group, part, Player) %>%
+  summarize(Cooperation = mean(cooperation, na.rm = T),
+            variance = var(cooperation, na.rm = T),
+            skewness = skewness(cooperation, na.rm = T),
+            med_coop = median(cooperation, na.rm = T),
+            fishing_mean = mean(ind_extraction, na.rm = TRUE), 
+            fishing_sum = sum(ind_extraction, na.rm = TRUE),
+            fishing_median = median(ind_extraction, na.rm = TRUE), 
+            fishing_var = var(ind_extraction, na.rm = TRUE), 
+            recovery_sum = sum(Regeneration, na.rm = TRUE),
+            ratio_round_threshold = sum(dummy_threshold, na.rm = TRUE)/n(),
+            mean_stock_minus_threshold = sum((4*optimal), na.rm = TRUE)
+            )
+
+ind_coop <- left_join(
+  ind_coop, 
+  dat %>% filter(Round == 16) %>% 
+    select(Treatment, Place, ID_player, group, part, Player,
+           last_round = StockSizeBegining)
+  ) 
+# 
+# exp_notes <- as_tibble(exp_notes)
+# risk_amb <- exp_notes %>% select(119:130,132) %>% unique()
+# 
+# risk <- risk_amb %>% select(13,
+#     Risk_0_38k = 1, Risk_13k =2, Risk_10_19k = 3,
+#     Risk_7_25k = 4, Risk_4_31k = 5, Risk_2_36k = 6)
+# 
+# risk <- risk %>%
+#     mutate(Risk_0_38k = forcats::fct_recode(Risk_0_38k, NULL = '', '1' = '|')) %>% mutate(Risk_0_38k = as.numeric(as.character(Risk_0_38k))) %>%
+#     gather(key = Risk, value = choice, 2:7) %>%
+#     filter(choice == 1)
+# 
+# risk$Risk <- as.factor(risk$Risk)
+# levels(risk$Risk) <- c(6,2,1,5,4,3)
+# risk$Risk <- as.numeric(risk$Risk)
+# 
+# ### J180102: There is errors also on the ambiguity elicitation task data. The group of 2016-02-09.Threshold.am all players have NAs.
+# amb <- risk_amb %>% select(13, Amb_0_38k = 7, Amb_13k =8, Amb_10_19k = 9, Amb_7_25k = 10, Amb_4_31k = 11, Amb_2_36k = 12)
+# 
+# ## for the people with two choices, I leave only one manually, but note, this needs to be checked with raw data and change afterwards here to correct for the right one.
+# # this command shows the errors:
+# 
+# # amb %>% group_by(ID_player) %>% summarize(choice = sum(Amb_0_38k, Amb_13k, Amb_10_19k, Amb_7_25k ,Amb_4_31k ,Amb_2_36k)) %>% filter(choice == 0 | choice == 2 | is.na(choice))
+# ## Manual corrections
+# amb[amb$ID_player == "2016-02-01.Threshold.am.2", "Amb_4_31k"] <- 0
+# amb[amb$ID_player == "2016-02-05.Uncertainty.am.2", "Amb_10_19k"] <- 0
+# amb[amb$ID_player == "2016-02-02.Base line.am.4", "Amb_10_19k"] <- 1
+# 
+# ## note, this still keeps the NA players and they are dropped when choice == 1, but at least there is no duplicates now.
+# 
+# amb <- amb %>%
+#   gather(key = Amb, value = choice, 2:7) %>%
+#   filter(choice == 1)
+# 
+# amb$Amb <- as.factor(amb$Amb)
+# levels(amb$Amb) <- c(6,2,1,5,4,3)
+# amb$Amb <- as.numeric(amb$Amb)
+
+# ind_coop <- left_join(ind_coop, surv, by = "ID_player") %>%  ## Now drop the columns that are not useful for now in the regression
+#   select( c(1:21, life_satisfaction = 29, EE_before = 30, partner_in_group = 31,
+#             fishing_age=35,fishing_last_yr = 39, week_days = 53, ND_hrs = 54, ND_kg = 55, ND_pesos =56,
+#             BD_kg = 59, BD_pesos = 60, BD_how_often = 61, group_fishing = 62, boat = 68,
+#             take_home= 94, sale= 95, give_away = 97,
+#             fishing_future = 98, fishing_children=100, history_rs = 106,  sharing_art=147,
+#             belongs_coop=149, age=167, education = 168, education_yrs=169 ))
+# 
+# ind_coop$BD_how_often[is.na(ind_coop$BD_how_often)] <- 0
+# 
+# ind_coop$ID_player <- as.character(ind_coop$ID_player)
+# risk$ID_player <- as.character(risk$ID_player)
+# amb$ID_player <- as.character(amb$ID_player)
+# x$ID_player <- as.character(x$ID_player)
+# 
+# ind_coop <- left_join(ind_coop, x, by = "ID_player")
+# 
+# ind_coop <- left_join(ind_coop, select(risk, 1,2), by = "ID_player")
+# 
+# 
+# ### here is the error now
+# ind_coop <- left_join(ind_coop, select(amb, 1,2), by = "ID_player")
+# 
+# ## log-transform money related variables
+# 
+# ind_coop <- mutate(ind_coop, ND_log_pesos = log(ND_pesos), BD_log_pesos = log1p(BD_pesos))
+
+```
+
+
+Jorge proposes the following regression:
+
+$$\overline{X_n} = \alpha_0 + \alpha_1T_i + \alpha_2R + \alpha_3\sum{F(S)} + \alpha_4S_{16}$$
+
+Where $\overline{X_n}$ is one of the summary statistics mentioned above, $T_i$ is the treatment term, $R$ is the number of rounds that people actually played with the threshold crossed (stock size - threshold is negative), the $\alpha_3\sum{F(S)}$ term is the sum of the recovery rate for all rounds, and $S_{16}$ is the stock size in the final round. Jorge and Rocio suggested the last two terms as proxies of group cooperation. However, I'm not sure this regression is a meaningful summary for the game at the individual level because terms 2:5 on the right hand side of the equation are constant for the group generating dependencies or colinearity. The results are below:
+
+```{r, results = "asis"}
+
+mod1 <- lm(fishing_mean ~ Treatment*part + ratio_round_threshold + recovery_sum + mean_stock_minus_threshold, data = ind_coop)
+mod2 <- lm(fishing_sum ~ Treatment*part + ratio_round_threshold + recovery_sum + mean_stock_minus_threshold, data = ind_coop)
+mod3 <- lm(fishing_median ~ Treatment*part + ratio_round_threshold + recovery_sum + mean_stock_minus_threshold, data = ind_coop)
+mod4 <- lm(fishing_var ~ Treatment*part + ratio_round_threshold + recovery_sum + mean_stock_minus_threshold, data = ind_coop)
+mod5 <- lm(Cooperation ~ Treatment*part + ratio_round_threshold + recovery_sum + mean_stock_minus_threshold, data = ind_coop)
+mod6 <- lm(med_coop ~ Treatment*part + ratio_round_threshold + recovery_sum + mean_stock_minus_threshold, data = ind_coop)
+mod7 <- lm(variance ~ Treatment*part + ratio_round_threshold + recovery_sum + mean_stock_minus_threshold, data = ind_coop)
+
+stargazer::stargazer(mod1, mod2,mod3, mod4, type = "html", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2)
+
+```
+
+### Clustered standard errors by individual, time and group
+
+Regarding the issue of controlling for groups, Jorge and Rocio suggested the following scheme:
+
+1. First control for group dropping a dummy variable for each group, the same approach I did in the draft paper.
+2. Cluster around groups: this is equivalent to the `cluster(group)` command in Stata. Previously I clustered starndard errors around individuals and time with the Double-Clustering robust covariance matrix estimator and the Newey and West equivalent. Here I used the most recent Double-Clustering that takes care of the time and individual dimension. In addition I followed the protocol outlined by [Richard Bluhm](http://www.richard-bluhm.com/clustered-ses-in-r-and-stata-2/) to implement the third dimension for group in R but failed, I explain the challenges below. 
+3. Combine both the fixed effects by group and the cluster around group.
+
+The three approaches are described below:
+
+### 1. Fixed group effects:
+
+In the following regression controlling for group inproves the fit, both F statistics are significant and the $R^2$ slightly increases. However, I don't understand why the interaction term drops the treatment `uncertainty`. There is no informative errors from R.
+
+```{r results="asis"}
+mod1 <- plm(
+  ind_extraction ~ StockSizeBegining + dummy_threshold + Treatment + threshold + 
+     part + part*Treatment, 
+  data = dat, index = c('ID_player' ,'Round'), model = "pooling", effect = "twoway")
+
+mod2 <- plm(
+  ind_extraction ~ StockSizeBegining + dummy_threshold + Treatment + threshold + 
+    part + part*Treatment + group, 
+  data = dat, index = c('ID_player' ,'Round'), model = "pooling", effect = "twoway")
+
+
+stargazer::stargazer(mod1, mod2, type = "html", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2)
+```
+### 2. Clustering around groups:
+
+I'm not proficient in Stata, but what seems to be the option is to use `cluster(group)` from my notes with Jorge and Rocio. However, from Stata documentation it is unclear whether is possible to cluster three dimensions on the same regression. [Richard Bluhm](http://www.richard-bluhm.com/clustered-ses-in-r-and-stata-2/) post clarify some technicalities on how to implement in R the stata's `cluster()` option. Note that in his post (from 2013) he only cluster in two dimensions, in his example `firmid` and `time`. R currently implements an option for double clustering that does exactly that in a cleaner way, called `vcovDC()` or Double-Clustering covariance matrix estimator. It was implemented on the last release of the panel model packages after Thompson (2011) and Cameron et al (2011) [see `help("vcovDC")` for references]. However, the `vcovDC` function rely on a generic function `vcovG` that only accepts two indexes for clustering: group (in our case individual IDs) and time. This is because the working object for panel data are data frames with only two indexes `[group, time]`. 
+
+In fact, when I try to replicate Bluhms procedure adding a third dimension I get the following error:
+```{r error = TRUE, include = TRUE}
+
+## compute Stata like df-adjustment
+G <- length(unique(dat$ID_player))
+N <- length(dat$ID_player)
+dfa <- (G/(G - 1)) * (N - 1)/mod1$df.residual
+
+# display with cluster VCE and df-adjustment
+group_c_vcov <- dfa * vcovDC(mod1, type = "HC4", cluster = "group", adjust = T)
+coeftest(mod1, vcov = group_c_vcov)
+
+# stargazer::stargazer(
+#   coeftest(mod1, vcov = group_c_vcov),
+#   type = "html", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2)
+
+
+```
+Here is the code for the `vcovDC`, it shows how it is implemented for two dimensions, but looking on the help of the generic function `vcovG` one realizes that it only accepts two indexes `['group', 'time']`, so it won't work modifying it for a third dimension non idexed on the original panel data frame.
+
+```{r tidy = TRUE, comment = NA, highlight = TRUE}
+getS3method("vcovDC", "plm")
+```
+
+**Question: does the following code in Stata works with any of your experiment datasets? Can you declare 3 indexes in Stata and cluster around the three of them simultaneously?**
+
+```{r echo = TRUE, eval = FALSE, include = TRUE, tidy = TRUE}
+## supose you have imported a different dataset instead of test_data here
+webuse set http://www.kellogg.northwestern.edu/faculty/petersen/htm/papers/se
+webuse test_data, clear
+xtset playerid round group # I assume here you declare what are the indexes
+reg y x
+reg y x, robust
+reg y x, cluster(playerid)
+reg y x, cluster(round)
+reg y x, cluster(group)
+```
+
+The most recent release of `plm` (2017-10-31) also implements a "nested" method that allows for indexing the third dimension. However two problems arise: the covariance matrix estimators only allow for 2 dimensions, I could try to code it for the third one. But the problem is, when running the regression with the third dimension I get an error that the `system is singular`, meaning that one of the matrices of the model does not have inverse. Here is the code for the nested model:
+
+```{r error = TRUE, include = TRUE}
+pdat <- pdata.frame(dat, index = c('ID_player' ,'Round', 'group'))
+
+## here I follow the example from the help("plm")
+mod <- plm(ind_extraction ~  Treatment + 
+    part + part*Treatment, data = pdat, model = "random", effect = "nested")
+
+# stargazer::stargazer(mod1, type = "html", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2)
+```
+While current software allows for indexing the third dimension `group`, the regression is not working. For now it's a dead end.
+
+There is another option that I'd like to explore to control for groups. Last year I was invited to SESYNC participating in a workshop on causality detection in ecology and economics. There I meet [Joshua Abbot](https://www.joshuakabbott.com/aboutcv.html) (ASU and editor of Marine Resource Economics and JAERE) and talked to him about my problem of controling for group effects on a panel regression at the individual level. He pointed me towards spatial econometrics and models on panel data with network effects, both approaches are similar in that they use an adjacency matrix to control for groups (or distance effects in space). If you are interested in the literature let me know and I send you the papers. After reviewing the literature I found out that for causality detection purposes, the matrix only works if the group size varies; so I left the idea there and decide to dig further into the covariance matrix estimation techniques. But now that I've exhausted the state of the art options in R with the `vcovDC` and still have my groups problem unresolved, I will give it a try.
+
+First I create an adjacency matrix $A_{i,j}$ where two players are connected to each other if they participated in the same group:
+
+```{r}
+dfA <- dat %>% 
+  arrange(group, ID_player, Round) %>%
+  select (ID_player, group) %>%
+  unique() %>% mutate( value = 1) %>%
+  spread(key = group, value = value, fill = 0)
+
+## A is the bipartite matrix of players and groups
+A <- as.matrix(dfA[-1])
+rownames(A) <- dfA$ID_player
+
+## Now is transformed of the one-mode projection of players by players
+A <- A %*% t(A) 
+diag(A) <- 0
+```
+
+Next I use an implementation of the spatial panel data models `splm` different from the package `plm` that I've been using so far. Syntax is a bit different and the underlying mathematical assumptions vary a lot (e.g. it combines maximum-likelihood estimation and feasible generalized least squares). Note that to fit this model, the available software only allows for balanced panels, so one need to fulfill with zeroes all variables for rounds not played due to collapse. The following results were obtained for a random effects spatial panel model. I'm having error problems with the fixed effects version that have not been able to solve for now.
+
+```{r data3, warnings = FALSE, message = FALSE}
+
+### load dataset
+## Survey data
+#source('~/Documents/Projects/BEST - Beijer/BEST/160525_ErrorIdentificationSurvey.R')
+
+#key
+key <- read.csv2(file = '~/Dropbox/BEST/Colombia/Survey/key_consolidado_survey.csv', encoding = "Latin-1" )
+key <- key [c(1:16,23:240),c(2:5)]
+  key$Name.in.datasheet <- as.character(key$Name.in.datasheet)
+  levels(key$Data.type)[3] <- "binary"
+  key <- droplevels(key)
+  key$Column.datasheet <- seq(1:234)
+
+# load game data in long format, short format also available
+dat <- read.csv(file="~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv", row.names=1)
+
+# Create player ID's as in Surveys.R
+dat <- transform(dat, ID_player = interaction(Date, Treatment, Session, Player, drop = TRUE))
+# Create ID group
+dat <- transform(dat, group = interaction (Date, Treatment, Session, drop=T))
+dat <- as_tibble(dat) %>%
+  rename(ind_extraction = value)
+
+# reorder levels
+dat$Treatment <- factor(dat$Treatment, levels(dat$Treatment)[c(1,3,2,4)])
+# levels(dat$Treatment)
+
+### For the analysis proposed by Jorge I need to get rid of missing values, set all NA to zero before calculating anything else.
+dat <-  dat %>%
+  replace_na(list(StockSizeBegining = 0, SumTotalCatch = 0, IntermediateStockSize = 0, Regeneration = 0, NewStockSize = 0))
+
+
+dat <- mutate (dat, threshold = ifelse (dat$Treatment == "Base line" | dat$part == FALSE, 20, 28 ))
+dat <- dat %>% mutate(
+  dummy_threshold = ifelse(NewStockSize - threshold > 0, FALSE, TRUE))
+
+## Use the deviation from threshold, and dev_t_divided by 4
+dat <- dat %>%
+  mutate (dev_drop = ifelse(dat$Treatment == 'Base line' | dat$part == FALSE,
+                                ((dat$IntermediateStockSize - 20)) ,  # - dat$value
+                                 ((dat$IntermediateStockSize - 28))   )) #- dat$value
+## here cooperation is calculated.
+dat <- dat %>%
+  mutate (optimal = (StockSizeBegining - threshold) / 4) %>%
+  mutate (cooperation = ifelse(
+    StockSizeBegining == 0, NA, 
+    ifelse((4*optimal) < 0 & ind_extraction == 0, 0, optimal - ind_extraction)))
+
+## coordination is calculated next
+
+dist_group <- function(x){ # x will be the character identifier for each player
+  y <- dat %>% select(ID_player, Round, ind_extraction, group) %>%
+    filter(group == substr(x,start = 1, stop = nchar(x) - 2)) %>% # filter per group based on ID_player
+    select(-group) %>% spread(Round, ind_extraction)
+  z <- vegan::vegdist(y[-1], "bray") # Bray-curtis is bounded 0:1 with zero absolute similarity and 1 complete different
+  player <- substr(x, start = nchar(x), stop = nchar(x)) # the player is the last number of the string
+  mean_dist <- colSums(as.matrix(z))[as.numeric(player)] / 3 # divided by the other 3 players. Note the dist to self is 0
+  df <- data_frame(ID_player = x, mean_dist = mean_dist)
+  return(df)
+}
+
+x <- lapply(levels(dat$ID_player), dist_group)
+x <- bind_rows(x)
+x$ID_player <- as.factor(x$ID_player)
+x <- mutate(x, coordination = 1-mean_dist)
+
+# rm(y , z, player, mean_dist, df)
+
+ind_coop <- dat %>% #filter(part == TRUE) %>%
+  select( Treatment, Place, ID_player, group, Round, cooperation, part, Player) %>%
+  group_by(Treatment, Place, ID_player, group, part, Player) %>%
+  summarize(Cooperation = mean(cooperation, na.rm = T),
+            variance = var(cooperation, na.rm = T),
+            skewness = skewness(cooperation, na.rm = T),
+            med_coop = median(cooperation, na.rm = T))
+
+exp_notes <- as_tibble(exp_notes)
+risk_amb <- exp_notes %>% select(119:130,132) %>% unique()
+
+risk <- risk_amb %>% select(13,
+    Risk_0_38k = 1, Risk_13k =2, Risk_10_19k = 3,
+    Risk_7_25k = 4, Risk_4_31k = 5, Risk_2_36k = 6)
+
+risk <- risk %>%
+    mutate(Risk_0_38k = forcats::fct_recode(Risk_0_38k, NULL = '', '1' = '|')) %>% mutate(Risk_0_38k = as.numeric(as.character(Risk_0_38k))) %>%
+    gather(key = Risk, value = choice, 2:7) %>%
+    filter(choice == 1)
+
+risk$Risk <- as.factor(risk$Risk)
+levels(risk$Risk) <- c(6,2,1,5,4,3)
+risk$Risk <- as.numeric(risk$Risk)
+
+### J180102: There is errors also on the ambiguity elicitation task data. The group of 2016-02-09.Threshold.am all players have NAs.
+amb <- risk_amb %>% select(13, Amb_0_38k = 7, Amb_13k =8, Amb_10_19k = 9, Amb_7_25k = 10, Amb_4_31k = 11, Amb_2_36k = 12)
+
+## for the people with two choices, I leave only one manually, but note, this needs to be checked with raw data and change afterwards here to correct for the right one.
+# this command shows the errors:
+
+# amb %>% group_by(ID_player) %>% summarize(choice = sum(Amb_0_38k, Amb_13k, Amb_10_19k, Amb_7_25k ,Amb_4_31k ,Amb_2_36k)) %>% filter(choice == 0 | choice == 2 | is.na(choice))
+## Manual corrections
+amb[amb$ID_player == "2016-02-01.Threshold.am.2", "Amb_4_31k"] <- 0
+amb[amb$ID_player == "2016-02-05.Uncertainty.am.2", "Amb_10_19k"] <- 0
+amb[amb$ID_player == "2016-02-02.Base line.am.4", "Amb_10_19k"] <- 1
+
+## note, this still keeps the NA players and they are dropped when choice == 1, but at least there is no duplicates now.
+
+amb <- amb %>%
+  gather(key = Amb, value = choice, 2:7) %>%
+  filter(choice == 1)
+
+amb$Amb <- as.factor(amb$Amb)
+levels(amb$Amb) <- c(6,2,1,5,4,3)
+amb$Amb <- as.numeric(amb$Amb)
+
+ind_coop <- left_join(ind_coop, surv, by = "ID_player") %>%  ## Now drop the columns that are not useful for now in the regression
+  select( c(1:21, life_satisfaction = 29, EE_before = 30, partner_in_group = 31,
+            fishing_age=35,fishing_last_yr = 39, week_days = 53, ND_hrs = 54, ND_kg = 55, ND_pesos =56,
+            BD_kg = 59, BD_pesos = 60, BD_how_often = 61, group_fishing = 62, boat = 68,
+            take_home= 94, sale= 95, give_away = 97,
+            fishing_future = 98, fishing_children=100, history_rs = 106,  sharing_art=147,
+            belongs_coop=149, age=167, education = 168, education_yrs=169 ))
+
+ind_coop$BD_how_often[is.na(ind_coop$BD_how_often)] <- 0
+
+ind_coop$ID_player <- as.character(ind_coop$ID_player)
+risk$ID_player <- as.character(risk$ID_player)
+amb$ID_player <- as.character(amb$ID_player)
+x$ID_player <- as.character(x$ID_player)
+
+ind_coop <- left_join(ind_coop, x, by = "ID_player")
+
+ind_coop <- left_join(ind_coop, select(risk, 1,2), by = "ID_player")
+
+
+### here is the error now
+ind_coop <- left_join(ind_coop, select(amb, 1,2), by = "ID_player")
+
+## log-transform money related variables
+
+ind_coop <- mutate(ind_coop, ND_log_pesos = log(ND_pesos), BD_log_pesos = log1p(BD_pesos))
+
+```
+
+```{r error = TRUE, include = TRUE, results="asis"}
+library(splm)
+
+pdat <- pdata.frame(
+  dat %>% arrange(ID_player, Round) , 
+  index = c('ID_player' ,'Round'))
+
+mod_re <- spml(
+  ind_extraction ~ StockSizeBegining + Treatment + 
+  part + part*Treatment, data = pdat, index = NULL, 
+  listw = spdep::mat2listw(A), model = "random", lag = TRUE, spatial.error = "b")
+
+mod_pool <- spml(
+  ind_extraction ~ StockSizeBegining + Treatment + 
+  part + part*Treatment, data = pdat, index = NULL, 
+  listw = spdep::mat2listw(A), model = "random", lag = TRUE, spatial.error = "b")
+
+# mod_fe <- spml(
+#   ind_extraction ~ StockSizeBegining + Treatment + 
+#   part + part*Treatment, data = pdat , index = NULL,
+#   listw = spdep::mat2listw(A), lag = TRUE, spatial.error = "b", model = "within",
+#   effect = "twoways", method = "eigen", na.action = na.fail,
+#   quiet = TRUE, zero.policy = NULL,
+#   tol.solve = 1e-10, control = list(), legacy = FALSE)
+#summary(mod1)
+stargazer::stargazer(coeftest(mod_re),  type = "html", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2)
+```
+
+The Lagrange multiplier test for spatial panel linear model test several hypothesis. The first test below checks if there is random effects:
+```{r}
+bsktest( ind_extraction ~ StockSizeBegining + Treatment + 
+  part + part*Treatment, data = pdat, listw = spdep::mat2listw(A), test = "LM1")
+```
+
+The second hypothesis test for spatial autocorrelation (group dependence in our case), at the moment also produces errors:
+```{r error = TRUE, include = TRUE}
+bsktest( ind_extraction ~ StockSizeBegining + Treatment + 
+  part + part*Treatment, data = pdat, listw = spdep::mat2listw(A), test = "LM2")
+```
+
+### 3. Combine both:
+With current software (in R) both cannot be combined. With `plm` (normal panel model) we can control for groups with dummy variables as fixed effects as shown above, and cluster on errors around individuals and time. There exist the 'nested' functionality for adding a third dimension, but when tried it cannot be solved due to a singularity matrix error. The second option tried is `splm` (for spatial panel models) given that a social network or the group effects coded as a network can be interchanged by space theoretically speaking. The second approach allows me to fit a random effect model (and pooling) but not fixed effects at the moment. In addition, there is limitations to use `vcov` procedure to (robust error estimation with variance-covariance matrix) on the objects produced by `splm`, one cannot use the same functionality of `plm` on `splm` objects because their structure is very different.
+
+**What do you think is the best avenue to control for the third dimension? Option A is keep the simple panel model with fixed effects on group. Option B is go in with the random effect model on the spatial framework and try to solve the `vcov` clustering issue around the two dimensions in their framework. The second option is not guarantee to work at the moment.**
+
+### Check for correlations
+
+Jorge and Rocio also asked me to check for correlations on the variables from the survey I'm currently using on the paper regression. The variables used in the current paper are:
+
+* Socio economic variables:
+    + *age*: age in years (`r sum(is.na(ind_coop$age))` missing values).
+    + *fishing_age*: age at which the person started fishing (`r sum(is.na(ind_coop$fishing_age))` missing values).
+    + *sale*: How much of the catch is for sale? (0 = none : 4 = all, `r sum(is.na(ind_coop$sale))` missing values).
+    + *take_home*: How much of the catch is for take home? (0 = none : 4 = all, `r sum(is.na(ind_coop$take_home))` missing values).
+    + *life_satisfaction*: Self assessment of life satisfaction where 1 is very satisfied and 4 very dissatisfied (`r sum(is.na(ind_coop$life_satisfaction))` missing values).
+* Fishing variables:
+    + *ND_log_pesos*: normal day earning in pesos (log scale, `r sum(is.na(ind_coop$ND_pesos))` missing values).
+    + *BD_log_pesos*: Bad day earning in pesos (in log scale, added 1 to 0 to avoid -Inf values, `r sum(is.na(ind_coop$age))` missing values).
+    + *week_days*: Number of fishing days in a normal week (`r sum(is.na(ind_coop$week_days))` missing values).
+    + *ND_hours*: Number of hours per day in a normal day (`r sum(is.na(ind_coop$ND_hrs))` missing values).
+    + *BD_how_often*: How often do you have a bad day? (once a year = 1, once a month = 2, once a week = 3, > once a week = 4, `r sum(is.na(ind_coop$BD_how_often))` missing values)
+    + *group_fishing*: Is fishing done in groups (1 = yes, 0 = no, `r sum(is.na(ind_coop$group_fishing))` missing values)
+    + *boat*: Do you own the boat? yes =1, no = 0 (`r sum(is.na(ind_coop$boat))` missing values).
+    + *sharing_art*: Do you share your fishing gear? yes = 1, no = 0 (`r sum(is.na(ind_coop$sharing_art))` missing values).
+    + *fishing_children*: Do you expect your children to become fishermen (0=definitely no, 1=no, 2=definitely yes, 3=yes, 4=don't know, `r sum(is.na(ind_coop$fishing_children))` missing values)
+    + *history_rs*: Have you experience dramatic changes (regime shifts)? yes = 1, no = 0 (`r sum(is.na(ind_coop$history_rs))` missing values).
+* Risk and ambiguity task:
+    + *Risk*: Risk elicitation task where 1 is risk-taker and 6 risk-averse (`r sum(is.na(ind_coop$Risk))` missing values).
+    + *Amb*: Ambiguity elicitation task where 1 is ambiguity-taker, and 6 ambiguity-averse (`r sum(is.na(ind_coop$Amb))` missing values).
+
+Below the correlograms for the complete survey and nested by Location and Treatment:
+
+```{r}
+library(corrgram)
+
+ind_coop %>% 
+  ungroup() %>%
+  filter(part == TRUE) %>%
+  dplyr::select(age, fishing_age, sale, take_home,life_satisfaction,ND_log_pesos,
+                    BD_log_pesos, week_days, ND_hrs, BD_how_often, group_fishing,
+                    boat, sharing_art, fishing_children,history_rs) %>%
+  as_data_frame() %>%
+  corrgram(order = "PCA", lower.panel = panel.pts, upper.panel = panel.cor,
+           diag.panel = panel.density, pch = 46)
+
+```
+
+Note that many of these variables are categorical but so far treated as numeric to avoid fitting too many terms on the regressions. If fitted as categorical it will add as many categories -1 to the model, and at the 'summary level statistic regression' we only have 256 observations. Below I recover the categorical aspect of some of the variables (the ones with higher correlation coefficient) and use aesthetics to highligh the nested structure of the design, namely 4 different treatments and 4 different places.
+
+```{r message = FALSE, warning = FALSE}
+library(GGally) # for pair plots with categorical variables
+
+ind_coop %>%
+  ungroup() %>%
+  filter(part == TRUE) %>%
+  dplyr::select(Treatment, Place, age, fishing_age, sale, take_home,life_satisfaction,ND_log_pesos,
+                    BD_log_pesos, week_days, ND_hrs, BD_how_often, group_fishing,
+                    boat, sharing_art, fishing_children,history_rs) %>%
+  mutate(
+    sale = as.factor(sale),
+    take_home =  as.factor(take_home), 
+    life_satisfaction = as.factor(life_satisfaction),
+    BD_how_often = as.factor(BD_how_often),
+    group_fishing = as.factor(group_fishing),
+    boat = as.factor(boat), 
+    sharing_art = as.factor(sharing_art),
+    fishing_children = as.factor(fishing_children),
+    history_rs = as.factor(history_rs)
+  ) %>% 
+  dplyr::select(Treatment, Place, take_home, sale, BD_how_often, BD_log_pesos) %>%
+  as_data_frame() %>%
+  ggpairs(columns = 3:6,
+    mapping = aes(color = Treatment, fill = Treatment, alpha = 0.4), 
+  title ="Categorical variables coloured by Treatment", legend = c(3,3) ) +
+  theme_light(base_size = 7) + theme(legend.position = "right")
+  
+``` 
+
+```{r message = FALSE, warning = FALSE}
+library(GGally) # for pair plots with categorical variables
+
+ind_coop %>%
+  ungroup() %>%
+  filter(part == TRUE) %>%
+  dplyr::select(Treatment, Place, age, fishing_age, sale, take_home,life_satisfaction,ND_log_pesos,
+                    BD_log_pesos, week_days, ND_hrs, BD_how_often, group_fishing,
+                    boat, sharing_art, fishing_children,history_rs) %>%
+  mutate(
+    sale = as.factor(sale),
+    take_home =  as.factor(take_home), 
+    life_satisfaction = as.factor(life_satisfaction),
+    BD_how_often = as.factor(BD_how_often),
+    group_fishing = as.factor(group_fishing),
+    boat = as.factor(boat), 
+    sharing_art = as.factor(sharing_art),
+    fishing_children = as.factor(fishing_children),
+    history_rs = as.factor(history_rs)
+  ) %>% 
+  dplyr::select(Treatment, Place, take_home, sale, BD_how_often, BD_log_pesos) %>%
+  as_data_frame() %>%
+  ggpairs(columns = 3:6,
+    mapping = aes(color = Place, fill = Place, alpha = 0.4), 
+  title ="Categorical variables coloured by Place", legend = c(3,3) ) +
+  theme_light(base_size = 7) + theme(legend.position = "right")
+  
+``` 
+
+Since there are categorical variables correlations are hard to see. What is important is that for each category the size of the sample is roughly equal, so there is no "correlation" between a categorical value and a particular treatment or place. Note that for treatment all boxes are approximately equally distributed and the box plots do not show outstanding differences.
+
+### Feedback from you:
+
+In summary here are the points I'd like to hear an opinion from you:
+
+1. Could you remind me what is the comparison I need to make with the F-test on the first regression exercise? Is it before / after treatment $\alpha_{2}T_i \neq \alpha_{3}FT_i$ for all treatments $T_i$, or between treatments in the interaction terms $\alpha_{3}FT_i \neq \alpha_{3}FT_j$?
+2. Do you think is possible to control for endogeneity with an instrumental variable int he panel model? Do you think is useful to revisit cooperation and coordination on the "summary statistic regression"? Would it be endogenous too in a non-panel regression? The reason to ask is that it seems to be working better than $X_{i,t}$.
+3. Can you cluster three dimensions in Stata with your game data? 
+4. What do you think is the best avenue to control for the third dimension?
+5. Should we drop any of the correlated variables from the survey in future regressions? The highest correlation coefficents were -0.87 (how often you get bad fishing days, and how much do you make on a bad fishing day) and -0.64 (how much of the catch is for sale, how much of the catch is for home).

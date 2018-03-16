@@ -1,0 +1,449 @@
+---
+title: ""
+authors: ""
+
+output:
+  revealjs::revealjs_presentation:
+    theme: black
+    highlight: espresso
+    center: true
+    transition: convex
+    self_contained: false
+    smart: true
+    reveal_options:
+      slideNumber: true
+      previewLinks: true
+    reveal_plugins: ["zoom", "notes", "menu"]  
+css: custom_jcr.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# setwd("/Users/juanrocha/Documents/Projects/BEST - Beijer/BEST/")
+# Sys.setenv(RSTUDIO_PANDOC="/Applications/RStudio.app/Contents/MacOS/pandoc")
+# rmarkdown::render('170907_BEST_update.Rmd')
+
+### deleted options
+   # reveal_options:
+   #    slideNumber: true
+   #    previewLinks: true
+   #  reveal_plugins: ["zoom", "notes", "menu"]
+
+rm(list = ls())
+set.seed(12345)
+library(revealjs)
+library(tidyverse)
+library(RColorBrewer)
+library(ggplot2)
+library(plotly)
+library(GGally)
+library(moments)
+
+library(ggmap)
+library(maptools)
+library(maps)
+library(mapproj)
+
+library(grid)
+library(gridExtra)
+library(plm)
+```
+## Cooperation in the face of thresholds, risk and uncertainty
+
+<small> [Juan C. Rocha](http://www.juanrocha.se), Caroline Schill & Lina Maria Saavedra </small>
+
+## Preliminary analysis
+
+<p align = 'left'>
+While at the group level the key response variable has been the gini coefficient as a proxy of cooperation (Schill and Rocha in prep), in this manuscript we need a variable that describes cooperation at the individual level. In this paper we will heavily use the surveys to explain patterns of individual behaviour, therefore the response variable has to be defined at the individual level. </p>
+
+
+```{r data, echo = FALSE, warning=FALSE}
+## Survey data
+source('~/Documents/Projects/BEST - Beijer/BEST/160525_ErrorIdentificationSurvey.R')
+
+#key
+key <- read.csv2(file = '~/Dropbox/BEST/Colombia/Survey/key_consolidado_survey.csv', encoding = "Latin-1" )
+key <- key [c(1:16,23:240),c(2:5)]
+  key$Name.in.datasheet <- as.character(key$Name.in.datasheet)
+  levels(key$Data.type)[3] <- "binary"
+  key <- droplevels(key)
+  key$Column.datasheet <- seq(1:234)
+
+# load game data in long format, short format also available
+dat <- read.csv(file="~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv", row.names=1)
+
+# Create player ID's as in Surveys.R
+dat <- transform (dat, ID_player = interaction(Date, Treatment, Session, Player, drop = TRUE))
+# Create ID group
+dat <- transform(dat, group = interaction (Date, Treatment, Session, drop=T))
+
+dat <- as_tibble(dat)
+```
+
+
+## Cooperation
+
+<small>
+Broadly speaking cooperation is working together towards a shared goal. More formally, cooperation is defined as *a form of working together in which one individual pays a cost (in terms of fitness, whether genetic or cultural) and another gains a benefit as a result* [@Nowak:2013vr].
+
+$$C = \frac{S_t - \theta}{N} - i_t$$
+
+where $S_t$ is the stock size at the begining of the round, $\theta$ is the threshold, $N$ is the number of players in the group (always 4 in our experimental desing), and $i_t$ is the individual catch at round $t$.
+</small>
+
+
+## {data-background=#fff}
+
+```{r coop, fig.height= 5, fig.width= 5, fig.align='center', dev.args = list(pointsize= 8), echo = FALSE, warning=FALSE}
+
+# reorder levels
+dat$Treatment <- factor(dat$Treatment, levels(dat$Treatment)[c(1,3,2,4)])
+# levels(dat$Treatment)
+
+dat <- mutate (dat, threshold = ifelse (dat$Treatment == "Base line" | dat$part == FALSE, 20, 28 ))
+
+## Use the deviation from threshold, and dev_t_divided by 4
+dat <- dat %>%
+  mutate (dev_drop = ifelse(dat$Treatment == 'Base line' | dat$part == FALSE,
+                                ((dat$IntermediateStockSize - 20)) ,  # - dat$value
+                                 ((dat$IntermediateStockSize - 28))   )) #- dat$value
+
+dat <- dat %>%
+  mutate (optimal = (StockSizeBegining - threshold) / 4) %>%
+  mutate (cooperation = optimal - value)
+
+## Make a plot per group and distinguish at individual level
+place <- "Tasajera"
+treat <- "Uncertainty"
+g <- ggplot(filter(dat, Treatment == treat, Place == place, !is.na(cooperation), part == T), #filter(dat, part == F),
+       aes(cooperation)) + geom_vline(xintercept = 0, color = "red") +   
+  geom_density(aes(alpha = 0.05, fill = ID_player), na.rm = T, show.legend = F) +
+  geom_rug(aes(color = Round), sides = "t",alpha = 0.5) + scale_color_continuous(low = "orange", high = 'blue') +
+  geom_vline(data = filter(dat, Treatment == treat, Place ==  place, !is.na(cooperation), part == T) %>%
+             group_by(ID_player) %>%
+             summarize(m = mean(cooperation, na.rm = T),
+                       med = median(cooperation, na.rm = T)),
+             aes(xintercept = c(m)), color = "purple", show.legend = F) +
+
+ geom_text(data = filter(dat, Treatment == treat, Place == place, !is.na(cooperation), part == T) %>%
+             group_by(ID_player) %>%
+             summarize(sk = skewness(cooperation)),
+  aes(x = -6, y = 0.5, label = paste("sk = ", round(sk,2))), hjust = "inward", size = 2.5) +
+  facet_wrap(~ID_player) + ggtitle("Cooperation per individual in stage 2", subtitle = paste(treat, "in", place)) +
+  theme_minimal(base_size = 7)
+
+g
+
+# rm(list = ls(place, treat))
+
+dist_group <- function(x){ # x will be the character identifier for each player
+  y <- dat %>% select(ID_player, Round, value, group) %>%
+    filter(group == substr(x,start = 1, stop = nchar(x) - 2)) %>% # filter per group based on ID_player
+    select(-group) %>% spread(Round, value)
+  z <- vegan::vegdist(y[-1], "bray") # Bray-curtis is bounded 0:1 with zero absolute similarity and 1 complete different
+  player <- substr(x, start = nchar(x), stop = nchar(x)) # the player is the last number of the string
+  mean_dist <- colSums(as.matrix(z))[as.numeric(player)] / 3 # divided by the other 3 players. Note the dist to self is 0
+  df <- data_frame(ID_player = x, mean_dist = mean_dist)
+  return(df)
+}
+
+x <- lapply(levels(dat$ID_player), dist_group)
+x <- bind_rows(x)
+x$ID_player <- as.factor(x$ID_player)
+
+```
+
+## Cooperation before and after treatments {data-background=#fff}
+
+```{r, fig.height= 4, fig.width= 7, fig.align='centre', dev.args = list(pointsize= 7), echo = FALSE, warning=FALSE }
+# plot (density(dat$cooperation), main= "Cooperation at individual level")
+g1 <- ggplot(filter(dat, part == F, group != "2016-02-12.Risk.pm"),  # one gr
+       aes(cooperation), group = ID_player) + geom_vline(xintercept = 0, color = "gray") +
+  geom_density(aes(color = ID_player, fill = ID_player, alpha = 0.05), na.rm = T, show.legend = F) +
+  facet_grid(Place  ~ .) + ggtitle("Cooperation per individual in stage 1") + theme_minimal(base_size = 7)
+
+g2 <- ggplot(filter(dat, part == T),
+       aes(cooperation), group = ID_player) + geom_vline(xintercept = 0, color = "gray") +
+  geom_density(aes(color = ID_player, fill = ID_player, alpha = 0.05), na.rm = T, show.legend = F) +
+  facet_grid(Place ~ Treatment) + ggtitle("Cooperation per individual in stage 2") +  theme_minimal(base_size = 7)
+
+grid.arrange(g1,g2, ncol = 2, nrow = 1)
+```
+<p>Some people skew their preferences but also flatten their distribution (increase variance), which suggest the existence of weak agreements in place.</p>
+
+## Cooperation and its variance {data-background=#fff}
+
+```{r, fig.height= 4, fig.width= 7, echo = FALSE, fig.align='center', dev.args = list(pointsize= 7), warning=FALSE}
+ind_coop <- dat %>% #filter(part == TRUE) %>%
+  select( Treatment, Place, ID_player, group, Round, cooperation, part, Player) %>%
+  group_by(Treatment, Place, ID_player, group, part, Player) %>%
+  summarize(Cooperation = mean(cooperation, na.rm = T),
+            variance = var(cooperation, na.rm = T),
+            skewness = skewness(cooperation, na.rm = T),
+            med_coop = median(cooperation, na.rm = T))
+
+g1 <- ggplot(ind_coop, aes(Place, Cooperation)) + geom_hline(yintercept = 0, color = "red") +
+  geom_boxplot(aes(color = Place), show.legend = F, notch = F) +
+  facet_grid(Treatment ~ part) +  theme_minimal(base_size = 7) + ggtitle("Before and after treatment", subtitle = "FALSE shows plots in baseline (before round 7), TRUE for treatments after round 7")
+
+g2 <- ggplot(filter(ind_coop, variance < 200), aes(variance, Cooperation)) +  geom_hline(yintercept = 0, color = "red") +
+  geom_point(aes(color = group), alpha = 0.5, show.legend = F) +
+  facet_grid(Treatment ~ Place) +  theme_minimal(base_size = 7) # + ggtitle()
+
+grid.arrange(g1, g2, nrow =1, ncol = 2)
+
+# ggplot(ind_coop, aes(Cooperation), group = group) + geom_vline(xintercept = 0, color = "red") +
+#   geom_density(aes(color = group), show.legend = F) +
+#   facet_grid(Treatment ~ Place)
+
+```
+
+## Linear models
+
+```{r echo = FALSE, warning=FALSE, message = FALSE}
+
+
+## Join the cooperation individual data with survey data
+risk_amb <- unique(exp_notes[c(119:130,132)]) # cleaned survey
+
+risk <- risk_amb %>% select(13,Risk_0_38k = 1, Risk_13k =2, Risk_10_19k = 3, Risk_7_25k = 4, Risk_4_31k = 5, Risk_2_36k = 6) %>%
+  gather(key = Risk, value = choice, 2:7) %>%
+  filter(choice == 1)
+
+risk$Risk <- as.factor(risk$Risk)
+levels(risk$Risk) <- c(6,2,1,5,4,3)
+risk$Risk <- as.numeric(risk$Risk)
+
+amb <- risk_amb %>% select(13, Amb_0_38k = 7, Amb_13k =8, Amb_10_19k = 9, Amb_7_25k = 10, Amb_4_31k = 11, Amb_2_36k = 12) %>%
+  gather(key = Amb, value = choice, 2:7) %>%
+  filter(choice == 1)
+
+amb$Amb <- as.factor(amb$Amb)
+levels(amb$Amb) <- c(6,2,1,5,4,3)
+amb$Amb <- as.numeric(amb$Amb)
+
+ind_coop <- left_join(ind_coop, surv, by = "ID_player") %>%  ## Now drop the columns that are not useful for now in the regression
+  select( c(1:21, life_satisfaction = 29, EE_before = 30, partner_in_group = 31,
+            fishing_age=35,fishing_last_yr = 39, week_days = 53, ND_hrs = 54, ND_kg = 55, ND_pesos =56,
+            BD_kg = 59, BD_pesos = 60, BD_how_often = 61, group_fishing = 62, boat = 68,
+            take_home= 94, sale= 95, give_away = 97,
+            fishing_future = 98, fishing_children=100, history_rs = 106,  sharing_art=147,
+            belongs_coop=149, age=167, education = 168, education_yrs=169 ))
+
+ind_coop$BD_how_often[is.na(ind_coop$BD_how_often)] <- 0
+
+ind_coop <- left_join(ind_coop, x, by = "ID_player")
+
+ind_coop <- left_join(ind_coop, select(risk, 1,2), by = "ID_player")
+ind_coop <- left_join(ind_coop, select(amb, 1,2), by = "ID_player")
+
+## log-transform money related variables
+
+ind_coop <- mutate(ind_coop, ND_log_pesos = log(ND_pesos), BD_log_pesos = log(1+BD_pesos))
+
+# Interesting cols with too many NAs: yrs_living_twon=169, education_yrs=164, rs_when=103,GF_how_many = 59,   GF_how_often = 58, BD_how_often =56,
+ols <- list()
+for (i in 1:4){
+   ols[[i]] <- lm(Cooperation ~ age + fishing_age  + sale + take_home + life_satisfaction + ND_log_pesos + BD_log_pesos
+                  + week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children
+                  + history_rs +Risk + Amb + Treatment ,
+                  data = filter(ind_coop, Player == i, part == TRUE)) # filter(ind_coop, playerNo == 4)
+}
+
+ols[[5]] <- lm(Cooperation ~  age + fishing_age  + sale + take_home + life_satisfaction + ND_log_pesos + BD_log_pesos
+                  + week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children
+                  + history_rs +Risk + Amb + Treatment ,
+               data = filter(ind_coop, part == TRUE))
+
+```
+
+## Variables:
+
+<small>
+
+* Socio economic variables:
+    + *age*: age in years (`r sum(is.na(ind_coop$age))` missing values).
+    + *fishing_age*: age at which the person started fishing (`r sum(is.na(ind_coop$fishing_age))` missing values).
+    + *sale*: How much of the catch is for sale? (0 = none : 4 = all, `r sum(is.na(ind_coop$sale))` missing values).
+    + *take_home*: How much of the catch is for take home? (0 = none : 4 = all, `r sum(is.na(ind_coop$take_home))` missing values).
+    + *life_satisfaction*: Self assessment of life satisfaction where 1 is very satisfied and 4 very dissatistied (`r sum(is.na(ind_coop$life_satisfaction))` missing values).
+* Fishing variables:
+    + *ND_log_pesos*: normal day earning in pesos (log scale, `r sum(is.na(ind_coop$ND_pesos))` missing values).
+    + *BD_log_pesos*: Bad day earning in pesos (in log scale, added 1 to 0 to avoid -Inf values, `r sum(is.na(ind_coop$age))` missing values).
+    + *week_days*: Number of fishing days in a normal week (`r sum(is.na(ind_coop$week_days))` missing values).
+    + *ND_hours*: Number of hours per day in a normal day (`r sum(is.na(ind_coop$ND_hrs))` missing values).
+    + *BD_how_often*: How often do you have a bad day? (once a year = 1, once a month = 2, once a week = 3, > once a week = 4, `r sum(is.na(ind_coop$BD_how_often))` missing values)
+    + *group_fishing*: Is fishing done in groups (1 = yes, 0 = no, `r sum(is.na(ind_coop$group_fishing))` missing values)
+    + *boat*: Do you own the boat? yes =1, no = 0 (`r sum(is.na(ind_coop$boat))` missing values).
+    + *sharing_art*: Do you share your fishing gear? yes = 1, no = 0 (`r sum(is.na(ind_coop$sharing_art))` missing values).
+    + *fishing_children*: Do you expect your children to become fishermen (0=definitely no, 1=no, 2=definitely yes, 3=yes, 4=don't know, `r sum(is.na(ind_coop$fishing_children))` missing values)
+    + *history_rs*: Have you experience dramatic changes (regime shifts)? yes = 1, no = 0 (`r sum(is.na(ind_coop$history_rs))` missing values).
+* Risk and ambiguity task:
+    + *Risk*: Risk elicitation task where 1 is risk-taker and 6 risk-averse (`r sum(is.na(ind_coop$Risk))` missing values).
+    + *Amb*: Ambiguity elicitation task where 1 is ambiguity-taker, and 6 ambiguity-averse (`r sum(is.na(ind_coop$Amb))` missing values).
+
+</small>
+
+##
+
+<div id="content">
+<small>
+```{r ols, results = 'asis', echo = FALSE, warning=FALSE, message = FALSE, dev.args = list(pointsize= 7)}
+stargazer::stargazer(ols[[1]], ols[[2]], ols[[3]], ols[[4]], ols[[5]], type = "html", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2, font.size = "tiny")
+
+```
+
+</small>
+</div>
+
+## Naïve OLS
+
+<p, align = "left">
+<small>
+Now if the mean in baseline for the treatments is $0.99$, the coefficient are interpreted as follows: <br>
+
+People who played `Threshold` played in average $0.99 - 1.12 =$ `r 0.99-1.12`, in `Risk` they played $0.99 - 1.01 =$ `r 0.99 - 1.01`, and in `Uncertainty` $0.99 - 0.62 =$ `r 0.99 - 0.62`. <br>
+
+In other words, people on the treatments approached the threshold but rarely crossed it. The mean values for cooperation are closer to zero than one, and given that the units of extraction are discrete fish (1 fish), one can conclude that they did cooperate in terms of maximizing their individual and group earnings, but reduced the likelihood of crossing the threshold.
+</small>
+</p>
+
+## Regressions in baseline:
+
+<p align = "left"> In model (1-4) the response variable is the mean of cooperation, (2-5) variance, and (3-6) median; models 3:6 include terms for `Treatment` and `Place`. I also tested skewness but produced nothing worth reporting. The idea is to use this models as null - this is what socio-economic aspects might be influencing cooperation without treatment. In previous version of this regression I used education, but it's not significant and induces 50 `NA`. </p>
+
+## Regressions in baseline:
+
+<small>
+
+```{r, results = 'asis', echo = FALSE, warning=FALSE, message = FALSE}
+### Explore models in baseline
+fit1 <- (lm(Cooperation ~  age + fishing_age  + sale + take_home + life_satisfaction + ND_log_pesos + BD_log_pesos
+                  + week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children
+                  + history_rs +Risk + Amb, data = filter(ind_coop, part == F)))
+
+fit2 <- (lm(variance ~  age + fishing_age  + sale + take_home + life_satisfaction + ND_log_pesos + BD_log_pesos
+                  + week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children
+                  + history_rs +Risk + Amb, data = filter(ind_coop, part == F)))
+
+fit3 <- (lm(med_coop ~  age + fishing_age  + sale + take_home + life_satisfaction + ND_log_pesos + BD_log_pesos
+                  + week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children
+                  + history_rs +Risk + Amb, data = filter(ind_coop, part == F)))
+
+fit4 <- (lm(Cooperation ~  age + fishing_age  + sale + take_home + life_satisfaction + ND_log_pesos + BD_log_pesos
+                  + week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children
+                  + history_rs +Risk + Amb + Treatment + Place, data = filter(ind_coop, part == F)))
+
+fit5 <- (lm(variance ~  age + fishing_age  + sale + take_home + life_satisfaction + ND_log_pesos + BD_log_pesos
+                  + week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children
+                  + history_rs +Risk + Amb+ Treatment + Place, data = filter(ind_coop, part == F)))
+
+fit6 <- (lm(med_coop ~  age + fishing_age  + sale + take_home + life_satisfaction + ND_log_pesos + BD_log_pesos
+                  + week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children
+                  + history_rs +Risk + Amb+ Treatment + Place, data = filter(ind_coop, part == F)))
+# fit4 <- (lm(skewness ~  age + fishing_age + ND_pesos + sale + group_fishing + life_satisfaction + week_days + ND_hrs + BD_pesos + boat + take_home + sale + fishing_children + history_rs + sharing_art + BD_how_often + Risk + Amb, data = filter(ind_coop, part == F)))
+
+stargazer::stargazer(fit1,fit2,fit3, fit4, fit5, fit6, type = "html", multicolumn = FALSE, header = FALSE, dep.var.labels.include = TRUE, intercept.bottom = FALSE, digits = 2, font.size = "tiny")
+
+```
+
+</small>
+
+## Regressions in treatment
+
+<small>
+
+```{r, results = 'asis', echo = FALSE}
+### Explore models in treatment
+fit1 <- (lm(Cooperation ~ Treatment + Place + age + fishing_age  + sale + take_home + life_satisfaction + ND_log_pesos + BD_log_pesos + week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children + history_rs +Risk + Amb, data = filter(ind_coop, part == T)))
+
+fit2 <- (lm(variance ~ Treatment + Place + age + fishing_age  + sale + take_home + life_satisfaction + ND_log_pesos + BD_log_pesos + week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children + history_rs +Risk + Amb, data = filter(ind_coop, part == T)))
+
+fit3 <- (lm(med_coop ~ Treatment + Place + age + fishing_age + sale + take_home + life_satisfaction + ND_log_pesos + BD_log_pesos + week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children + history_rs +Risk + Amb, data = filter(ind_coop, part == T)))
+
+# fit4 <- (lm(skewness ~ Treatment + Place + age + fishing_age  + sale + take_home + life_satisfaction + ND_log_pesos + BD_log_pesos + week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children + history_rs +Risk + Amb, data = filter(ind_coop, part == T)))
+
+stargazer::stargazer(fit1,fit2,fit3, type = "html", multicolumn = FALSE, header = FALSE, dep.var.labels.include = TRUE, intercept.bottom = FALSE, digits = 2, font.size = "tiny")
+
+```
+
+</small>
+
+## Regressions in treatment
+
+<p aling = "left"> <small> Interestingly, the model with variance as dependent variable (2) shows that people who played the treatments in general reduce their variance but only `Risk` is significantly different from `Baseline`. People from `Taganga` and `Tasajeras` strongly reduced their variance with respect to `Buenavista`. People who takes most of the catch from household consumption (highly dependent on resource) also significantly reduce their variance, as well as people who has bad days (from surveys that's usually income of zero) and occur very often. In contrast, people who own the boat (perhaps better off fishermen) do afford to increase the variance, as well as people from `Las Flores`. Boat owners are typically from `Buenavista`, very few people from `Las Flores` self-reported as boat owner. </small></p>
+
+## Regression with group effects
+
+<p aling = "left">
+Problem: controlling for groups. <br>
+
+- Option 1. Break regression by player number (done)
+- Option 2. Introduce group dummy (64 new vars and fitting problems)
+- Option 3. Use stock size after regeneration, because that is the piece of information that the fishermen for sure knew about other players' behaviour.
+- Option 4. Create a continuous variable that account for coordination.
+</p>
+
+## Coordination
+
+<small>
+<p align = "left">
+Group effects are assumed to be constant (1/0): people belong to the same group or not. But in reality belonging to a group can have a strong effect if people reach agreements and strongly influence on each others decisions, but the effect is less strong if agreements are not reached or the opportunity to communicate is not used.
+
+Coordination or `mean_dist` was constructed as follows: </p>
+
+- the time series for the whole game was extracted for each group,
+- the Bray-Curtis similarty distance was calculated on the extraction decisions per round, resulting on a 4 * 4 symmetric matrix with values 0 if two players play identically, and 1 if they played completely different;
+- the average distance from player $i$ to players $j$, $k$ and $l$ was calculated for all players $i$.
+
+<p>This procedure give us a unique number for each player indicating the distance of her decisions to all other members of her group excluding herself. Highly coordinated groups will have zero as distance, uncoordinated groups will have values close to 1. Note that cooperation is not the same as coordination</p>
+
+</small>
+
+
+## {data-background=#fff}
+
+```{r fig.height= 6, fig.width= 8, echo = FALSE, fig.align='center', dev.args = list(pointsize= 7), warning=FALSE, message = FALSE}
+g <- ggplot(filter(ind_coop, part == T), aes(Cooperation, mean_dist)) +
+  geom_point(aes(color = group), show.legend = F) +
+  facet_grid(Treatment~Place) + theme_light(base_size = 7) + ylab("Coordination") +
+  ggtitle("Cooperation versus group coordination")
+
+ggplotly(g)
+```
+
+##
+
+<small>
+```{r echo = FALSE, warning=FALSE, results = 'asis'}
+fit0 <- lm(Cooperation ~ mean_dist, data = filter(ind_coop, part == T) )
+
+fit1 <- lm(Cooperation ~ Treatment + Place + mean_dist, data = filter(ind_coop, part == T) )
+# summary(fixed.dum)
+# fit2 <- lm(skewness ~  mean_dist, data = filter(ind_coop, part == T) )
+# # summary(fixed.dum)
+# fit3 <- lm(skewness ~ Treatment + Place + mean_dist, data = filter(ind_coop, part == T) )
+# # summary(fixed.dum)
+fit4 <- lm(variance ~ mean_dist, data = filter(ind_coop, part == T) )
+
+fit5 <- lm(variance ~ Treatment + Place + mean_dist, data = filter(ind_coop, part == T) )
+# summary(fixed.dum)
+
+stargazer::stargazer(fit0, fit1,fit4,fit5, type = "html", multicolumn = FALSE, header = FALSE, dep.var.labels.include = TRUE, intercept.bottom = FALSE, digits = 2, font.size = "tiny")
+```
+
+</small>
+
+## Feedback from you
+
+<small>
+
+> 1. Do you have any better ideas to control for groups with a regression at the individual level, that is, a regression that allows us to use the data from surveys and risk / ambiguity elicitation tasks?
+
+> 2. We contemplated random and fixed effects models with panel data. The advantage is the use of time (round, and increased sample N=4096 obs) but models were poorly fitted and we ran into issues of dependency in time (dynamic game where decisions in the past affect decisions in the future), and dependency in groups. Any ideas or sources that can help us implement a panel model approach? Do you think it is valuable? We belive both analysis are valuable but we found difficulties on dealing with dependency and on how to use the survey data (it does not change over time, so a panel model throughs an error when using constants as independent variables).
+
+> 3. So far we have not taken into account the dimension of time in our analysis. It would allows us to see conditional cooperators for example, but the statistical implementation is not straight forward.
+
+</small>
