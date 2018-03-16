@@ -7,12 +7,12 @@ output:
     code_folding: hide
     dev: png
     highlight: tango
-    self_contained: no
+    self_contained: true
     # theme: paper
     toc: yes
     toc_float:
       collapsed: no
-      smooth_scroll: no
+      smooth_scroll: yes
 
 ---
 
@@ -584,7 +584,7 @@ A <- A %*% t(A)
 diag(A) <- 0
 ```
 
-Next I use an implementation of the spatial panel data models `splm` different from the package `plm` that I've been using so far. Syntax is a bit different and the underlying mathematical assumptions vary a lot (e.g. it combines maximum-likelihood estimation and feasible generalized least squares). Note that to fit this model, the available software only allows for balanced panels, so one need to fulfill with zeroes all variables for rounds not played due to collapse. The following results were obtained for a random effects spatial panel model. I'm having error problems with the fixed effects version that have not been able to solve for now.
+Next I use an implementation of the spatial panel data models `splm` different from the package `plm` that I've been using so far. Syntax is a bit different and the underlying mathematical assumptions vary a lot (e.g. it combines maximum-likelihood estimation and feasible generalized least squares). Note that to fit this model, the available software only allows for balanced panels, so one need to fulfill with zeroes all variables for rounds not played due to collapse. The following results were obtained for a random effects spatial panel model (1) and its pooled version (2). I'm having error problems with the fixed effects version that have not been able to solve for now.
 
 ```{r data3, warnings = FALSE, message = FALSE}
 
@@ -745,7 +745,7 @@ mod_re <- spml(
 mod_pool <- spml(
   ind_extraction ~ StockSizeBegining + Treatment + 
   part + part*Treatment, data = pdat, index = NULL, 
-  listw = spdep::mat2listw(A), model = "random", lag = TRUE, spatial.error = "b")
+  listw = spdep::mat2listw(A), model = "pooling", lag = TRUE, spatial.error = "b")
 
 # mod_fe <- spml(
 #   ind_extraction ~ StockSizeBegining + Treatment + 
@@ -755,12 +755,12 @@ mod_pool <- spml(
 #   quiet = TRUE, zero.policy = NULL,
 #   tol.solve = 1e-10, control = list(), legacy = FALSE)
 #summary(mod1)
-stargazer::stargazer(coeftest(mod_re),  type = "html", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2)
+stargazer::stargazer(coeftest(mod_re), coeftest(mod_pool), type = "html", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2)
 ```
 
 The Lagrange multiplier test for spatial panel linear model test several hypothesis. The first test below checks if there is random effects:
 ```{r}
-bsktest( ind_extraction ~ StockSizeBegining + Treatment + 
+bsktest(ind_extraction ~ StockSizeBegining + Treatment + 
   part + part*Treatment, data = pdat, listw = spdep::mat2listw(A), test = "LM1")
 ```
 
