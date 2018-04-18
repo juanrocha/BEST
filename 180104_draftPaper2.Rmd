@@ -1,0 +1,727 @@
+---
+title: "Cooperation in the face of thresholds, risk and uncertainty"
+author: Juan Rocha, Caroline Schill, Lina Maria Saavedra, Jorge (?), Rocio (?), JCC
+  (?)
+date: ' `r format(Sys.time(), "%d %b, %Y")` '
+output:
+  pdf_document:
+    dev: pdf
+    latex_engine: pdflatex
+    toc: no
+  word_document: null
+  html_document:
+    code_folding: hide
+    dev: png
+    highlight: tango
+    self_contained: yes
+    theme: paper
+    toc: no
+    toc_float:
+      collapsed: no
+      smooth_scroll: no
+bibliography: best.bib
+documentclass: article
+fontsize: 10pt
+header-includes:
+- \usepackage{dcolumn}
+- \usepackage{lineno}
+- \linenumbers
+# - \documentclass[twocolumn,twoside]{article}
+lineno: yes
+csl: pnas.csl
+always_allow_html: yes
+urlcolor: blue
+---
+
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, tidy = TRUE, comment = NA, background = '#D6D6D6')
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, results = "hide", dev = 'pdf', dpi = 600)
+## load libraries
+set.seed(12345)
+library(tidyverse)
+library(stringr)
+library(forcats)
+library(RColorBrewer)
+library(ggplot2)
+library(GGally)
+library(moments)
+library(broom)
+
+# library(ggmap)
+# library(maptools)
+# library(maps)
+# library(mapproj)
+
+library(grid)
+library(gridExtra)
+library(plm)
+library(lmtest)
+
+
+```
+
+## Outline
+The target of the paper is [Nature Human Behaviour](https://www.nature.com/nathumbehav/about/content), The format will be Letter which allows for max 5000 words, 4 figures or tables and 30 references. Letters do not have headings except for Methods (at the end, max 3000w, online material only, and not counted on refs in main text). Alternatively we can aim for Article (6000 - 7000w) but generally it's more difficult to publish.
+
+* Abstract 200w
+* Intro and problem setting 1000w
+    + Regime shifts are ubiquotous in nature and society: increasing frequency and intensity of regime shifts
+    + Why CPR and small-scale fisheries - why focusing on cooperation?
+    + Research question: How do people cope with systems pervaded by thresholds?
+    + Group versus individual behaviour: this paper builds up on the results reported by Schill and Rocha (in Prep). The authors reported results for the same experiment at the group level. Here we further investigate results at the individual level.
+* Method 500w
+    + Game and treatments
+    + Survey + experimenter / observational notes
+    + Linear regression on key variables (tbd): cooperation (mean and variance)
+    + Table 1. Regressors
+* Results 500w
+    + Figure 1. Treatment and place differences
+    + Figure 2. Regression on cooperation (panel pooled)
+    + Figure 3. Regression on the moments of the distribution of cooperation with survey key questions and risk/amb task as regressors (OLS).
+* Discussion 1000w
+    + How the results support or not previous findings (discuss Elena's paper)
+    + People can handle tipping points, but success depends on quality of agreements (here explored as coordination and variance reduction)
+    + If uncertainty increases cooperation, then it's more important to clearly communicate uncertainty to resource users / decision makers than getting the right measurement of thresholds.
+* Conclusion 300w
+* Methods online (max 3000w)
+    + Game description
+    + Surveys
+    + Variables definition (formulas)
+    + Statistical tests
+* Refs 30max
+* Appendix / complementary material
+    + The survey visualization
+    + Complete list of questions
+
+\pagebreak
+
+**Cooperation is thought to be a necessary condition to solve collective dilemmas such as climate change or the sustainable use of common pool resources [@Vasconcelos:wz; @Rand:2013by; @Hauser:2014jg]. Yet, it is poorly understood how situations pervaded by tipping points shape the behaviour of humans facing collective dilemmas. Here we provide empirical evidence that real resource users when facing thresholds maintain in average a cooperative behaviour: this is, they maximise their individual earnings while taking care of future group opportunities to thrive. A dynamic game with 256 Colombian fishermen helped us investigate behavioural responses to the existence of thresholds (probability = 1), risk (threshold with with known probability of 0.5) and uncertainty (threshold with unknown probability). The game was framed as a fishery ground with the likelihood of a climate event that abruptly reduced the recovery rate of the fish stocks on which the fishermen earnings depended. Uncertain thresholds made fishermen maintain higher levels of cooperation than when the risk of thresholds is known. Fishermen cooperate conditionally, and they are more likely to cooperate when exposed to high frequency of bad fishing days, lower earnings, when the sharing of fishing gear is frequent, as well as when they expect their children to continue fishing. If cooperation increases in the face of thresholds, then communicating uncertainty is more policy relevant than estimating precisely where tipping points lay in social-ecological systems.**
+
+Sustainability challenges are often pervaded by social-ecological systems with thresholds[@Liu:2015go]. Achieving sustainable development goals such as eradicating poverty, dealing with climate change, or solving the tragedy of the commons in using natural resources, require all cooperation to deal with situations characterised by non-linear dynamics with tipping points. Under current development trajectories ecosystems worldwide are at risk of undergoing more frequent and severe regime shifts, this is, abrupt transitions in their function and structure, changing the flow of ecosystem services on which societies rely upon, and the source of livelihoods for many communities. Some examples include bush encroachment, a regime shifts that reduces the ability of ranchers to maintain cattle; soil salinisation which compromises the ability of farmers to produce food; or the collapse of fisheries which could compromises the livelihoods of ~ 51 million people who today depend on it, most of them from developing countries [@FAO:2017ug]. Over 30 different types of regime shifts have been documented in social-ecological systems, and their frequency and intensity expected to increase. Which rises the question: how do people behave when confronted with situations pervaded by thresholds? Do people race to the bottom and collapse their resources, or do they find strategies for dealing with uncertain thresholds? Are these strategies successful?
+
+Traditionally these questions have been studied from a rather theoretical point of view [@Crepin:ul; @Barrett:2012hm; @Milinski:2008ky; @Barrett:2013gc; @Budescu:1990hj; @Polasky:2011p7155; @Hauser:2014jg] with a focus on public goods[@Dannenberg:2014ic]. Theoretical and empirical evidence suggest that the relationship between collective action and uncertainty is negative, this is the higher uncertainty, the higher the likelihood of cooperation to break down [@Barrett:2012hm; @Dannenberg:2014ic; @Milinski:2008ky; @Schill:2015kj; @Gustafsson:1999ho]. However, the empirical results have been largely obtained with "weird" subjects: western, educated, industrialised, rich, and democratic [@Henrich:2010gn] in lab settings. Whether these results hold when tested with real resource users is still a major gap. The purpose of this paper is to fill that gap by testing how real resource users behave in situations pervaded by thresholds.
+
+To achieve that goal we designed an experimental game with 256 fishermen in 4 coastal communities of the Colombian Caribbean. In the game, fishermen made individual decisions each round of how much they wanted to fish from a common pool resource. Communication was allowed and the social dilemma was faced in groups of 4. The game lasted 16 rounds, of which the last 10 consisted of a treatment. 64 fishermen play the _threshold_ treatment, after round 6 a climate event occurred in the area reducing the recovery rate of the fish. This framing is similar to hypoxia events which could follow times of drought or extreme rain, and have been recorded in the area for decades [@Breitburg:2018iz]. In times of hypoxia fish dies creating death zones [@Diaz:2008p199]. The second treatment was _risk_, fishermen (n = 64) knew that a climate event could occur reducing the fish stock ability to reproduce, but only with 50% chance. In _uncertainty_ (n = 64) the same framing was used, but the probability of the climate event was between 0.1-0.9. The last treatment was the control group (_baseline_, n = 64). The game was complemented with post-experimental surveys and a lottery activity to elucidate the risk and ambiguity preferences of our participants (See Methods). This data help us understand the cooperative behaviour of fishermen when facing different levels of uncertainty of regime shifts.
+
+
+```{r data, echo = FALSE, warning=FALSE, message=FALSE}
+
+### load dataset
+## Survey data
+source('~/Documents/Projects/BEST - Beijer/BEST/160525_ErrorIdentificationSurvey.R')
+
+#key
+key <- read.csv2(file = '~/Dropbox/BEST/Colombia/Survey/key_consolidado_survey.csv', encoding = "Latin-1" )
+key <- key [c(1:16,23:240),c(2:5)]
+  key$Name.in.datasheet <- as.character(key$Name.in.datasheet)
+  levels(key$Data.type)[3] <- "binary"
+  key <- droplevels(key)
+  key$Column.datasheet <- seq(1:234)
+
+# load game data in long format, short format also available
+dat <- read.csv(file="~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv", row.names=1)
+
+# Create player ID's as in Surveys.R
+dat <- transform (dat, ID_player = interaction(Date, Treatment, Session, Player, drop = TRUE))
+# Create ID group
+dat <- transform(dat, group = interaction (Date, Treatment, Session, drop=T))
+dat <- as_tibble(dat)
+
+# reorder levels
+dat$Treatment <- factor(dat$Treatment, levels(dat$Treatment)[c(1,3,2,4)])
+# levels(dat$Treatment)
+
+dat <- mutate (dat, threshold = ifelse (dat$Treatment == "Base line" | dat$part == FALSE, 20, 28 ))
+
+## Use the deviation from threshold, and dev_t_divided by 4
+dat <- dat %>%
+  mutate (dev_drop = ifelse(dat$Treatment == 'Base line' | dat$part == FALSE,
+                                ((dat$IntermediateStockSize - 20)) ,  # - dat$value
+                                 ((dat$IntermediateStockSize - 28))   )) #- dat$value
+## here cooperation is calculated.
+dat <- dat %>%
+  mutate (optimal = (StockSizeBegining - threshold) / 4) %>%
+  mutate (cooperation = optimal - value)
+
+## coordination is calculated next
+
+dist_group <- function(x){ # x will be the character identifier for each player
+  y <- dat %>% select(ID_player, Round, value, group) %>%
+    filter(group == substr(x,start = 1, stop = nchar(x) - 2)) %>% # filter per group based on ID_player
+    select(-group) %>% spread(Round, value)
+  z <- vegan::vegdist(y[-1], "bray") # Bray-curtis is bounded 0:1 with zero absolute similarity and 1 complete different
+  player <- substr(x, start = nchar(x), stop = nchar(x)) # the player is the last number of the string
+  mean_dist <- colSums(as.matrix(z))[as.numeric(player)] / 3 # divided by the other 3 players. Note the dist to self is 0
+  df <- data_frame(ID_player = x, mean_dist = mean_dist)
+  return(df)
+}
+
+x <- lapply(levels(dat$ID_player), dist_group)
+x <- bind_rows(x)
+x$ID_player <- as.factor(x$ID_player)
+x <- mutate(x, coordination = 1-mean_dist)
+
+# rm(y , z, player, mean_dist, df)
+
+ind_coop <- dat %>% #filter(part == TRUE) %>%
+  select( Treatment, Place, ID_player, group, Round, cooperation, part, Player) %>%
+  group_by(Treatment, Place, ID_player, group, part, Player) %>%
+  summarize(Cooperation = mean(cooperation, na.rm = T),
+            variance = var(cooperation, na.rm = T),
+            skewness = skewness(cooperation, na.rm = T),
+            med_coop = median(cooperation, na.rm = T))
+
+exp_notes <- as_tibble(exp_notes)
+risk_amb <- exp_notes %>% select(119:130,132) %>% unique()
+
+risk <- risk_amb %>% select(13,
+    Risk_0_38k = 1, Risk_13k =2, Risk_10_19k = 3,
+    Risk_7_25k = 4, Risk_4_31k = 5, Risk_2_36k = 6)
+
+risk <- risk %>%
+    mutate(Risk_0_38k = forcats::fct_recode(Risk_0_38k, NULL = '', '1' = '|')) %>% mutate(Risk_0_38k = as.numeric(as.character(Risk_0_38k))) %>%
+    gather(key = Risk, value = choice, 2:7) %>%
+    filter(choice == 1)
+
+risk$Risk <- as.factor(risk$Risk)
+levels(risk$Risk) <- c(6,2,1,5,4,3)
+risk$Risk <- as.numeric(risk$Risk)
+
+### J180102: There is errors also on the ambiguity elicitation task data. The group of 2016-02-09.Threshold.am all players have NAs.
+amb <- risk_amb %>% select(13, Amb_0_38k = 7, Amb_13k =8, Amb_10_19k = 9, Amb_7_25k = 10, Amb_4_31k = 11, Amb_2_36k = 12)
+
+## for the people with two choices, I leave only one manually, but note, this needs to be checked with raw data and change afterwards here to correct for the right one.
+# this command shows the errors:
+
+# amb %>% group_by(ID_player) %>% summarize(choice = sum(Amb_0_38k, Amb_13k, Amb_10_19k, Amb_7_25k ,Amb_4_31k ,Amb_2_36k)) %>% filter(choice == 0 | choice == 2 | is.na(choice))
+## Manual corrections
+amb[amb$ID_player == "2016-02-01.Threshold.am.2", "Amb_4_31k"] <- 0
+amb[amb$ID_player == "2016-02-05.Uncertainty.am.2", "Amb_10_19k"] <- 0
+amb[amb$ID_player == "2016-02-02.Base line.am.4", "Amb_10_19k"] <- 1
+
+## note, this still keeps the NA players and they are dropped when choice == 1, but at least there is no duplicates now.
+
+amb <- amb %>%
+  gather(key = Amb, value = choice, 2:7) %>%
+  filter(choice == 1)
+
+amb$Amb <- as.factor(amb$Amb)
+levels(amb$Amb) <- c(6,2,1,5,4,3)
+amb$Amb <- as.numeric(amb$Amb)
+
+ind_coop <- left_join(ind_coop, surv, by = "ID_player") %>%  ## Now drop the columns that are not useful for now in the regression
+  select( c(1:21, life_satisfaction = 29, EE_before = 30, partner_in_group = 31,
+            fishing_age=35,fishing_last_yr = 39, week_days = 53, ND_hrs = 54, ND_kg = 55, ND_pesos =56,
+            BD_kg = 59, BD_pesos = 60, BD_how_often = 61, group_fishing = 62, boat = 68,
+            take_home= 94, sale= 95, give_away = 97,
+            fishing_future = 98, fishing_children=100, history_rs = 106,  sharing_art=147,
+            belongs_coop=149, age=167, education = 168, education_yrs=169 ))
+
+ind_coop$BD_how_often[is.na(ind_coop$BD_how_often)] <- 0
+
+ind_coop$ID_player <- as.character(ind_coop$ID_player)
+risk$ID_player <- as.character(risk$ID_player)
+amb$ID_player <- as.character(amb$ID_player)
+x$ID_player <- as.character(x$ID_player)
+
+ind_coop <- left_join(ind_coop, x, by = "ID_player")
+
+ind_coop <- left_join(ind_coop, select(risk, 1,2), by = "ID_player")
+
+
+### here is the error now
+ind_coop <- left_join(ind_coop, select(amb, 1,2), by = "ID_player")
+
+## log-transform money related variables
+
+ind_coop <- mutate(ind_coop, ND_log_pesos = log(ND_pesos), BD_log_pesos = log1p(BD_pesos))
+
+```
+
+Broadly speaking cooperation is working together towards a shared goal. More formally, cooperation is defined as *"a form of working together in which one individual pays a cost (in terms of fitness, whether genetic or cultural) and another gains a benefit as a result"* [@Nowak:2013vr]. In the context of common pool dilemmas (and non-dyadic games) cooperation can also be interpreted as favouring the common good over individual benefits [@Poteete:2010ud; @Ostrom:1990ws]. An important distinction in the literature is that of cooperators versus defectors, while cooperators pay a cost for other(s) to benefit, defectors have no cost and do not deal out benefits [@Nowak:2006p6717; @Axelrod:2006fe]. Here we operationalise these definitions by measuring cooperation as the probability distribution of the individual decision with respect to the threshold point of the resource (Fig 1). Trespassing the threshold puts the group in disadvantage in terms of a reduction of fitness, or in economic terms, while the economic benefits of the immediate round $t_{0}$ can increase, the maximum benefits for the same individual and the group are reduced in $t_{1}$. Depending on future decisions, this reduction perpetuates through future rounds. Since an individual in the game is member of the group in the future, she reduces her own fitness by reducing her earnings in $t_1$. Crossing the threshold is however an aggregated effect of individual decisions. Cooperation is measured assuming fairness or equal sharing of the stock available for fishing above the threshold. Thus,
+
+$$C = \frac{S_t - \theta}{N} - i_t$$
+
+where $S_t$ is the stock size at the beginning of the round, $\theta$ is the threshold, $N$ is the number of players in the group (always 4 in our experimental design), and $i_t$ is the individual catch at round $t$. The threshold is the drop point on the reproduction rate of the stock, which is 20 fish for _baseline_ and 28 for other treatments (_threshold_, _risk_ and _uncertainty_). Therefore, if cooperation $C=0$, it is at its maximum value, if $C>0$ it means people did cooperate in order to avoid the threshold but were not efficient at maximising their personal utility; while if $C<0$ it means people did not cooperate and preferred maximising their utility over the common good of maintaining the resource on the long run. Note that cooperation in this interpretation is not given by a point but by the distribution of points overtime. A person can take 1 or 2 extra fish by agreement (e.g. a rotation scheme to increase overall group gains), by having weak agreements that do not specify quotas (e.g. "let's fish less"), or by mistake. So what matters is not the individual points but their overall distribution and deviation from the zero line for the whole game. Figure 1 shows the average values and probability distribution of the cooperation across treatments and places.
+
+```{r Fig1, fig.height= 2.5, fig.width= 6, fig.align='center', dev.args = list(pointsize= 5), echo = FALSE, warning=FALSE, message = FALSE, fig.cap = "Figure 1. Cooperation in the second part of the game."}
+
+## anova for treatment and place differences
+aov.mod <- aov(cooperation ~ Treatment + Place, data = filter(dat, part == TRUE))
+# this might not be useful, assumptions of Tukey Honest Significant Difference are that groups are normally distributed and that there is within-group variance across the groups associated with each mean in the test (homogeneity of variance). We will need to use kruskal-wallis, but for pair-wise comparisons the games-howell test.
+# tuk <- TukeyHSD(aov.mod)
+
+welch_aov_place <- with(
+    filter(dat, part == T, !is.na(cooperation)),
+    userfriendlyscience::oneway(y = cooperation, x = Place,  posthoc="games-howell", levene = TRUE)
+)
+
+welch_aov_treatment <- with(
+    filter(dat, part == T, !is.na(cooperation)),
+    userfriendlyscience::oneway(y = cooperation, x = Treatment,  posthoc="games-howell", levene = TRUE)
+)
+
+# round(welch_aov_treatment$intermediate$posthocTGH$output$games.howell, 3)
+
+
+## Figure 1 draft (for SM make same figure with part == F)
+g1 <- ggplot(data = dat %>%
+    group_by(Treatment) %>% filter(part == TRUE) %>%
+    summarize(avg = mean(cooperation, na.rm = TRUE)),
+    aes(y=avg, x=Treatment)) + geom_col(alpha = 0.75) +
+    geom_text(aes(label = round(avg, 2)), hjust = "inward", size = 2)+
+    coord_flip() + ggtitle("a") +
+    ylab("mean cooperation") + theme_light(base_size = 6)
+    #geom_errorbar(aes(ymin = low, ymax = high), width = .25)
+
+g2 <- ggplot(data = dat %>%
+    group_by(Place) %>% filter(part == TRUE) %>%
+    summarize(avg = mean(cooperation, na.rm = TRUE)),
+    aes(y=avg, x=Place)) + geom_col(alpha = 0.75) +
+    geom_text(aes(label = round(avg, 2)), hjust = "inward", size = 2)+
+    coord_flip() + ggtitle("b") +
+    ylab("mean cooperation") + theme_light(base_size = 6)
+    #geom_errorbar(aes(ymin = low, ymax = high), width = .25)
+
+g3 <- ggplot(
+    data = dat %>% group_by(Treatment) %>% filter(part == TRUE), aes(Treatment, cooperation)) + geom_boxplot(alpha = .5, fill = "grey", notch = TRUE) +
+    # inset(
+    #     grob = ggplotGrob(g0a),
+    #     ymin = -14.5, ymax = -7.5, xmin = 0.5, xmax = 1.95
+    # ) +
+    coord_flip() + ggtitle("c") + theme_light(base_size = 6)
+
+g4 <- ggplot(
+    data = dat %>% group_by(Place) %>% filter(part == TRUE), aes(Place, cooperation)) + geom_boxplot(alpha = .5, fill = "grey", notch = TRUE) +
+    # inset(
+    #     grob = ggplotGrob(g0b),
+    #     ymin = -14, ymax = -6, xmin = 3.1, xmax = 4.5
+    # ) +
+    coord_flip() + ggtitle("d")+ theme_light(base_size = 6)
+
+
+g5 <- ggplot(
+    data = welch_aov_treatment$intermediate$posthocTGH$output$games.howell %>%
+    rownames_to_column( var = "comparison") %>%
+    rename(difference = diff),
+ aes(x=difference, y=comparison)) +
+    geom_point(aes(shape = ifelse(p < 0.05, "< 0.05" , "> 0.05")), size = 2, show.legend = FALSE) +
+    scale_shape_manual(name = "p value", values = c(19,1)) +
+    geom_errorbarh(aes(xmin = ci.lo, xmax = ci.hi, height = .25)) +
+    geom_vline(xintercept = 0, color = "grey") + ggtitle("e")+ theme_light(base_size = 6)
+    # + facet_wrap(~term)
+
+
+g6 <- ggplot(
+    data = welch_aov_place$intermediate$posthocTGH$output$games.howell %>%
+    rownames_to_column( var = "comparison") %>%
+    rename(difference = diff),
+ aes(x=difference, y=comparison)) +
+    geom_point(aes(shape = ifelse(p < 0.05, "< 0.05" , "> 0.05")), size = 2, show.legend = FALSE) +
+    scale_shape_manual(name = "p value", values = c(19,1)) +
+    geom_errorbarh(aes(xmin = ci.lo, xmax = ci.hi, height = .25)) +
+    geom_vline(xintercept = 0, color = "grey") + ggtitle("f")+ theme_light(base_size = 6)
+    # + facet_wrap(~term)
+
+# quartz(height = 2.5, width = 6)
+## Combine the figure old way
+gg <- list(g1,g2,g3,g4,g5,g6)
+source('~/Dropbox/Code/multiplot.R')
+layout <- matrix(c(1:6), ncol = 3, nrow = 2, byrow = F)
+multiplot(plotlist = gg, layout = layout)
+
+
+
+### Shapiro test of normality: if p-value is <0.1 the null hypothesis is rejected (null is that data is normally distributed)
+# dat %>% filter (part == TRUE) %>% group_by(Treatment) %>% summarize(normality = shapiro.test(cooperation)$p.value)
+
+```
+
+Our first finding is that people facing thresholds in average increase cooperation (Fig 1a). They approach the zero line without crossing the threshold in the _uncertainty_ and _risk_ treatments, while in the _threshold_ treatment they cross in average but by less than a fish per capita. However, the distribution of the cooperation variable (Fig 1b) reveals it is not normally distributed (Shapiro-Wilk test p << 0.001) and the medians for all treatments are above the zero line. The mean differences between treatments are all significant (Fig 1c, post-hoc pair-wise comparison with Games Howell non-parametric test, p < 0.05), except for the difference between _risk_ and _uncertainty_ treatments. However, our results also suggest that there is a significant differences in the levels of cooperation across places (Fig 1b,d,f), with Las Flores presenting lower average cooperation and higher preferences for favouring individual benefits over the common good. To further explore whether these differences are driven by location or other socio-economic factors, we fitted 4 pooled panel models with cooperation as a response variable (Fig 2). Model 1 simply fits treatment and place effects, its coefficients replicate the mean differences already reported in Fig 1 (a,b) and the model only explains 19% of the variability in the data. Model 2 and 4 take into account group effects, the fact that individual decisions are not independent of each other, but are influenced by the behaviour of other group members. Model 2 does it by incorporating a continuous variable _coordination_ which is the average similarity distance to other group members decisions through the game (See Methods), while model 4 treats groups as 64 dummy variables. Model 3 and 4 both control for conditional cooperation by adding a term with delays on the initial stock size in previous rounds (0:4). These models also control for a number of socio-economic variables from survey responses as well as risk and ambiguity aversion, further explained in Table 1.
+
+> - this will be a table latter.
+
+* Socio economic variables:
+    + *age*: age in years (`r sum(is.na(ind_coop$age))` missing values).
+    + *fishing_age*: age at which the person started fishing (`r sum(is.na(ind_coop$fishing_age))` missing values).
+    + *sale*: How much of the catch is for sale? (0 = none : 4 = all, `r sum(is.na(ind_coop$sale))` missing values).
+    + *take_home*: How much of the catch is for take home? (0 = none : 4 = all, `r sum(is.na(ind_coop$take_home))` missing values).
+    + *life_satisfaction*: Self assessment of life satisfaction where 1 is very satisfied and 4 very dissatisfied (`r sum(is.na(ind_coop$life_satisfaction))` missing values).
+* Fishing variables:
+    + *ND_log_pesos*: normal day earning in pesos (log scale, `r sum(is.na(ind_coop$ND_pesos))` missing values).
+    + *BD_log_pesos*: Bad day earning in pesos (in log scale, added 1 to 0 to avoid -Inf values, `r sum(is.na(ind_coop$age))` missing values).
+    + *week_days*: Number of fishing days in a normal week (`r sum(is.na(ind_coop$week_days))` missing values).
+    + *ND_hours*: Number of hours per day in a normal day (`r sum(is.na(ind_coop$ND_hrs))` missing values).
+    + *BD_how_often*: How often do you have a bad day? (once a year = 1, once a month = 2, once a week = 3, > once a week = 4, `r sum(is.na(ind_coop$BD_how_often))` missing values)
+    + *group_fishing*: Is fishing done in groups (1 = yes, 0 = no, `r sum(is.na(ind_coop$group_fishing))` missing values)
+    + *boat*: Do you own the boat? yes =1, no = 0 (`r sum(is.na(ind_coop$boat))` missing values).
+    + *sharing_art*: Do you share your fishing gear? yes = 1, no = 0 (`r sum(is.na(ind_coop$sharing_art))` missing values).
+    + *fishing_children*: Do you expect your children to become fishermen (0=definitely no, 1=no, 2=definitely yes, 3=yes, 4=don't know, `r sum(is.na(ind_coop$fishing_children))` missing values)
+    + *history_rs*: Have you experience dramatic changes (regime shifts)? yes = 1, no = 0 (`r sum(is.na(ind_coop$history_rs))` missing values).
+* Risk and ambiguity task:
+    + *Risk*: Risk elicitation task where 1 is risk-taker and 6 risk-averse (`r sum(is.na(ind_coop$Risk))` missing values).
+    + *Amb*: Ambiguity elicitation task where 1 is ambiguity-taker, and 6 ambiguity-averse (`r sum(is.na(ind_coop$Amb))` missing values).
+
+
+```{r, Fig2, fig.height= 3.5, fig.width= 5, fig.align='centre', dev.args = list(pointsize= 6), echo = FALSE, warning=FALSE, message = FALSE, fig.cap= "Pooled panel model regression." }
+
+df <- left_join(dat, ind_coop)
+
+## pooling models (pooled ols):
+out <- list()
+out[[1]] <- plm(cooperation ~  0 + Treatment + Place , data = filter(df, part == T), index = c('ID_player' ,'Round'), model = "pooling", effect = "individual")
+
+out[[2]] <- plm(cooperation ~  0 +Treatment + Place + coordination , data = filter(df, part == T), index = c('ID_player' ,'Round'), model = "pooling", effect = "individual")
+
+out[[3]] <- plm(cooperation ~  0 +Treatment + Place + coordination + lag(StockSizeBegining, 0:4) +
+age + fishing_age  + sale + take_home + life_satisfaction + ND_log_pesos + BD_log_pesos + week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children + history_rs + education + Risk + Amb, data = filter(df, part == T), index = c('ID_player' ,'Round'), model = "pooling", effect = "individual")
+
+out[[4]] <- plm(cooperation ~  0 +Treatment  + Place + coordination + lag(StockSizeBegining, 0:4) + age + fishing_age  + sale + take_home + life_satisfaction + ND_log_pesos + BD_log_pesos + week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children + history_rs + education + Risk + Amb + group, data = filter(df, part == T), index = c('ID_player' ,'Round'), model = "pooling", effect = "individual")
+
+df_list <- lapply(out, function(x){tidy(coeftest(x, vcov = vcovNW))})
+for (i in 1:4){df_list[[i]]$model <- paste("model", i, sep = " ")}
+df_list <- bind_rows(df_list) %>% as_tibble()
+
+# df_list
+df_r2 <- data_frame(
+    model = c("model 1", "model 2", "model 3", "model 4"),
+    r_squared = unlist(lapply(out, r.squared))
+)
+
+g <- ggplot(df_list %>% mutate(term = as_factor(term) %>% fct_rev()) %>% filter(!stringr::str_detect(term, "group2016")) , aes(estimate, term, group = model)) +
+    geom_vline(xintercept = 0, color = "grey84", linetype = 2, size = 0.5) +
+    geom_point(aes(shape = ifelse(
+        p.value < 0.05, "< 0.05" ,
+            ifelse(p.value < 0.1, "< 0.1", "> 0.1")
+        )), size = 2, show.legend = TRUE) +
+    scale_shape_manual(name = "p value", values = c(19,7,1)) +
+    geom_errorbarh(aes(xmin = estimate - std.error , xmax = estimate + std.error, height = .25))+
+    geom_text(data = df_r2, x=-Inf, y=Inf, hjust = 0, vjust = 25, size = 3, aes(label = paste("italic(R) ^ 2 == ", round(r_squared,2))), parse = T) + theme_light(base_size = 6)+ theme(legend.position = "bottom")+
+    facet_wrap(~model, ncol = 4, scales = "free_x")
+
+g
+
+# waldtest(out[[3]], out[[4]], vcov = vcovNW)
+```
+
+Our second result shows that while cooperation in our data is largely driven by treatments, small but significant effects are found for a number of socio-economic factors. First we notice that fishing context overrides the location effects (Fig 2) previously found. Fishermen in these communities are conditional cooperators, and they take into account what others have done up to 2 previous rounds. People whose daily income is lower and who have bad fishing days more often are more likely to cooperate, as well as fishermen who expect their kids to be fishermen as well. Although model 3 explain 3% less variation that model 4, it also suggest that people who fish more days a week, whose fishing practice require sharing tools and work load, and with better education tend to have higher levels of cooperation (p < 0.1). Model 4 is superior that others in explaining the variability of the data (adjusted $R^2 = 0.88$), and a Wald test reveals that the control for groups as dummy variable is significant and necessary (p << 0.001). The coefficients for group effects (not shown in Fig 2) are heterogeneous and not all of them significant (only for 30 of the groups p < 0.05, of which the effect is positive in 8 of them), meaning that group effects matter but it depends of the group dynamics, the agreements reached through communication, the quality of the agreements, and whether they are enforced. To dig further into this observation, we ran a second regression on the different moments of the distribution of cooperation. Figure 1 already showed that cooperation is not normally distributed, and the higher the uncertainty, the lower the variance, suggesting the emergence of coordinated actions to avoid threshold crossing. Thus, as response variables we used the mean, the median and the variance of cooperation, as well as coordination as a proxy of the emergence and enforcement of group's informal agreements.
+
+> - do we need to correct std.errors on the second regression too? I'm avoiding here the intercept, it makes clearer the coefficients for other terms, increase significance of some terms and the $R^2$. But I'm not sure it's correct to do it. I did it on Fig 2 as well because it facilitates the interpretation of coefficients and it didn't change the significance of any term. But in Fig 3 some coefficients changed, for example for coordination age disappeared while `sale` and `take_home` appeared significant.
+
+
+Our intuitions are confirmed by the regression results (Fig 3), showing that the ability of players to coordinate their actions with the group is a strong predictor of higher levels of cooperation and lower levels of variance. Coordination is increased by people whose levels of education is higher, who expect their children to fish, who own their boats, who earn in average higher earnings per fishing day, and who sell most of their catch or who keep most of their catch for home consumption. Variance, however, is increased by people who own their own boats, and who have higher earnings; while variance is reduced by people with higher levels of education. In other words, people who are better off affords to explore the decision space more freely.
+
+
+```{r Fig3, fig.height= 3.5, fig.width= 7, fig.align='centre', dev.args = list(pointsize= 6), echo = FALSE, warning=FALSE, fig.cap= "Linear regression on summarizing statistics of cooperation. The left panel has an intercept while the right fixes the intercept to zero. On the left most of the variability is captured by the intercept, while with fixed intercept the effects are bigger and easier to understand and interpret. However, some coefficients change as well as the $R^2$. Feedback point: what is better to report here? The text is written with the right panel, the regression table is on SM."}
+ols <- list()
+
+ols[[1]] <- lm(Cooperation ~  variance + coordination +
+    age + fishing_age  + sale + take_home +
+        life_satisfaction + ND_log_pesos + BD_log_pesos +
+        week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children + history_rs + education +
+        Risk + Amb ,
+        data = filter(ind_coop, part == TRUE))
+ols[[2]] <- lm(med_coop ~ variance + coordination +
+    age + fishing_age  + sale + take_home +
+        life_satisfaction + ND_log_pesos + BD_log_pesos +
+        week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children + history_rs + education +
+        Risk + Amb ,
+        data = filter(ind_coop, part == TRUE))
+
+ols[[3]] <- lm(variance ~ Cooperation + coordination +
+    age + fishing_age  + sale + take_home +
+        life_satisfaction + ND_log_pesos + BD_log_pesos +
+        week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children + history_rs + education +
+        Risk + Amb ,
+        data = filter(ind_coop, part == TRUE))
+
+ols[[4]] <- lm(coordination ~ Cooperation + variance +
+    age + fishing_age  + sale + take_home +
+        life_satisfaction + ND_log_pesos + BD_log_pesos +
+        week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children + history_rs + education +
+        Risk + Amb ,
+        data = filter(ind_coop, part == TRUE))
+
+# lapply(ols, summary)
+
+df_ols <- lapply(ols, tidy)
+
+df_ols[[1]]$resp <- "mean cooperation"
+df_ols[[2]]$resp <- "median cooperation"
+df_ols[[3]]$resp <- "variance"
+df_ols[[4]]$resp <- "coordination"
+
+# df_list
+df_r2 <- data_frame(
+    resp = c("mean cooperation", "median cooperation", "variance", "coordination"),
+    r_squared = unlist(lapply(ols, function(x) summary(x)$adj.r.squared))
+)
+
+df_coop <- bind_rows(df_ols)
+
+g1 <- ggplot(df_coop %>% mutate(term = as_factor(term) %>% fct_rev()) , aes(estimate, term, group = resp)) +
+    geom_vline(xintercept = 0, color = "black", linetype = 2) +
+    geom_point(aes(shape = ifelse(
+        p.value < 0.05, "< 0.05" ,
+            ifelse(p.value < 0.1, "< 0.1", "> 0.1")
+        )), size = 2, show.legend = TRUE) +
+    scale_shape_manual(name = "p value", values = c(19,7,1)) +
+    geom_errorbarh(aes(xmin = estimate - std.error , xmax = estimate + std.error, height = .25)) +
+    geom_text(data = df_r2, x=Inf, y=Inf, hjust = 1, vjust = 30, size = 2,
+              aes(label = paste("italic(R) ^ 2 == ", round(r_squared,2))), parse = T) +
+    theme_light(base_size = 6)+ theme(legend.position = "bottom")+
+    facet_wrap(~resp, ncol = 4, scales = "free_x")
+
+
+#### plot also the one with fixed intercepts
+ols <- list()
+
+ols[[1]] <- lm(Cooperation ~  0 + variance + coordination +
+    age + fishing_age  + sale + take_home +
+        life_satisfaction + ND_log_pesos + BD_log_pesos +
+        week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children + history_rs + education +
+        Risk + Amb ,
+        data = filter(ind_coop, part == TRUE))
+ols[[2]] <- lm(med_coop ~  0 + variance + coordination +
+    age + fishing_age  + sale + take_home +
+        life_satisfaction + ND_log_pesos + BD_log_pesos +
+        week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children + history_rs + education +
+        Risk + Amb ,
+        data = filter(ind_coop, part == TRUE))
+
+ols[[3]] <- lm(variance ~  0 + Cooperation + coordination +
+    age + fishing_age  + sale + take_home +
+        life_satisfaction + ND_log_pesos + BD_log_pesos +
+        week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children + history_rs + education +
+        Risk + Amb ,
+        data = filter(ind_coop, part == TRUE))
+
+ols[[4]] <- lm(coordination ~  0 + Cooperation + variance +
+    age + fishing_age  + sale + take_home +
+        life_satisfaction + ND_log_pesos + BD_log_pesos +
+        week_days + ND_hrs + BD_how_often + group_fishing + boat + sharing_art + fishing_children + history_rs + education +
+        Risk + Amb ,
+        data = filter(ind_coop, part == TRUE))
+
+# lapply(ols, summary)
+
+df_ols <- lapply(ols, tidy)
+
+df_ols[[1]]$resp <- "mean cooperation"
+df_ols[[2]]$resp <- "median cooperation"
+df_ols[[3]]$resp <- "variance"
+df_ols[[4]]$resp <- "coordination"
+
+# df_list
+df_r2 <- data_frame(
+    resp = c("mean cooperation", "median cooperation", "variance", "coordination"),
+    r_squared = unlist(lapply(ols, function(x) summary(x)$adj.r.squared))
+)
+
+df_coop <- bind_rows(df_ols)
+
+g2 <- ggplot(df_coop %>% mutate(term = as_factor(term) %>% fct_rev()) , aes(estimate, term, group = resp)) +
+    geom_vline(xintercept = 0, color = "black", linetype = 2) +
+    geom_point(aes(shape = ifelse(
+        p.value < 0.05, "< 0.05" ,
+            ifelse(p.value < 0.1, "< 0.1", "> 0.1")
+        )), size = 2, show.legend = TRUE) +
+    scale_shape_manual(name = "p value", values = c(19,7,1)) +
+    geom_errorbarh(aes(xmin = estimate - std.error , xmax = estimate + std.error, height = .25)) +
+    geom_text(data = df_r2, x=Inf, y=Inf, hjust = 1, vjust = 30, size = 2,
+              aes(label = paste("italic(R) ^ 2 == ", round(r_squared,2))), parse = T) +
+    theme_light(base_size = 6)+ theme(legend.position = "bottom")+
+    facet_wrap(~resp, ncol = 4, scales = "free_x")
+
+gg <- list(g1,g2)
+layout <- matrix(c(1:2), ncol = 2, nrow = 1, byrow = F)
+multiplot(plotlist = gg, layout = layout)
+
+```
+
+
+
+## Discussion
+
+> - here the speculation about variability masking or not cooperation should come.
++ How the results support or not previous findings (discuss Elena's paper)
++ People can handle tipping points, but success depends on quality of agreements (here explored as coordination and variance reduction)
++ If uncertainty increases cooperation, then it's more important to clearly communicate uncertainty to resource users / decision makers than getting the right measurement of thresholds.
+
+## Conclusions
+
+
+
+## Methods
+
++ Game and treatments
++ Survey + experimenter / observational notes
++ risk / ambiguity tasks.
++ Response variables: cooperation and coordination.
++ Panel regression: All panel models' standard errors were corrected with Newey and West heteroskedasticity-autocorrelation-consistent estimator [@Newey:1994bp] which is preferred for dynamic experimental data [@Vossler:2013te], as well as a double-clustering robust covariance matrix estimator [@Thompson:2011dj], both techniques rendering equivalent results.
++ Linear regression
+
+
+### Feedback from you:
+
+1. Comments on main panel pooled regression: is it correct? Note the table at the end of the document, we currently loss half of the panel data observations due to missing values on the survey. Another issue that there is no coefficient for all groups (see regression table). I don't get errors anymore when running the regression, but I'm afraid terms are dropped due to co-linearity or lack of data (players from the same group are dropped due to missing values on the survey or game collapse)
+2. I'm not completely sure how to best present the second regression (OLS on the mean, median, variance of cooperation, and coordination) in Figure 3: do we fix the intercepts? Fixing the intercept increase the effect size and significance of some of the regressors. With intercepts, the effect size of the intercept is higher relative to other regressors, explaining most of the covariation. I find easier to explain the results when the intercept is fixed (to zero), but I'm not sure is a common practice, or if it's correct at all.
+3. Other important terms to control for in the regressions? what can we realistically  include given the quality of the data? On the provisional supplementary material I plotted the number of NAs for questions in the survey that have < 25 NAs for you to get an idea of what is available.
+4. Ideas for discussion: I'm thinking on including a paragraph on the trade-off of exploration vs exploitation on learning agents. We thought that variance on real dynamics would increase the likelihood of people exploring more the parameter space, having high variance in the game. We don't find such a strong evidence for this using only the `BD_how_often` or `BD_log_pesos` on the regressions, but perhaps it is good discussion point. Another option would be to calculate a Gini coefficient or something similar as a proxy of people how has bad days _with respect to their group members_.
+
+
+
+\pagebreak
+
+# Supplementary material
+
+**Table SM1.** Pooled regressionn results associated with Figure 2 in main text.
+
+```{r pool, results = 'asis', warning=FALSE, message = FALSE, echo = FALSE}
+stargazer::stargazer(out[[1]], out[[2]], out[[3]], out[[4]], align = F, header = F, type = 'latex', digits = 2,
+    float = F, no.space = T, single.row = T, font.size = "tiny", model.names = T, multicolumn = T,
+    title = "Table SM1. Results from pooled regression", #coef = coeftest(vcov. = vcovHC),
+    notes = "")
+
+```
+
+**Table SM1.** OLS regression results associated with Figure 3 in main text.
+
+```{r ols, results = 'asis', warning=FALSE, message = FALSE, echo = FALSE}
+stargazer::stargazer(ols[[1]], ols[[2]], ols[[3]], ols[[4]], align = F, header = F, type = 'latex', digits = 2,
+    float = F, no.space = T, single.row = T, font.size = "scriptsize", model.names = T, multicolumn = T,
+    title = "Table SM2. Results from linear regression",
+    notes = "")
+
+```
+
+
+
+```{r mds, include = FALSE}
+### Fishing profiles
+
+
+# library(vegan)
+#
+# mds <- metaMDS(
+#   ind_coop %>%
+#     ungroup() %>%
+#     select(7,8,47),
+#   autotransform = FALSE )
+
+
+# env <- envfit(mds, select(ind_coop, 22:))
+```
+
+
+\pagebreak
+
+
+
+
+```{r SMFig1, fig.height= 2.5, fig.width= 6, fig.align='center', dev.args = list(pointsize= 5), echo = FALSE, warning=FALSE, fig.cap = "Figure SM1. Cooperation in the first part of the game."}
+
+## anova for treatment and place differences
+aov.mod <- aov(cooperation ~ Treatment + Place, data = filter(dat, part == F))
+# tuk <- TukeyHSD(aov.mod)
+
+welch_aov_place <- with(
+    filter(dat, part == FALSE, !is.na(cooperation)),
+    userfriendlyscience::oneway(y = cooperation, x = Place,  posthoc="games-howell", levene = TRUE)
+)
+
+welch_aov_treatment <- with(
+    filter(dat, part == FALSE, !is.na(cooperation)),
+    userfriendlyscience::oneway(y = cooperation, x = Treatment,  posthoc="games-howell", levene = TRUE)
+)
+
+
+## Figure 1 draft (for SM make same figure with part == F)
+g1 <- ggplot(data = dat %>%
+    group_by(Treatment) %>% filter(part == FALSE) %>%
+    summarize(avg = mean(cooperation, na.rm = TRUE)),
+    aes(y=avg, x=Treatment)) + geom_col(alpha = 0.75) +
+    geom_text(aes(label = round(avg, 2)), hjust = "inward", size = 2)+
+    coord_flip() + ggtitle("a") +
+    ylab("mean cooperation") + theme_light(base_size = 6)
+    #geom_errorbar(aes(ymin = low, ymax = high), width = .25)
+
+g2 <- ggplot(data = dat %>%
+    group_by(Place) %>% filter(part == F) %>%
+    summarize(avg = mean(cooperation, na.rm = TRUE)),
+    aes(y=avg, x=Place)) + geom_col(alpha = 0.75) +
+    geom_text(aes(label = round(avg, 2)), hjust = "inward", size = 2)+
+    coord_flip() + ggtitle("b") +
+    ylab("mean cooperation") + theme_light(base_size = 6)
+    #geom_errorbar(aes(ymin = low, ymax = high), width = .25)
+
+g3 <- ggplot(
+    data = dat %>% group_by(Treatment) %>% filter(part == F),
+    aes(Treatment, cooperation)) +
+  geom_boxplot(alpha = .5, fill = "grey", notch = TRUE) +
+    # inset(
+    #     grob = ggplotGrob(g0a),
+    #     ymin = -14.5, ymax = -7.5, xmin = 0.5, xmax = 1.95
+    # ) +
+    coord_flip() + ggtitle("c") + theme_light(base_size = 6)
+
+g4 <- ggplot(
+    data = dat %>% group_by(Place) %>% filter(part == F), aes(Place, cooperation)) +
+  geom_boxplot(alpha = .5, fill = "grey", notch = TRUE) +
+    # inset(
+    #     grob = ggplotGrob(g0b),
+    #     ymin = -14, ymax = -6, xmin = 3.1, xmax = 4.5
+    # ) +
+    coord_flip() + ggtitle("d")+ theme_light(base_size = 6)
+
+g5 <- ggplot(
+    data = welch_aov_treatment$intermediate$posthocTGH$output$games.howell %>%
+    rownames_to_column( var = "comparison") %>%
+    rename(difference = diff),
+ aes(x=difference, y=comparison)) +
+    geom_point(aes(shape = ifelse(p < 0.05, "< 0.05" , "> 0.05")), size = 2, show.legend = FALSE) +
+    scale_shape_manual(name = "p value", values = c(19,1)) +
+    geom_errorbarh(aes(xmin = ci.lo, xmax = ci.hi, height = .25)) +
+    geom_vline(xintercept = 0, color = "grey") + ggtitle("e")+ theme_light(base_size = 6)
+    # + facet_wrap(~term)
+
+g6 <- ggplot(
+    data = welch_aov_place$intermediate$posthocTGH$output$games.howell %>%
+    rownames_to_column( var = "comparison") %>%
+    rename(difference = diff),
+ aes(x=difference, y=comparison)) +
+    geom_point(aes(shape = ifelse(p < 0.05, "< 0.05" , "> 0.05")), size = 2, show.legend = FALSE) +
+    scale_shape_manual(name = "p value", values = c(19,1)) +
+    geom_errorbarh(aes(xmin = ci.lo, xmax = ci.hi, height = .25)) +
+    geom_vline(xintercept = 0, color = "grey") + ggtitle("f")+ theme_light(base_size = 6)
+    # + facet_wrap(~term)
+
+# quartz(height = 2.5, width = 6)
+## Combine the figure old way
+gg <- list(g1,g2,g3,g4,g5,g6)
+source('~/Dropbox/Code/multiplot.R')
+layout <- matrix(c(1:6), ncol = 3, nrow = 2, byrow = F)
+multiplot(plotlist = gg, layout = layout)
+
+```
+
+
+```{r summary_nas, warning=FALSE, message = FALSE, echo = FALSE, fig.height = 5}
+
+map_df(surv, function(x) sum(is.na(x))) %>%
+    gather(key = question, value = num_nas, 1:235) %>%
+    filter(num_nas > 0 & num_nas < 25) %>%
+    #mutate(question = str_replace_all(question, "\\.+", " " )) %>%
+    mutate(question = as_factor(question)) %>%
+    mutate(question = fct_reorder(question, num_nas, .desc = TRUE)) %>%
+    arrange(desc(num_nas)) %>%
+    ggplot(aes(y = question, x = num_nas)) +
+        geom_point() +
+        labs(title = "Summary of missing values in the survey",
+            subtitle = "Questions whose missing values are less than 25 and higher than 0. Note than in the survey there is no questions\n with zero missing values.") +
+        theme_light(base_size = 7)
+
+```
+\pagebreak

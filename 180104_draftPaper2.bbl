@@ -1,0 +1,133 @@
+\begin{thebibliography}{20}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Axelrod(2006)]{Axelrod:2006fe}
+R~Axelrod.
+\newblock {The evolution of cooperation: revised edition}.
+\newblock 2006.
+
+\bibitem[Barrett and Dannenberg(2012)]{Barrett:2012hm}
+Scott Barrett and Astrid Dannenberg.
+\newblock {Climate negotiations under scientific uncertainty}.
+\newblock \emph{P Natl Acad Sci Usa}, 2012.
+
+\bibitem[Barrett and Dannenberg(2013)]{Barrett:2013gc}
+Scott Barrett and Astrid Dannenberg.
+\newblock {Sensitivity of collective action to uncertainty about climate
+  tipping points}.
+\newblock \emph{Nature Climate Change}, 2013.
+
+\bibitem[Breitburg et~al.(2018)Breitburg, Levin, Oschlies, Gr{\'e}goire,
+  Chavez, Conley, Gar{\c c}on, Gilbert, Guti{\'e}rrez, Isensee, Jacinto,
+  Limburg, Montes, Naqvi, Pitcher, Rabalais, Roman, Rose, Seibel, Telszewski,
+  Yasuhara, and Zhang]{Breitburg:2018iz}
+Denise Breitburg, Lisa~A Levin, Andreas Oschlies, Marilaure Gr{\'e}goire,
+  Francisco~P Chavez, Daniel~J Conley, V{\'e}ronique Gar{\c c}on, Denis
+  Gilbert, Dimitri Guti{\'e}rrez, Kirsten Isensee, Gil~S Jacinto, Karin~E
+  Limburg, Ivonne Montes, S~W~A Naqvi, Grant~C Pitcher, Nancy~N Rabalais,
+  Michael~R Roman, Kenneth~A Rose, Brad~A Seibel, Maciej Telszewski, Moriaki
+  Yasuhara, and Jing Zhang.
+\newblock {Declining oxygen in the global ocean and coastal waters.}
+\newblock \emph{Science}, 2018.
+
+\bibitem[Crepin et~al.()Crepin, Economics, Resource, and {2009}]{Crepin:ul}
+A~S Crepin, T~Lindahl~Environmental Economics, Resource, and {2009}.
+\newblock {Grazing games: sharing common property resources with complex
+  dynamics}.
+\newblock \emph{Springer}.
+
+\bibitem[Dannenberg et~al.(2014)Dannenberg, L{\"o}schel, Paolacci, Reif, and
+  Tavoni]{Dannenberg:2014ic}
+Astrid Dannenberg, Andreas L{\"o}schel, Gabriele Paolacci, Christiane Reif, and
+  Alessandro Tavoni.
+\newblock {On the Provision of Public Goods with Probabilistic and Ambiguous
+  Thresholds}.
+\newblock \emph{Environ Resource Econ}, 2014.
+
+\bibitem[Diaz and Rosenberg(2008)]{Diaz:2008p199}
+R~J Diaz and R~Rosenberg.
+\newblock {Spreading Dead Zones and Consequences for Marine Ecosystems}.
+\newblock \emph{Science}, 2008.
+
+\bibitem[Gustafsson et~al.(1999)Gustafsson, Biel, and
+  G{\"a}rling]{Gustafsson:1999ho}
+Mathias Gustafsson, Anders Biel, and Tommy G{\"a}rling.
+\newblock {Overharvesting of resources of unknown size}.
+\newblock \emph{Acta Psychologica}, 1999.
+
+\bibitem[Henrich et~al.(2010)Henrich, Heine, and Norenzayan]{Henrich:2010gn}
+Joseph Henrich, Steven~J Heine, and Ara Norenzayan.
+\newblock {Most people are not WEIRD}.
+\newblock \emph{Nature}, 2010.
+
+\bibitem[Liu et~al.(2015)Liu, Mooney, Hull, Davis, Gaskell, Hertel, Lubchenco,
+  Seto, Gleick, Kremen, and Li]{Liu:2015go}
+Jianguo Liu, Harold Mooney, Vanessa Hull, Steven~J Davis, Joanne Gaskell,
+  Thomas Hertel, Jane Lubchenco, Karen~C Seto, Peter Gleick, Claire Kremen, and
+  Shuxin Li.
+\newblock {Systems integration for global sustainability}.
+\newblock \emph{Science}, 2015.
+
+\bibitem[Milinski et~al.(2008)Milinski, Sommerfeld, Krambeck, Reed, and
+  Marotzke]{Milinski:2008ky}
+Manfred Milinski, Ralf~D Sommerfeld, Hans-Juergen Krambeck, Floyd~A Reed, and
+  Jochem Marotzke.
+\newblock {The collective-risk social dilemma and the prevention of simulated
+  dangerous climate change}.
+\newblock \emph{P Natl Acad Sci Usa}, 2008.
+
+\bibitem[Newey and West(1994)]{Newey:1994bp}
+Whitney~K Newey and Kenneth~D West.
+\newblock {Automatic Lag Selection in Covariance Matrix Estimation}.
+\newblock \emph{Rev Econ Stud}, 1994.
+
+\bibitem[Nowak(2006)]{Nowak:2006p6717}
+M~A Nowak.
+\newblock {Five Rules for the Evolution of Cooperation}.
+\newblock \emph{Science}, 2006.
+
+\bibitem[Nowak(2013)]{Nowak:2013vr}
+Martin~A Nowak.
+\newblock \emph{{Evolution, Games, and God}}.
+\newblock Harvard University Press, 2013.
+
+\bibitem[Ostrom(1990)]{Ostrom:1990ws}
+Elinor Ostrom.
+\newblock \emph{{Governing the Commons}}.
+\newblock Cambridge University Press, 1990.
+
+\bibitem[Polasky et~al.(2011)Polasky, De~Zeeuw, and Wagener]{Polasky:2011p7155}
+S~Polasky, A~De~Zeeuw, and F~Wagener.
+\newblock {Optimal management with potential regime shifts}.
+\newblock \emph{Journal of Environmental Economics and Management}, 2011.
+
+\bibitem[Poteete et~al.(2010)Poteete, Janssen, and Ostrom]{Poteete:2010ud}
+Amy~R Poteete, Marco~A Janssen, and Elinor Ostrom.
+\newblock \emph{{Working together: Collective action, the commons, and multiple
+  methods in practice}}.
+\newblock 2010.
+
+\bibitem[Schill et~al.(2015)Schill, Lindahl, and Cr~pin]{Schill:2015kj}
+Caroline Schill, Therese Lindahl, and Anne-Sophie Cr~pin.
+\newblock {Collective action and the risk of ecosystem regime shifts: insights
+  from a laboratory experiment}.
+\newblock \emph{Ecol Soc}, 2015.
+
+\bibitem[Thompson(2011)]{Thompson:2011dj}
+Samuel~B Thompson.
+\newblock {Simple formulas for standard errors that cluster by both firm and
+  time}.
+\newblock \emph{J. Financ. Econ.}, 2011.
+
+\bibitem[Vossler(2013)]{Vossler:2013te}
+Christian~A Vossler.
+\newblock {Analyzing repeated-game economics experiments: robutst standard
+  errors for panel data with serial correlation}.
+\newblock In \emph{Handbook on Experimental Economics and teh Environment}.
+  2013.
+
+\end{thebibliography}
