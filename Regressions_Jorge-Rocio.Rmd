@@ -89,6 +89,12 @@ dat <- dat %>%
     StockSizeBegining == 0, NA, 
     ifelse((4*optimal) < 0 & ind_extraction == 0, 0, optimal - ind_extraction)))
 
+## use the demeaned extraction as a try:
+dat <- dat %>%
+  mutate(demean_extraction = (ind_extraction - mean(ind_extraction))/ sd(ind_extraction)) %>%
+  mutate(stock_ratio = ind_extraction/StockSizeBegining)
+
+
 ## coordination is calculated next
 
 dist_group <- function(x){ # x will be the character identifier for each player
@@ -199,16 +205,16 @@ Where $X_{i,t}$ is the individual extraction of fishermen $i$ in round $t$, $T$ 
 
 ## First regression
 
-mod1 <- plm(ind_extraction ~ Treatment + part , 
+mod1 <- plm(ind_extraction ~ Treatment + part + as.numeric(Round) + StockSizeBegining , 
             data = dat, index = c('ID_player' ,'Round'), model = "pooling", effect = "twoway" )
-mod2 <- plm(ind_extraction ~ Treatment + part + Treatment*part , 
+mod2 <- plm(ind_extraction ~ Treatment + part + as.numeric(Round) + StockSizeBegining , 
             data = dat, index = c('ID_player' ,'Round'), model = "pooling", effect = "twoway")
-mod3 <- plm(ind_extraction ~ Treatment + part + Treatment*part , 
+mod3 <- plm(ind_extraction ~ Treatment + part + as.numeric(Round) + StockSizeBegining ,  
             data = dat, index = c('ID_player' ,'Round'), model = "between")
-mod4 <- plm(ind_extraction ~ Treatment + part + Treatment*part , 
+mod4 <- plm(ind_extraction ~ Treatment + part + as.numeric(Round) + StockSizeBegining , 
             data = dat, index = c('ID_player' ,'Round'), model = "within", effect = "twoway")
-mod5 <- plm(ind_extraction ~ Treatment + part + Treatment*part , 
-            data = dat, index = c('ID_player' ,'Round'), model = "random", effect = "twoway")
+mod5 <- plm(ind_extraction ~ Treatment + part + as.numeric(Round) + StockSizeBegining , 
+            data = dat, index = c('ID_player' ,'Round'), model = "random", effect = "individual")
 
 stargazer::stargazer(
   mod1, mod2, mod3, mod4, mod5, type = "html", multicolumn = FALSE, header = FALSE, 

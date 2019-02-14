@@ -66,7 +66,7 @@ summary(dat)
 # dat$part <- dat$Round > 6
 
 # Create player ID's as in Surveys.R
-dat <- transform (dat, ID_player = interaction(Date, Treatment, Session, Player, drop = TRUE))
+dat <- transform(dat, ID_player = interaction(Date, Treatment, Session, Player, drop = TRUE))
 # Create ID group
 dat <- transform(dat, group = interaction (Date, Treatment, Session, drop=T))
 
@@ -126,9 +126,9 @@ levels(dat$Treatment)
 
 ### Group level data
 group_dat <- dat %>%
-  select (Treatment, Place, group, Round, StockSizeBegining, IntermediateStockSize, SumTotalCatch,
+  select(Treatment, Place, group, Round, StockSizeBegining, IntermediateStockSize, SumTotalCatch,
           Regeneration, NewStockSize, part, Date, Session) %>%
-  unique ()
+  unique()
 
 ## calculate gini
 gini0 <- filter(dat, part == 0) %>%
@@ -262,44 +262,44 @@ by_group_treat <- group_by(filter(group_dat, part == T), Treatment, Place, group
 # quartz.save(file = '170311_Schill_NCC_Fig1.png', type = 'png', dpi = 1000,
 #             pointsize = 5, family = "helvetica", width = 6, height = 2)
 
-f1a <- ggplot(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Threshold"),
+f1a <- ggplot(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Threshold") %>% ungroup(),
               aes(mean_st2)) +
   geom_density(aes(fill = Treatment)) +
   scale_fill_manual(values = alpha(c('gold', 'blue'), 0.5)) + scale_color_manual(values = alpha(c('gold', 'blue'), 1)) +
   geom_vline(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Threshold") %>%
                group_by(Treatment) %>%
-               summarise(m = mean(mean_st2)),
+               summarise(m = median(mean_st2)),
     mapping = aes(xintercept = m, color = Treatment), show.legend = F)+
   geom_vline(xintercept = c(28), color = c('red'), show.legend = F)+
   ggtitle(label = 'a)') + theme_minimal(base_size = 5) +
   theme(legend.position = c(0.2, 0.9), legend.key.size = unit(0.2, 'cm')) +
-  xlab('Mean intermediate stock size')  + ylim (c(0,0.1)) + xlim (c(0,50))
+  xlab('Median stock size')  + ylim (c(0,0.1)) + xlim (c(0,50))
 
-f1b <- ggplot(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Risk"),
+f1b <- ggplot(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Risk") %>% ungroup(),
               aes(mean_st2)) +
   geom_density(aes(fill = Treatment)) +
   scale_fill_manual(values = alpha(c('gold', 'blue'), 0.5)) + scale_color_manual(values = alpha(c('gold', 'blue'), 1)) +
   geom_vline(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Risk") %>%
                group_by(Treatment) %>%
-               summarise(m = mean(mean_st2)),
+               summarise(m = median(mean_st2)),
              mapping = aes(xintercept = m, color = Treatment), show.legend = F)+
   geom_vline(xintercept = c(28), color = c('red'), show.legend = F)+
   ggtitle(label = 'b)') + theme_minimal(base_size = 5) +
   theme(legend.position = c(0.2, 0.9), legend.key.size = unit(0.2, 'cm')) +
-  xlab('Mean intermediate stock size') + ylim (c(0,0.1)) + xlim (c(0,50))
+  xlab('Median stock size') + ylim (c(0,0.1)) + xlim (c(0,50))
 
-f1c <- ggplot(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Ambiguity"),
+f1c <- ggplot(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Ambiguity") %>% ungroup(),
               aes(mean_st2)) +
   geom_density(aes(fill = Treatment)) +
   scale_fill_manual(values = alpha(c('gold', 'blue'), 0.5)) + scale_color_manual(values = alpha(c('gold', 'blue'), 1)) +
   geom_vline(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Ambiguity") %>%
                group_by(Treatment) %>%
-               summarise(m = mean(mean_st2)),
+               summarise(m = median(mean_st2)),
              mapping = aes(xintercept = m, color = Treatment), show.legend = F)+
   geom_vline(xintercept = c(28), color = c('red'), show.legend = F)+
   ggtitle(label = 'c)') + theme_minimal(base_size = 5) +
   theme(legend.position = c(0.2, 0.9), legend.key.size = unit(0.2, 'cm')) +
-  xlab('Mean intermediate stock size') + ylim (c(0,0.1)) + xlim (c(0,50))
+  xlab('Median stock size') + ylim (c(0,0.1)) + xlim (c(0,50))
 
 f1d <- ggplot(data = filter(by_group_catch, Treatment == "Baseline" | Treatment == "Threshold"),
               aes(catch_st2)) +
@@ -340,13 +340,15 @@ f1f <- ggplot(data = filter(by_group_catch, Treatment == "Baseline" | Treatment 
 
 
 ## Combine the figure
-g <- list ( f1a, f1b, f1c, f1d, f1e, f1f)
+g <- list ( f1a, f1b, f1c )#, f1d, f1e, f1f)
 
 source('~/Dropbox/Code/multiplot.R')
-layout <- matrix(c(1:6), ncol = 3, nrow = 2, byrow = T)
+layout <- matrix(c(1:3), ncol = 3, nrow = 1)
+quartz(width = 5, height = 2.5)
+
 multiplot(plotlist = g, layout = layout)
 
-quartz.save(file = '170330_Schill_NCC_Fig1.pdf', type = 'pdf', dpi = 1200,
+quartz.save(file = '180528_Schill_NCC_Fig1.pdf', type = 'pdf', dpi = 1200,
             pointsize = 5, family = "helvetica", width = 5, height = 2.5)
 
 
@@ -878,3 +880,40 @@ multiplot(plotlist = g, layout = layout)
 
 quartz.save(file = '170330_Schill_NCC_SMFig3.pdf', type = 'pdf', dpi = 1200,
             pointsize = 5, family = "helvetica", width = 7, height = 2.5)
+
+
+
+############ Last minute figures for conference paper
+
+quartz(width = 4, height = 4, pointsize = 6)
+group_dat %>%
+    group_by(group, part) %>%
+    summarize(median_stock = median(IntermediateStockSize, na.rm = TRUE)) %>%
+    left_join(., select(group_dat, group, Place) %>% unique()) %>%
+    ungroup() %>% mutate(
+        stage = ifelse(part == FALSE, "stage 1", "stage 2"),
+        Place = forcats::fct_rev(Place)) %>% #group_by(Place, part) %>%
+    # tally()
+    ggplot(aes(y = median_stock, x = Place)) +
+        geom_boxplot(notch = F, aes(color = Place, fill = Place), alpha = 0.5, show.legend = F, size = 0.5) +
+        geom_jitter(aes(color = Place), show.legend = F, width = 0.15) +
+        facet_wrap(~stage, ncol = 1, nrow = 2) +
+        ylab("Median stock size") +
+        coord_flip() + theme_light(base_size = 8)
+
+ggsave("180528_medianStockSize.pdf", device = "pdf", width = 4, height = 4, units = "in")
+
+## gini
+group_dat %>%
+    ungroup() %>% mutate(
+        stage = ifelse(part == FALSE, "stage 1", "stage 2"),
+        Place = forcats::fct_rev(Place)) %>%
+    ggplot(aes(y = gini_round, x = Place)) +
+        geom_boxplot(notch = F, aes(color = Place, fill = Place), alpha = 0.5, show.legend = F, size = 0.5) +
+        #geom_jitter(aes(color = Place), show.legend = F, width = 0.15) +
+        facet_wrap(~stage, ncol = 1, nrow = 2) +
+        ylab("Gini coefficient") +
+        coord_flip() + theme_light(base_size = 8)
+ggsave("180528_gini.pdf", device = "pdf", width = 4, height = 4, units = "in")
+
+##
