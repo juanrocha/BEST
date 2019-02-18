@@ -459,7 +459,6 @@ diff_df[1:4,] %>% select(1:3) %>%
 ```
 
 Notice that in our table of treatment effects, the difference `after-before` produces the interaction effects $\hat{\tau}$ from the equation above as expected:
-Is tere spelll check here?
 
 
 ```{r table0, results='asis', include=TRUE, echo=FALSE}
@@ -570,6 +569,79 @@ p6 <- plm(prop ~ Treatment + as.numeric(Round)  ,
 #coeftest(p6, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group"))
 ```
 
+```{r fig4, include = TRUE, echo = FALSE, fig.height=3, fig.width=3, fig.align='right'}
+
+coeffs <- coef(p4)
+
+diff_df <- data_frame(
+  treatment = c("Baseline","Threshold","Risk","Uncertainty", "Threshold-Baseline", "Risk-Baseline", "Uncertainty-Baseline"),
+  after = c(
+    sum(coeffs[c(1,5)]), # mu and delta = intercept and partTRUE
+    sum(coeffs[c(1,5,2,7)]),
+    sum(coeffs[c(1,5,3,8)]),
+    sum(coeffs[c(1,5,4,9)]),
+    sum(coeffs[c(2,7)]),
+    sum(coeffs[c(3,8)]),
+    sum(coeffs[c(4,9)])
+  ),
+  before = c(
+    coeffs[1],
+    sum(coeffs[c(1,2)]),
+    sum(coeffs[c(1,3)]),
+    sum(coeffs[c(1,4)]),
+    coeffs[2],
+    coeffs[3],
+    coeffs[4]
+  )
+)
+
+diff_df <- diff_df %>%
+  mutate(difference = after - before)
+
+kable(diff_df, digits = 2)
+
+## Visualization based on raw data
+# dat %>% 
+#   group_by(Treatment, part) %>% 
+#   summarize(mean_t = mean(ind_extraction))  %>% 
+#   ggplot(aes(x = part, y = mean_t)) + 
+#   geom_point(aes(color = Treatment)) + 
+#   geom_line(aes(group = Treatment, color = Treatment))
+
+
+## Visualization based on model
+diff_df[1:4,] %>% select(1:3) %>%
+  gather(key = time, value = estimate, before, after) %>%
+  mutate(time = as_factor(time)) %>%
+  ggplot(aes(time, estimate)) +
+  geom_point(aes(color = treatment)) +
+  geom_line(aes(group = treatment, color = treatment)) +
+  theme_light(base_size = 8) + theme( legend.position = "bottom")
+
+```
+
+
+```{r table01, results='asis', include=TRUE, echo=FALSE}
+stargazer::stargazer(
+  # clustered and robust:
+  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group")),
+  # clustered and robust:
+  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC2", cluster = "group")),
+  # clustered and robust:
+  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC3", cluster = "group")),
+  # clustered and robust:
+  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC4", cluster = "group")),
+  # last model with NW and HC4, more strict
+  coeftest(p4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")),
+  type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, 
+  model.names= FALSE, font.size = "small", digits = 2, 
+  float = TRUE, no.space = TRUE, single.row = FALSE, align = TRUE,
+  dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE
+  )
+
+```
+
+
 ```{r table2, results='asis', warning=FALSE, message=FALSE, include = TRUE, echo = FALSE}
 stargazer::stargazer(
   p1,
@@ -595,3 +667,8 @@ stargazer::stargazer(
   dep.var.caption = "", dep.var.labels.include = FALSE, float.env = "sidewaystable"
 )
 ```
+
+
+## Final regression for the paper
+
+I will then go with `p4` or model 6 in the long tables. These are models that are clusterd around 3 dimensions (individual, group, and time). 
