@@ -42,8 +42,6 @@ library(estimatr)
 library(kableExtra)
 ```
   
-  
-
 This document explores new regressions for the analysis of game data of Cienaga Grande de Santa Marta. Most ideas were discussed with Jorge Maldonado in our last meeting in Gothemburg. As response variable we use individual extraction in the game, and the proportion of individual extraction / stock size. The results for OLS are presented graphically: simple OLS, robust OLS, and robust OLS with clustered standard errors were fitted. With the aim of replicating STATA output, the variance covariance matrix is calculated with White variance method with weighting scheme "HC1", which is the default in STATA. 
 ```{r data, warnings = FALSE, message = FALSE, include = FALSE}
 
@@ -73,11 +71,6 @@ dat <- as_tibble(dat) %>%
 dat$Treatment <- factor(dat$Treatment, levels(dat$Treatment)[c(1,3,2,4)])
 # levels(dat$Treatment)
 
-### For the analysis proposed by Jorge I need to get rid of missing values, set all NA to zero before calculating anything else.
-dat <-  dat %>%
-  replace_na(list(StockSizeBegining = 0, SumTotalCatch = 0, IntermediateStockSize = 0, Regeneration = 0, NewStockSize = 0))
-
-
 dat <- mutate (dat, threshold = ifelse (dat$Treatment == "Base line" | dat$part == FALSE, 20, 28 ))
 dat <- dat %>% mutate(
   dummy_threshold = ifelse(NewStockSize - threshold > 0, FALSE, TRUE))
@@ -92,12 +85,21 @@ dat <- dat %>%
   mutate (optimal = (StockSizeBegining - threshold) / 4) %>%
   mutate (cooperation = ifelse(
     StockSizeBegining == 0, NA, 
-    ifelse((4*optimal) < 0 & ind_extraction == 0, 0, optimal - ind_extraction)))
+    ifelse((4*optimal) < 0 & ind_extraction == 0, 0, optimal - ind_extraction))) %>%
+  mutate(cooperation2 = ifelse(
+    optimal < 1 & ind_extraction == 0, 1,
+    ifelse(optimal == 0 & ind_extraction == 1, 1.5, 
+    ifelse(optimal < 1 & ind_extraction > 0, ind_extraction, ind_extraction / optimal)
+  )))
 
 ## use the demeaned extraction as a try:
 dat <- dat %>%
   mutate(demean_extraction = (ind_extraction - mean(ind_extraction))/ sd(ind_extraction)) %>%
   mutate(stock_ratio = ind_extraction/StockSizeBegining)
+
+## test of normality:
+# shapiro.test(dat$cooperation2)
+# interpretation: if p > 0.05 then is normal, if not, it's not normally distributed.
 
 
 ## coordination is calculated next
@@ -118,17 +120,35 @@ x <- bind_rows(x)
 x$ID_player <- as.factor(x$ID_player)
 x <- mutate(x, coordination = 1-mean_dist)
 
+
+
+### For the analysis proposed by Jorge I need to get rid of missing values, set all NA to zero before calculating anything else.
+dat <-  dat %>%
+  replace_na(list(StockSizeBegining = 0, SumTotalCatch = 0, IntermediateStockSize = 0, Regeneration = 0, NewStockSize = 0))
+
+
+
 # rm(y , z, player, mean_dist, df)
 
-ind_coop <- dat %>% #filter(part == TRUE) %>%
-  select( Treatment, Place, ID_player, group, Round, cooperation, part, Player) %>%
+ind_coop <- dat %>% filter(part == TRUE) %>%
+  select( Treatment, Place, ID_player, group, Round, cooperation2, part, Player) %>%
   group_by(Treatment, Place, ID_player, group, part, Player) %>%
-  summarize(Cooperation = mean(cooperation, na.rm = T),
-            variance = var(cooperation, na.rm = T),
-            skewness = skewness(cooperation, na.rm = T),
-            med_coop = median(cooperation, na.rm = T))
+  summarize(Cooperation = mean(cooperation2, na.rm = T),
+            variance = var(cooperation2, na.rm = T),
+            skewness = skewness(cooperation2, na.rm = T),
+            med_coop = median(cooperation2, na.rm = T))
 
 exp_notes <- as_tibble(exp_notes)
+agreements <- exp_notes %>% 
+  select(39,98, A.round, ID_player, ID_Obs) %>% 
+  mutate(
+    round = as.numeric(A.round), 
+    agreement = pmax(A11.3..agreement, B11.3..agreement, na.rm = TRUE)) %>% 
+  filter(round>6) %>% 
+  group_by(ID_player) %>% 
+  summarize(prop_ag = sum(agreement, na.rm = T)/10)
+
+
 risk_amb <- exp_notes %>% select(119:130,132) %>% unique()
 
 risk <- risk_amb %>% select(13,
@@ -137,19 +157,20 @@ risk <- risk_amb %>% select(13,
 
 risk <- risk %>%
     mutate(Risk_0_38k = forcats::fct_recode(Risk_0_38k, NULL = '', '1' = '|')) %>% mutate(Risk_0_38k = as.numeric(as.character(Risk_0_38k))) %>%
-    gather(key = Risk, value = choice, 2:7) %>%
+    gather(key = Risk, value = choice, 2:7, na.rm = FALSE) %>%
     filter(choice == 1)
 
 risk$Risk <- as.factor(risk$Risk)
 levels(risk$Risk) <- c(6,2,1,5,4,3)
 risk$Risk <- as.numeric(risk$Risk)
 
+# J190219: Note that there are few people with no choice in the risk task. So one looses something here (7obs), need to go back to original data.
+
 ### J180102: There is errors also on the ambiguity elicitation task data. The group of 2016-02-09.Threshold.am all players have NAs.
 amb <- risk_amb %>% select(13, Amb_0_38k = 7, Amb_13k =8, Amb_10_19k = 9, Amb_7_25k = 10, Amb_4_31k = 11, Amb_2_36k = 12)
 
 ## for the people with two choices, I leave only one manually, but note, this needs to be checked with raw data and change afterwards here to correct for the right one.
 # this command shows the errors:
-
 # amb %>% group_by(ID_player) %>% summarize(choice = sum(Amb_0_38k, Amb_13k, Amb_10_19k, Amb_7_25k ,Amb_4_31k ,Amb_2_36k)) %>% filter(choice == 0 | choice == 2 | is.na(choice))
 ## Manual corrections
 amb[amb$ID_player == "2016-02-01.Threshold.am.2", "Amb_4_31k"] <- 0
@@ -157,7 +178,7 @@ amb[amb$ID_player == "2016-02-05.Uncertainty.am.2", "Amb_10_19k"] <- 0
 amb[amb$ID_player == "2016-02-02.Base line.am.4", "Amb_10_19k"] <- 1
 
 ## note, this still keeps the NA players and they are dropped when choice == 1, but at least there is no duplicates now.
-
+## The dataset still only has 252/256 obs, for 4 people all choices were coded as zero.
 amb <- amb %>%
   gather(key = Amb, value = choice, 2:7) %>%
   filter(choice == 1)
@@ -193,10 +214,37 @@ ind_coop <- left_join(ind_coop, select(amb, 1,2), by = "ID_player")
 
 ind_coop <- mutate(ind_coop, ND_log_pesos = log(ND_pesos), BD_log_pesos = log1p(BD_pesos))
 
+ind_coop <- dat %>%
+  group_by(ID_player, part) %>%
+  summarize(
+    mean_extraction = median(ind_extraction, na.rm = TRUE),
+    mean_prop_extr = median(stock_ratio, na.rm = TRUE),
+    var_extraction = var(ind_extraction, na.rm = TRUE),
+    var_prop_extr = var(stock_ratio, na.rm = TRUE)
+  ) %>%
+  right_join(ind_coop)
+
+## correct education, there is two variables with the same info, unify to avoid missing values:
+
+ind_coop <- ind_coop %>%
+  mutate(education_yr = ifelse(
+    !is.na(education_yrs), education_yrs,
+    ifelse(
+      education == 1, 0,
+      ifelse(
+        education == 2, 5, 
+        ifelse(education == 3, 11, 16)
+      )
+    )
+  ))
+
+ind_coop <- ind_coop %>% 
+  left_join(agreements)
+
 ```
 
 ## OLS
-### OLS estimation: individual extraction
+### OLS estimation: individual extraction & proportion of stock
 
 ```{r include = FALSE}
 # names(dat)
@@ -231,33 +279,29 @@ ols_robust_cluster <- lm_robust(
 ```
 
 
-```{r fig1, fig.height= 3, fig.width= 5, include = TRUE, echo = FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+```{r fig1, fig.height= 2, fig.width= 6, include = TRUE, echo = FALSE, message=FALSE, warning=FALSE, fig.align='center', fig.cap = 'Comparison of linear models. (A) individual extraction and (B) proportion of stock available as response variable. SE estimation using HC1 (Stata default) and are clustered around groups.', fig.pos = "h", out.extra= ''}
 df1 <- tidy(ols) %>% mutate(model = "ols")
 df2 <- tidy(ols_robust) %>% mutate(model = "ols robust")
 df3 <- tidy(ols_robust_cluster) %>% mutate(model = "ols robust \n cluster SE")
 
-df <- bind_rows(df3,df2 ,df1)
+df_A <- bind_rows(df3,df2 ,df1)
 
-df %>% 
-  mutate(term = factor(term, levels = rev(unique(term)))) %>%
-  ggplot(aes(x = estimate, y = term)) +
-  geom_vline(xintercept = 0, color = "grey84", linetype = 2, size = 0.5) +
-    geom_point(aes(shape = ifelse(
-        p.value < 0.05, "< 0.05" ,
-            ifelse(p.value < 0.1, "< 0.1", "> 0.1")
-        )), size = 2, show.legend = TRUE) +
-    scale_shape_manual(name = "p value", values = c(19,7,1)) +
-    geom_errorbarh(aes(xmin = conf.low, xmax = conf.high, height = .25)) +
-  facet_grid(. ~ model, scales = "free_x") +
-  theme_light(base_size = 8) +
-  ggtitle("Comparison of linear models", 
-  subtitle = "SE estimation using HC1 (Stata default)\n The cluster standard errors are clustered around 'group'")
-
-```
+# g1 <- df %>% 
+#   mutate(term = factor(term, levels = rev(unique(term)))) %>%
+#   ggplot(aes(x = estimate, y = term)) +
+#   geom_vline(xintercept = 0, color = "grey84", linetype = 2, size = 0.5) +
+#     geom_point(aes(shape = ifelse(
+#         p.value < 0.05, "< 0.05" ,
+#             ifelse(p.value < 0.1, "< 0.1", "> 0.1")
+#         )), size = 2, show.legend = TRUE) +
+#     scale_shape_manual(name = "p value", values = c(19,7,1)) +
+#     geom_errorbarh(aes(xmin = conf.low, xmax = conf.high, height = .25)) +
+#   facet_grid(. ~ model, scales = "free_x") +
+#   theme_light(base_size = 7) + theme(legend.position = "bottom") +
+#   labs(tag = "A")
 
 
-### OLS estimation: individual extraction
-```{r fig2, message=FALSE, warning=FALSE, fig.height=3, fig.width=5, include = TRUE, echo=FALSE, fig.align = 'center'}
+#### With proportion
 dat <- dat %>% mutate(prop = ind_extraction/StockSizeBegining)
 ols <- lm(prop ~ Treatment + part + as.numeric(Round)  , 
            data = dat)
@@ -282,9 +326,15 @@ df1 <- tidy(ols) %>% mutate(model = "ols")
 df2 <- tidy(ols_robust) %>% mutate(model = "ols robust")
 df3 <- tidy(ols_robust_cluster) %>% mutate(model = "ols robust \n cluster SE")
 
-df <- bind_rows(df3,df2 ,df1)
+df_B <- bind_rows(df3,df2 ,df1)
 
-df %>% 
+df_A$response <- "ind extraction"
+df_B$response <- "proportion stock"
+
+df <- bind_rows(df_A, df_B)
+
+
+g2 <- df %>% 
   mutate(term = factor(term, levels = rev(unique(term)))) %>%
   ggplot(aes(x = estimate, y = term)) +
   geom_vline(xintercept = 0, color = "grey84", linetype = 2, size = 0.5) +
@@ -294,12 +344,16 @@ df %>%
         )), size = 2, show.legend = TRUE) +
     scale_shape_manual(name = "p value", values = c(19,7,1)) +
     geom_errorbarh(aes(xmin = conf.low, xmax = conf.high, height = .25)) +
-  facet_grid(. ~ model, scales = "free_x") +
-  theme_light(base_size = 8) + 
-  ggtitle("Comparison of linear models", 
-   subtitle = "SE estimation using HC1 (Stata default)\n The cluster standard errors are clustered around 'group'")
+  facet_grid(. ~ response + model, scales = "free_x") +
+  theme_light(base_size = 7) + theme(legend.position = "bottom") 
 
+# source('~/Dropbox/Code/multiplot.R')
+# g <- list (g1,g2 )
+# 
+# layout <- matrix(c(1:2), ncol = 2, nrow = 1, byrow = T)
+# multiplot(plotlist = g, layout = layout)
 
+g2
 ```
 
 
@@ -321,7 +375,7 @@ The results for panel models are presented in regression tables, Table 1 shows r
     7. Panel with only fase 2 of the game
     8. Robust panel with only fase 2 of the game
     9. Robust and clustered panel with only fase 2 of the game
-* Extra [J190213: This is wrong, corrected on next section entitled Diff-in-diff]:
+* Extra [**J190213:** expanded on next section entitled Diff-in-diff]:
     10. The model I trust the most is (6), it's the diff-in-diff approach clustered in three dimensions (individual, time, group). Model 10 calculate the clustered standard errors with Nwewy and West (1987) robust covariance matrix estimator, which I read is more appropriate for dynamic games with short panels. Other sources also propose the type "HC4" as more reliable (more restrictive).
 
 
@@ -387,17 +441,131 @@ p6 <- plm(ind_extraction ~ Treatment + as.numeric(Round) + StockSizeBegining ,
 # coeftest(p6, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group"))
 ```
 
+```{r include = FALSE}
+# simple
+q1 <- plm(prop ~ Treatment + part + as.numeric(Round)  , 
+            data = pdata.frame(dat, index = c('ID_player' ,'Round', "group")),
+          model = "random", 
+          effect = "individual" )
+# robust: # I think white1 and HC1 are stata defaults
+# coeftest(p1, vcov.=function(x) vcovHC(x, method="white1", type="HC1"))
 
+# clustered:
+q2 <- plm(prop ~ Treatment + part + as.numeric(Round)  , 
+            data = pdata.frame(dat, index = c('ID_player' ,'Round', "group")),
+          model = "random", random.method = "walhus",
+          effect = "nested" )
+# coeftest(p2, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group"))
+
+# summary(p1)
+
+# simple
+q3 <- plm(prop ~ Treatment + part + Treatment * part + as.numeric(Round)  , 
+            data = pdata.frame(dat, index = c('ID_player' ,'Round', "group")),
+          model = "random", random.method = "walhus",
+          effect = "individual" )
+# summary(p3)
+# robust: # I think white1 and HC1 are stata defaults
+# coeftest(p3, vcov.=function(x) vcovHC(x, method="white1", type="HC1"))
+
+# clustered:
+q4 <- plm(prop ~ Treatment + part +Treatment * part + as.numeric(Round) , 
+            data = pdata.frame(dat, index = c('ID_player' ,'Round', "group")),
+          model = "random", random.method = "walhus",
+          effect = "nested" )
+# coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group"))
+
+## Alternatively with vcovNW with HC4 which is more strict
+# coeftest(p4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group"))
+
+# simple
+q5 <- plm(prop ~ Treatment + as.numeric(Round) , 
+            data = pdata.frame(dat %>% filter(part == TRUE), index = c('ID_player' ,'Round', "group")),
+          model = "random", 
+          effect = "individual" )
+
+# robust: # I think white1 and HC1 are stata defaults
+# coeftest(p5, vcov.=function(x) vcovHC(x, method="white1", type="HC1"))
+
+# clustered:
+q6 <- plm(prop ~ Treatment + as.numeric(Round)  , 
+            data = pdata.frame(dat %>% filter(part == TRUE), index = c('ID_player' ,'Round', "group")),
+          model = "random", random.method = "walhus",
+          effect = "nested" )
+# coeftest(p6, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group"))
+
+## Alternatively with vcovNW with HC4 which is more strict
+#coeftest(p6, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group"))
+```
+
+
+```{r just_a_try, include = FALSE}
+# simple
+c1 <- plm(cooperation2 ~ Treatment + part + as.numeric(Round)  , 
+            data = pdata.frame(dat, index = c('ID_player' ,'Round', "group")),
+          model = "random", 
+          effect = "individual" )
+# robust: # I think white1 and HC1 are stata defaults
+# coeftest(p1, vcov.=function(x) vcovHC(x, method="white1", type="HC1"))
+
+# clustered:
+c2 <- plm(cooperation2 ~ Treatment + part + as.numeric(Round)  , 
+            data = pdata.frame(dat, index = c('ID_player' ,'Round', "group")),
+          model = "random", random.method = "walhus",
+          effect = "nested" )
+# coeftest(p2, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group"))
+
+# summary(p1)
+
+# simple
+c3 <- plm(cooperation2 ~ Treatment + part + Treatment * part + as.numeric(Round)  , 
+            data = pdata.frame(dat, index = c('ID_player' ,'Round', "group")),
+          model = "random", random.method = "walhus",
+          effect = "individual" )
+# summary(p3)
+# robust: # I think white1 and HC1 are stata defaults
+# coeftest(p3, vcov.=function(x) vcovHC(x, method="white1", type="HC1"))
+
+# clustered:
+c4 <- plm(cooperation2 ~ Treatment + part +Treatment * part + as.numeric(Round) , 
+            data = pdata.frame(dat, index = c('ID_player' ,'Round', "group")),
+          model = "random", random.method = "walhus",
+          effect = "nested" )
+# coeftest(c4, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group"))
+
+## Alternatively with vcovNW with HC4 which is more strict
+# coeftest(c4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group"))
+
+# simple
+c5 <- plm(cooperation2 ~ Treatment + as.numeric(Round) , 
+            data = pdata.frame(dat %>% filter(part == TRUE), index = c('ID_player' ,'Round', "group")),
+          model = "random", 
+          effect = "individual" )
+
+# robust: # I think white1 and HC1 are stata defaults
+# coeftest(p5, vcov.=function(x) vcovHC(x, method="white1", type="HC1"))
+
+# clustered:
+c6 <- plm(cooperation2 ~ Treatment + as.numeric(Round)  , 
+            data = pdata.frame(dat %>% filter(part == TRUE), index = c('ID_player' ,'Round', "group")),
+          model = "random", random.method = "walhus",
+          effect = "nested" )
+# coeftest(p6, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group"))
+
+## Alternatively with vcovNW with HC4 which is more strict
+#coeftest(p6, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group"))
+```
 
 ## Diff-in-diff
 
-I was confused for a while on how to get and interpret the diff-in-diff results. It's intuitive when reading "Mostly harmless econometrics" or online tutorials. But my confusion was whether the interaction term Treatment*Part was the diff-in-diff term or not. The following [teaching slides](http://web.mit.edu/teppei/www/teaching/Keio2016/06dd.pdf) set helped me out. On slide 11 and 12 it shows the graphical explanation I'm used to, where you get the before after treatment effects comparision between the control group and treated group. Then the difference searched for is based on a parallel trends assumption. I will reproduce the graphical representation in a moment. Before, I'd like to take notes on what solved the problem (slide 17) that says: Because $G{i}$ and $T{i}$ are both binary, the same [graphical] estimator can be calculated via regression: 
+I was confused for a while on how to get and interpret the diff-in-diff results. It's intuitive when reading _"Mostly harmless econometrics"_ or online tutorials. But my confusion was whether the interaction term `Treatment*Part` was the diff-in-diff term or not. The following teaching slides [^1]:(http://web.mit.edu/teppei/www/teaching/Keio2016/06dd.pdf) helped me out. On slide 11 and 12 it shows the graphical explanation I'm used to, where you get the before after treatment effects comparision between the control group and treated group. Then the difference searched for is based on a parallel trends assumption. I will reproduce the graphical representation in a moment. Before, I'd like to take notes on what solved the problem (slide 17) that says: Because $G{i}$ groups and $T{i}$ treatments are both binary, the same [graphical] estimator can be calculated via regression: 
 
 $$\hat{Y_i} = \hat{\mu} + \hat{\gamma}G_i + \hat{\delta}T_i + \hat{\tau}G_iT_i$$
 
 Where $\hat{\mu}$, $\hat{\gamma}$, $\hat{\delta}$, and $\hat{\tau}$ are OLS regression estimates. 
 Then $\hat{\tau}$ is the diff-in-diff effect (or ATT = average treatment on the treated):
 
+Table 1: Definitions of the difference-in-difference approach
 
 |  Terms         | After ($T_i = 1$) | Before ($T_i = 0$) | After-Before |
 |:--------------:|:---------------:|:----------------:|:------------:|
@@ -407,12 +575,13 @@ Then $\hat{\tau}$ is the diff-in-diff effect (or ATT = average treatment on the 
 
 
 Pluggin-in the numbers but now replacing each treatment:
-```{r fig3, include = TRUE, echo = FALSE, fig.height=3, fig.width=3, fig.align='right'}
+
+```{r tables, results='asis', include=TRUE, echo=FALSE, warning=FALSE, message=FALSE }
 
 coeffs <- coef(p4)
 
 diff_df <- data_frame(
-  treatment = c("Baseline","Threshold","Risk","Uncertainty", "Threshold-Baseline", "Risk-Baseline", "Uncertainty-Baseline"),
+  treatment = c("Baseline","Threshold","Risk","Uncertainty", "Threshold-Baseline", "Risk-Baseline", "Uncertainty-Baseline", "Threshold-counter", "Risk-counter", "Uncertainty-counter"),
   after = c(
     sum(coeffs[c(1,5)]), # mu and delta = intercept and partTRUE
     sum(coeffs[c(1,5,2,8)]),
@@ -420,7 +589,10 @@ diff_df <- data_frame(
     sum(coeffs[c(1,5,4,10)]),
     sum(coeffs[c(2,8)]),
     sum(coeffs[c(3,9)]),
-    sum(coeffs[c(4,10)])
+    sum(coeffs[c(4,10)]),
+    sum(coeffs[c(1,5,2)]),
+    sum(coeffs[c(1,5,3)]),
+    sum(coeffs[c(1,5,4)])
   ),
   before = c(
     coeffs[1],
@@ -429,14 +601,17 @@ diff_df <- data_frame(
     sum(coeffs[c(1,4)]),
     coeffs[2],
     coeffs[3],
-    coeffs[4]
+    coeffs[4],
+    sum(coeffs[c(1,2)]),
+    sum(coeffs[c(1,3)]),
+    sum(coeffs[c(1,4)])
   )
 )
 
 diff_df <- diff_df %>%
   mutate(difference = after - before)
 
-kable(diff_df, digits = 2)
+
 
 ## Visualization based on raw data
 # dat %>% 
@@ -446,19 +621,149 @@ kable(diff_df, digits = 2)
 #   geom_point(aes(color = Treatment)) + 
 #   geom_line(aes(group = Treatment, color = Treatment))
 
+## Proportion of stock
+
+coeffs <- coef(q4)
+
+diff_df2 <- data_frame(
+  treatment = c("Baseline","Threshold","Risk","Uncertainty", "Threshold-Baseline", "Risk-Baseline", "Uncertainty-Baseline","Threshold-counter", "Risk-counter", "Uncertainty-counter" ),
+  after = c(
+    sum(coeffs[c(1,5)]), # mu and delta = intercept and partTRUE
+    sum(coeffs[c(1,5,2,7)]),
+    sum(coeffs[c(1,5,3,8)]),
+    sum(coeffs[c(1,5,4,9)]),
+    sum(coeffs[c(2,7)]),
+    sum(coeffs[c(3,8)]),
+    sum(coeffs[c(4,9)]),
+    sum(coeffs[c(1,5,2)]),
+    sum(coeffs[c(1,5,3)]),
+    sum(coeffs[c(1,5,4)])
+  ),
+  before = c(
+    coeffs[1],
+    sum(coeffs[c(1,2)]),
+    sum(coeffs[c(1,3)]),
+    sum(coeffs[c(1,4)]),
+    coeffs[2],
+    coeffs[3],
+    coeffs[4],
+    sum(coeffs[c(1,2)]),
+    sum(coeffs[c(1,3)]),
+    sum(coeffs[c(1,4)])
+  )
+)
+
+diff_df2 <- diff_df2 %>%
+  mutate(difference = after - before)
+
+
+
+## Visualization based on raw data
+# dat %>% 
+#   group_by(Treatment, part) %>% 
+#   summarize(mean_t = mean(ind_extraction))  %>% 
+#   ggplot(aes(x = part, y = mean_t)) + 
+#   geom_point(aes(color = Treatment)) + 
+#   geom_line(aes(group = Treatment, color = Treatment))
+
+### See first the tables
+
+stargazer::stargazer(
+  diff_df %>% as.data.frame(), 
+  type = "latex", header = FALSE, summary = FALSE, #float = FALSE,
+  digits = 2, title = "Diff-in-diff table for individual extraction")
+
+stargazer::stargazer(
+  diff_df2 %>% as.data.frame(),
+  type = "latex", header = FALSE, summary = FALSE, #float = FALSE,
+  digits = 2, title = "Diff-in-diff table for proportion of stock")
+
+```
+
+
+
+```{r fig3, include = TRUE, echo = FALSE, fig.height= 2, fig.width=5, fig.cap = "Difference-in-difference comparison for control and treated groups for (A) individual extraction as number of fish, and (B) as proportion of available stock size.", fig.pos = "H", out.extra= '', fig.align='center'}
+
 
 ## Visualization based on model
-diff_df[1:4,] %>% select(1:3) %>%
+g1 <- diff_df[1:4,] %>% select(1:3) %>%
+  gather(key = time, value = estimate, before, after) %>%
+  mutate(time = as_factor(time)) %>%
+  ggplot(aes(time, estimate)) +
+  geom_point(aes(color = treatment)) +
+  geom_line(aes(group = treatment, color = treatment)) + 
+  labs(tag = "A") +
+  theme_light(base_size = 8) + theme( legend.position = "right")
+
+
+## Visualization based on model
+g2 <- diff_df2[1:4,] %>% select(1:3) %>%
   gather(key = time, value = estimate, before, after) %>%
   mutate(time = as_factor(time)) %>%
   ggplot(aes(time, estimate)) +
   geom_point(aes(color = treatment)) +
   geom_line(aes(group = treatment, color = treatment)) +
-  theme_light(base_size = 8) + theme( legend.position = "bottom")
+  labs(tag = "B") +
+  theme_light(base_size = 8) + theme( legend.position = "right")
+
+source('~/Dropbox/Code/multiplot.R')
+g <- list (g1,g2 )
+
+layout <- matrix(c(1:2), ncol = 2, nrow = 1, byrow = T)
+multiplot(plotlist = g, layout = layout)
 
 ```
 
-Notice that in our table of treatment effects, the difference `after-before` produces the interaction effects $\hat{\tau}$ from the equation above as expected:
+```{r alternative_for_paper}
+
+
+diff_df$response <- "individual extraction"
+diff_df <- diff_df %>%
+  mutate(type = ifelse(
+    str_detect(treatment, "-Baseline"), "first_difference", 
+    ifelse(str_detect(treatment, "-counter"), "counterfactual", "observed"))) %>%
+  mutate(treatment = str_remove(treatment, "-Baseline"),
+         treatment = str_remove(treatment, "-counter")) %>%
+    gather(key = time, value = estimate, before, after) %>%
+  mutate(time = as_factor(time), type = as_factor(type), treatment = as_factor(treatment)) %>%
+  filter(type != "first_difference")
+
+
+
+diff_df2$response <- "proportion stock"
+diff_df2 <- diff_df2 %>%
+  mutate(type = ifelse(
+    str_detect(treatment, "-Baseline"), "first_difference", 
+    ifelse(str_detect(treatment, "-counter"), "counterfactual", "observed"))) %>%
+  mutate(treatment = str_remove(treatment, "-Baseline"),
+         treatment = str_remove(treatment, "-counter")) %>%
+    gather(key = time, value = estimate, before, after) %>%
+  mutate(time = as_factor(time), type = as_factor(type), treatment = as_factor(treatment)) %>%
+  filter(type != "first_difference")
+  
+  
+  
+diff_df3 <- bind_rows(
+  diff_df, diff_df2
+)
+
+g_diff <- diff_df3  %>% 
+  ggplot(aes(time, estimate, group = type)) +
+  geom_point() +
+  geom_line(aes(linetype = type)) +
+  facet_grid(response ~ treatment, scales = "free_y" ) +
+  theme_light(base_size = 8) + theme(legend.position = "bottom") +
+  labs(title = "Difference in difference")
+
+# ggsave(g_diff, filename = "diff-in-diff.png", device = "png", width = 5, height = 5, units = "in", dpi = 600 )
+
+g_diff
+```
+
+
+
+
+Notice that in our table of treatment effects, the difference `after-before` produces the interaction effects $\hat{\tau}$ from the equation above as expected. See Tables 4 and 5 which show the different regression results and compare them with Tables 2 and 3 respectively, which are calculated following the formulas of Table 1.
 
 
 ```{r table0, results='asis', include=TRUE, echo=FALSE}
@@ -476,10 +781,35 @@ stargazer::stargazer(
   type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, 
   model.names= FALSE, font.size = "small", digits = 2, 
   float = TRUE, no.space = TRUE, single.row = FALSE, align = TRUE,
-  dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE
+  dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE,
+  title = "Clustered and robust standard errors estimation with White method and (1) HC1, (2) HC2, (3) HC3, (4) HC4 weighting schemes, and (5) Newey and West method with HC4 scheme. The response variable is individual extraction."
   )
 
 ```
+
+```{r table01, results='asis', include=TRUE, echo=FALSE}
+stargazer::stargazer(
+  # clustered and robust:
+  coeftest(q4, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group")),
+  # clustered and robust:
+  coeftest(q4, vcov.=function(x) vcovHC(x, method="white2", type="HC2", cluster = "group")),
+  # clustered and robust:
+  coeftest(q4, vcov.=function(x) vcovHC(x, method="white2", type="HC3", cluster = "group")),
+  # clustered and robust:
+  coeftest(q4, vcov.=function(x) vcovHC(x, method="white2", type="HC4", cluster = "group")),
+  # last model with NW and HC4, more strict
+  coeftest(q4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")),
+  type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, 
+  model.names= FALSE, font.size = "small", digits = 2, 
+  float = TRUE, no.space = TRUE, single.row = FALSE, align = TRUE,
+  dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE,
+  title = "Clustered and robust standard errors estimation with White method and (1) HC1, (2) HC2, (3) HC3, (4) HC4 weighting schemes, and (5) Newey and West method with HC4 scheme. The response variable is individual extraction as proportion of the available stock."
+  )
+
+```
+
+
+
 
 
 
@@ -505,170 +835,171 @@ stargazer::stargazer(
   type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, 
   model.names= FALSE, font.size = "tiny", digits = 2, 
   float = TRUE, no.space = TRUE, single.row = FALSE, align = TRUE,
-  dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE, float.env = "sidewaystable"
+  dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE, float.env = "sidewaystable",
+  title = "Comparison of models 1-10 with response variable individual extraction."
 )
-```
-
-## _Proportion of resource_ regressions
-
-
-```{r include = FALSE}
-# simple
-p1 <- plm(prop ~ Treatment + part + as.numeric(Round)  , 
-            data = pdata.frame(dat, index = c('ID_player' ,'Round', "group")),
-          model = "random", 
-          effect = "individual" )
-# robust: # I think white1 and HC1 are stata defaults
-# coeftest(p1, vcov.=function(x) vcovHC(x, method="white1", type="HC1"))
-
-# clustered:
-p2 <- plm(prop ~ Treatment + part + as.numeric(Round)  , 
-            data = pdata.frame(dat, index = c('ID_player' ,'Round', "group")),
-          model = "random", random.method = "walhus",
-          effect = "nested" )
-# coeftest(p2, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group"))
-
-# summary(p1)
-
-# simple
-p3 <- plm(prop ~ Treatment + part + Treatment * part + as.numeric(Round)  , 
-            data = pdata.frame(dat, index = c('ID_player' ,'Round', "group")),
-          model = "random", random.method = "walhus",
-          effect = "individual" )
-# summary(p3)
-# robust: # I think white1 and HC1 are stata defaults
-# coeftest(p3, vcov.=function(x) vcovHC(x, method="white1", type="HC1"))
-
-# clustered:
-p4 <- plm(prop ~ Treatment + part +Treatment * part + as.numeric(Round) , 
-            data = pdata.frame(dat, index = c('ID_player' ,'Round', "group")),
-          model = "random", random.method = "walhus",
-          effect = "nested" )
-# coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group"))
-
-## Alternatively with vcovNW with HC4 which is more strict
-# coeftest(p4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group"))
-
-# simple
-p5 <- plm(prop ~ Treatment + as.numeric(Round) , 
-            data = pdata.frame(dat %>% filter(part == TRUE), index = c('ID_player' ,'Round', "group")),
-          model = "random", 
-          effect = "individual" )
-
-# robust: # I think white1 and HC1 are stata defaults
-# coeftest(p5, vcov.=function(x) vcovHC(x, method="white1", type="HC1"))
-
-# clustered:
-p6 <- plm(prop ~ Treatment + as.numeric(Round)  , 
-            data = pdata.frame(dat %>% filter(part == TRUE), index = c('ID_player' ,'Round', "group")),
-          model = "random", random.method = "walhus",
-          effect = "nested" )
-# coeftest(p6, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group"))
-
-## Alternatively with vcovNW with HC4 which is more strict
-#coeftest(p6, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group"))
-```
-
-```{r fig4, include = TRUE, echo = FALSE, fig.height=3, fig.width=3, fig.align='right'}
-
-coeffs <- coef(p4)
-
-diff_df <- data_frame(
-  treatment = c("Baseline","Threshold","Risk","Uncertainty", "Threshold-Baseline", "Risk-Baseline", "Uncertainty-Baseline"),
-  after = c(
-    sum(coeffs[c(1,5)]), # mu and delta = intercept and partTRUE
-    sum(coeffs[c(1,5,2,7)]),
-    sum(coeffs[c(1,5,3,8)]),
-    sum(coeffs[c(1,5,4,9)]),
-    sum(coeffs[c(2,7)]),
-    sum(coeffs[c(3,8)]),
-    sum(coeffs[c(4,9)])
-  ),
-  before = c(
-    coeffs[1],
-    sum(coeffs[c(1,2)]),
-    sum(coeffs[c(1,3)]),
-    sum(coeffs[c(1,4)]),
-    coeffs[2],
-    coeffs[3],
-    coeffs[4]
-  )
-)
-
-diff_df <- diff_df %>%
-  mutate(difference = after - before)
-
-kable(diff_df, digits = 2)
-
-## Visualization based on raw data
-# dat %>% 
-#   group_by(Treatment, part) %>% 
-#   summarize(mean_t = mean(ind_extraction))  %>% 
-#   ggplot(aes(x = part, y = mean_t)) + 
-#   geom_point(aes(color = Treatment)) + 
-#   geom_line(aes(group = Treatment, color = Treatment))
-
-
-## Visualization based on model
-diff_df[1:4,] %>% select(1:3) %>%
-  gather(key = time, value = estimate, before, after) %>%
-  mutate(time = as_factor(time)) %>%
-  ggplot(aes(time, estimate)) +
-  geom_point(aes(color = treatment)) +
-  geom_line(aes(group = treatment, color = treatment)) +
-  theme_light(base_size = 8) + theme( legend.position = "bottom")
-
-```
-
-
-```{r table01, results='asis', include=TRUE, echo=FALSE}
-stargazer::stargazer(
-  # clustered and robust:
-  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group")),
-  # clustered and robust:
-  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC2", cluster = "group")),
-  # clustered and robust:
-  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC3", cluster = "group")),
-  # clustered and robust:
-  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC4", cluster = "group")),
-  # last model with NW and HC4, more strict
-  coeftest(p4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")),
-  type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, 
-  model.names= FALSE, font.size = "small", digits = 2, 
-  float = TRUE, no.space = TRUE, single.row = FALSE, align = TRUE,
-  dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE
-  )
-
 ```
 
 
 ```{r table2, results='asis', warning=FALSE, message=FALSE, include = TRUE, echo = FALSE}
 stargazer::stargazer(
-  p1,
+  q1,
   # robust: # I think white1 and HC1 are stata defaults
-  coeftest(p1, vcov.=function(x) vcovHC(x, method="white1", type="HC1")),
+  coeftest(q1, vcov.=function(x) vcovHC(x, method="white1", type="HC1")),
   #clustered and robust
-  coeftest(p2, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group")),
-  p3,
+  coeftest(q2, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group")),
+  q3,
   # robust:
-  coeftest(p3, vcov.=function(x) vcovHC(x, method="white1", type="HC1")),
+  coeftest(q3, vcov.=function(x) vcovHC(x, method="white1", type="HC1")),
   # clustered and robust:
-  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group")),
-  p5,
+  coeftest(q4, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group")),
+  q5,
   # robust:
-  coeftest(p5, vcov.=function(x) vcovHC(x, method="white1", type="HC1")),
+  coeftest(q5, vcov.=function(x) vcovHC(x, method="white1", type="HC1")),
   # clustered and robust:
-  coeftest(p6, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group")),
+  coeftest(q6, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group")),
   # last model with NW and HC4, more strict
-  coeftest(p4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")),
+  coeftest(q4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")),
   type = "latex", font.size = "tiny", model.names = FALSE, 
   multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
   float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
-  dep.var.caption = "", dep.var.labels.include = FALSE, float.env = "sidewaystable"
+  dep.var.caption = "", dep.var.labels.include = FALSE, float.env = "sidewaystable",
+  title = "Model comparison 1-10 with response variable individual extraction as proportion of available stock."
 )
 ```
+
+Jorge also asked me to perform F-tests or linear hypotheses to check that the coefficients in the regression are significantly different. If I understood correctly, the test is to check that the difference between `Treatment*part` and `Treatment` coefficients are indeed different from zero. Going back to our regression formula, I'm testing if $H_0: \hat{\gamma}+\hat{\tau} = 0$, or if the difference of the `Treated-Control` is significantly different from zero. Alternatively, I'm also adding an F-test that check whether all coefficients from our regressions are different from zero. All F-tests use a robust estimation of standard errors using variance-covariance matrix of type "HC4" clustered around group, a more restricted version that the default STATA option developed by Newey-West. Results are shown in Tables 8, 9, and 10. The F-statistic estimated is for the joint hypothesis that $H_0: \hat{\gamma}+\hat{\tau} = 0$ for all treatments, so the alternative model has 3 degrees of freedom, one for each treatment tested. 
+
+```{r f_test1,  results='asis', warning=FALSE, message=FALSE, include = TRUE, echo = FALSE}
+hyp <- c("TreatmentThreshold:partTRUE + TreatmentThreshold = 0", 
+         "TreatmentRisk:partTRUE + TreatmentRisk = 0",
+         "TreatmentUncertainty:partTRUE + TreatmentUncertainty= 0")
+
+lh1 <- linearHypothesis(p4, hyp, test = "F", 
+                  vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")) %>%
+  tidy() %>% as.data.frame()
+
+lh2 <- linearHypothesis(q4, hyp, test = "F", 
+                 vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")) %>%
+  tidy() %>% as.data.frame()
+
+lh3 <- linearHypothesis(p4, diag(10), c(rep(0,10)), test = "F",
+                 vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")) %>%
+  tidy() %>% as.data.frame()
+
+stargazer::stargazer(
+  lh1, type = "latex", digits = 2, digits.extra = 1,summary = FALSE, header = FALSE,
+  title = "F-test linear hypothesis with individual extraction model")
+stargazer::stargazer(
+  lh2, type = "latex", digits = 2, digits.extra = 1, summary = FALSE, header = FALSE,
+  title = "F-test linear hypotehsis with proportion extraction model")
+stargazer::stargazer(
+  lh3, type = "latex", digits = 2, digits.extra = 1,summary = FALSE, header = FALSE,
+  title = "Testing that all coefficients are different from zero with individual extraction model")
+
+```
+
 
 
 ## Final regression for the paper
 
-I will then go with `p4` or model 6 in the long tables. These are models that are clusterd around 3 dimensions (individual, group, and time). 
+I will then go with `p4` and `q4` or models 6 and 10 in the long tables (6 and 7). These are models that are clusterd around 3 dimensions (individual, group, and time) and shown consistent results under different clustering techniques ("HC1" to "HC4" and Newey and West variation). In addition to the panel regressions, I will run OLS regressions on summary statistics for the second part of the game. Why don't use the first one? Well, because there is noise on the first part when participants were still learning the game and getting use to the group dynamics. I was also discouraged of using survey data as covariants in the panel regression. In the diff-in-diff approach, the survey covariants are not time-variant and introduce noise in the interpretation of diff-in-diff coefficients.
+
+```{r fig5, include = TRUE, echo = FALSE, fig.height=4, fig.width=4, fig.align='center', warning=FALSE, message=FALSE, dev.args= list(pointsize = 6), fig.cap = "Correlations between response variables"}
+
+pm <- GGally::ggpairs(
+  data = ind_coop %>% filter(part == TRUE),
+  columns = c(3:6,14,52),
+  aes(color = Treatment, alpha = 0.5),
+  upper = list(continuous = wrap("cor", size = 3, alignPercent = 1, hjust = 0))
+  )
+
+pm + theme_light(base_size = 10) + theme(legend.position = "bottom")
+```
+
+
+
+
+### OLS with survey covariants and ambiguity / risk tasks.
+
+* Socio economic variables:
+    + *age*: age in years (`r sum(is.na(ind_coop$age))` missing values).
+    + *fishing_age*: age at which the person started fishing (`r sum(is.na(ind_coop$fishing_age))` missing values).
+    + *sale*: How much of the catch is for sale? (0 = none : 4 = all, `r sum(is.na(ind_coop$sale))` missing values).
+    + *take_home*: How much of the catch is for take home? (0 = none : 4 = all, `r sum(is.na(ind_coop$take_home))` missing values).
+    + *life_satisfaction*: Self assessment of life satisfaction where 1 is very satisfied and 4 very dissatisfied (`r sum(is.na(ind_coop$life_satisfaction))` missing values).
+    + *education*: Formal education (1=none, 2=elementary, 3=secondary, 4=university, `r sum(is.na(ind_coop$education_yr))` mising values )
+* Fishing variables:
+    + *ND_log_pesos*: normal day earning in pesos (log scale, `r sum(is.na(ind_coop$ND_pesos))` missing values).
+    + *BD_log_pesos*: Bad day earning in pesos (in log scale, added 1 to 0 to avoid -Inf values, `r sum(is.na(ind_coop$age))` missing values).
+    + *week_days*: Number of fishing days in a normal week (`r sum(is.na(ind_coop$week_days))` missing values).
+    + *ND_hours*: Number of hours per day in a normal day (`r sum(is.na(ind_coop$ND_hrs))` missing values).
+    + *BD_how_often*: How often do you have a bad day? (once a year = 1, once a month = 2, once a week = 3, > once a week = 4, `r sum(is.na(ind_coop$BD_how_often))` missing values)
+    + *group_fishing*: Is fishing done in groups (1 = yes, 0 = no, `r sum(is.na(ind_coop$group_fishing))` missing values)
+    + *boat*: Do you own the boat? yes =1, no = 0 (`r sum(is.na(ind_coop$boat))` missing values).
+    + *sharing_art*: Do you share your fishing gear? yes = 1, no = 0 (`r sum(is.na(ind_coop$sharing_art))` missing values).
+    + *fishing_children*: Do you expect your children to become fishermen (0=definitely no, 1=no, 2=definitely yes, 3=yes, 4=don't know, `r sum(is.na(ind_coop$fishing_children))` missing values)
+    + *history_rs*: Have you experience dramatic changes (regime shifts)? yes = 1, no = 0 (`r sum(is.na(ind_coop$history_rs))` missing values).
+* Risk and ambiguity task:
+    + *Risk*: Risk elicitation task where 1 is risk-taker and 6 risk-averse (`r sum(is.na(ind_coop$Risk))` missing values).
+    + *Amb*: Ambiguity elicitation task where 1 is ambiguity-taker, and 6 ambiguity-averse (`r sum(is.na(ind_coop$Amb))` missing values).
+
+```{r regression_survey, include = TRUE, echo = FALSE, message=FALSE, warning=FALSE}
+y_vars <- c("mean_extraction", "mean_prop_extr", "med_coop", "variance", "coordination", "var_extraction", "var_prop_extr")
+x_vars <- "Treatment + age + education_yr + BD_how_often + fishing_children  + Risk + Amb + Place + prop_ag"
+out <-  map2(x_vars, y_vars, 
+         ~ lm_robust(as.formula(paste(.y, "~", .x)),
+              data = ind_coop %>% filter(part == T) %>% ungroup(),
+              se_type = 'stata', cluster = group)
+  )
+  
+  
+# out %>%
+#   map(., summary) %>%
+#   map(.,"r.squared")
+
+g_reg2 <- out %>%
+  map(tidy) %>%
+  map2(., .y = y_vars , function(x,y) {x$model <- y; return(x)}) %>%
+  bind_rows() %>%
+  mutate(term = factor(term, levels = rev(unique(term)))) %>%
+  ggplot(aes(x = estimate, y = term)) +
+  geom_vline(xintercept = 0, color = "grey84", linetype = 2, size = 0.5) +
+    geom_point(aes(shape = ifelse(
+        p.value < 0.05, "< 0.05" ,
+            ifelse(p.value < 0.1, "< 0.1", "> 0.1")
+        )), size = 3, show.legend = TRUE) +
+    scale_shape_manual(name = "p value", values = c(19,7,1)) +
+    geom_errorbarh(aes(xmin = conf.low, xmax = conf.high, height = .25)) +
+  facet_grid(. ~ model, scales = "free_x") +
+  theme_light(base_size = 8) + theme(legend.position = "bottom") +
+  ggtitle("What does explain the behaviour of individuals?") #subtitle = "Robust estimation with standard errors HC1 (aka. Stata) and clustered around groups"
+
+
+# ggsave(g_reg2, filename = "regression_cooperation.png", device = "png", width = 6, height = 4, units = "in", dpi = 300 )
+g_reg2
+```
+
+
+or in table form if you prefer:
+
+```{r table3, results='asis', warning=FALSE, message=FALSE, include = TRUE, echo = FALSE}
+
+out <-  map2(x_vars, y_vars, 
+         ~ lm(as.formula(paste(.y, "~", .x)),
+              data = ind_coop %>% filter(part == T) %>% ungroup()
+              )
+  )
+
+stargazer::stargazer(
+  out,
+  type = "latex", font.size = "small", model.names = FALSE,
+  multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
+  float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
+  dep.var.labels = NULL, #c("mean_extraction", "mean_prop_extr", "med_coop", "variance", "coordination"),
+  dep.var.labels.include = FALSE,
+  title = "Model comparison between (1) mean extraction, (2) mean proportion of stock available extracted, (3) median cooperation, (4) cooperation variance, and (5) coordination."
+)
+
+```
+
