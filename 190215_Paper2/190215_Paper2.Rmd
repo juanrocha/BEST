@@ -10,11 +10,11 @@ thanks: |
 
 authors:
 - name: Juan Rocha
-  address: Stockholm Resiliene Centre, Stockholm University; Beijer Institute of Ecological Economics, Swedish Royal Academy of Science
+  address: Stockholm Resilience Centre, Stockholm University; Beijer Institute of Ecological Economics, Swedish Royal Academy of Science
   email: juan.rocha@su.se
 
 - name: Caroline Schill
-  address: Stockholm Resiliene Centre, Stockholm University; Beijer Institute of Ecological Economics, Swedish Royal Academy of Science
+  address: Stockholm Resilience Centre, Stockholm University; Beijer Institute of Ecological Economics, Swedish Royal Academy of Science
   email: caroline.schill@su.se
 
 - name: Lina Maria Saavedra
@@ -55,11 +55,12 @@ abstract: |
   Cooperation is thought to be a necessary condition to solve collective dilemmas such as climate change or the sustainable use of common pool resources. Yet, it is poorly understood how situations pervaded by thresholds shape the behaviour of humans facing collective dilemmas. Here we provide empirical evidence that resource users when facing thresholds maintain in average cooperative behaviours maximising their individual earnings while taking care of future group opportunities to thrive. A dynamic game with 256 Colombian fishermen helped us investigate behavioural responses to the existence of thresholds (probability = 1), risk (threshold with known probability of 0.5) and uncertainty (threshold with unknown probability). The game was framed as a fishery ground with the likelihood of a climate event that abruptly reduced the recovery rate of the fish stocks on which the fishermen earnings depended. Uncertain thresholds made fishermen maintain higher levels of cooperation than when the risk of thresholds is known, but risk had a stronger effect at reducing individual fishing effort. If cooperation increases in the face of thresholds, then communicating uncertainty is more policy relevant than estimating precisely where tipping points lay in social-ecological systems.
 
 bibliography: best.bib
+csl: nature.csl
 output: rticles::springer_article
 ---
 
 
-Sustainability challenges are often characterised by situations pervaded with thresholds[@Liu:2015go]. Achieving sustainable development goals such as eradicating poverty, dealing with climate change, or solving the tragedy of the commons in using natural resources, require all cooperation to deal with situations characterised by non-linear dynamics with tipping points [@Vasconcelos:wz; @Rand:2013by; @Hauser:2014jg]. Under current development trajectories, ecosystems worldwide are at risk of undergoing more frequent and severe regime shifts --abrupt transitions in their function and structure-- changing the flow of ecosystem services on which societies rely upon, and the source of livelihoods for many communities [@IPCC:2013un; @Rocha:2018gn]. Some examples include bush encroachment, a regime shifts that reduces the ability of ranchers to maintain cattle; soil salinisation which compromises the ability of farmers to produce food; or the collapse of fisheries which could compromises the livelihoods of ~ 51 million people who today depend on it, most of them from developing countries [@FAO:2017ug]. Over 30 different types of regime shifts have been documented in social-ecological systems, and their frequency and intensity expected to increase [@Rocha:2018gn; @Biggs:2018hx]. Which rises the question: how do people behave when confronted with situations pervaded by thresholds? Do people race to the bottom and collapse their resources, or do they find strategies for dealing with threshold uncertainty?
+Sustainability challenges are often characterised by situations pervaded with thresholds[@Liu:2015go]. Achieving sustainable development goals such as eradicating poverty, dealing with climate change, or solving the tragedy of the commons in using natural resources, require all cooperation to deal with situations characterised by non-linear dynamics with tipping points [@Vasconcelos:wz; @Rand:2013by; @Hauser:2014jg]. Under current development trajectories, ecosystems worldwide are at risk of undergoing more frequent and severe regime shifts --abrupt transitions in their function and structure-- changing the flow of ecosystem services on which societies rely upon, and the source of livelihoods for many communities [@IPCC:2013un; @Rocha:2018gn]. Some examples include bush encroachment, a regime shifts that reduces the ability of ranchers to maintain cattle; soil salinisation which compromises the ability of farmers to produce food; or the collapse of fisheries which could compromises the livelihoods of $\sim 51$ million people who today depend on it, most of them from developing countries [@FAO:2017ug]. Over 30 different types of regime shifts have been documented in social-ecological systems, and their frequency and intensity expected to increase [@Rocha:2018gn; @Biggs:2018hx]. Which rises the question: how do people behave when confronted with situations pervaded by thresholds? Do people race to the bottom and collapse their resources, or do they find strategies for dealing with threshold uncertainty?
 
 Traditionally these questions have been studied from a rather theoretical point of view [@Crepin:ul; @Barrett:2012hm; @Milinski:2008ky; @Barrett:2013gc; @Budescu:1990hj; @Polasky:2011p7155; @Hauser:2014jg] with a focus on public goods[@Dannenberg:2014ic]. Theoretical and empirical evidence suggest that the relationship between collective action and uncertainty is negative: the higher uncertainty, the higher the likelihood of cooperation to break down [@Barrett:2012hm; @Dannenberg:2014ic; @Milinski:2008ky; @Schill:2015kj; @Gustafsson:1999ho]. However, these empirical results have been largely obtained in lab settings with "weird" subjects: western, educated, industrialised, rich, and democratic [@Henrich:2010gn]. Whether these results hold when tested with real resource users is still an open question. The purpose of this paper is to fill that gap by testing how resource users behave in situations pervaded by thresholds. 
 
@@ -69,11 +70,13 @@ We studied the individual decision of fishermen by looking at their individual e
 
 To gain a better understanding of the interplay between group level dynamics and the context in which each individual decision was taken we designed two additional response variables: cooperation and coordination. Broadly speaking cooperation is working together towards a shared goal. Cooperation is also defined as *"a form of working together in which one individual pays a cost (in terms of fitness, whether genetic or cultural) and another gains a benefit as a result"* [@Nowak:2013vr]. In the context of common pool dilemmas (and non-dyadic games) cooperation can also be interpreted as favouring the common good over individual benefits [@Poteete:2010ud; @Ostrom:1990ws]. An important distinction in the literature is that of cooperators versus defectors, while cooperators pay a cost for other(s) to benefit, defectors have no cost and do not deal out benefits [@Nowak:2006p6717; @Axelrod:2006fe]. Here we operationalise these definitions by measuring cooperation as the ratio of the individual decision $x_{i,t}$ with respect to the optimal level for the group. Cooperation $C$ is measured assuming fairness or equal sharing of the stock available for fishing $S_t$ above the threshold $\theta$ ($\theta =  28$ in treatments and $\theta = 20$ in _baseline_ ):
 
-$$C_{i,t} = \frac{x_{i,t}}{\frac{S_t - \theta}{N}} $$
+\begin{align}
+C_{i,t} = \frac{x_{i,t}}{\frac{S_t - \theta}{N}}
+\end{align}
 
 where $N$ is the number of players in the group (always 4 in our experimental design). To avoid division by zero or negative values, if the denominator is < 1 and $x_{i,t} = 0$ cooperation is set to $C=1$ (212/4096 obs), and if the denominator is < 1 and $x_{i,t} > 0$ cooperation is set $C=1.5$ (17/4096 obs). Thus, cooperation is maximized when it reaches $C=1$ meaning that the individual took 100% of what was fair to take while avoiding crossing the threshold. If cooperation $C < 1$ it means fishers did cooperate in order to avoid the threshold but were not efficient at maximising their personal utility; while if $C > 1$ it means fishers did not cooperate and preferred maximising their utility over the common good of maintaining the resource on the long run. If $C=2$ it means that an individual took twice as much as it was fair to take, and by doing so the group could have crossed the threshold. Cooperation in this interpretation is not given by a point but by the distribution it forms overtime. A person can take 1 or 2 extra fish by agreement (e.g. a rotation scheme to increase overall group gains), by having weak agreements that do not specify quotas (e.g. "let's fish less"), or by mistake. Crossing the threshold is however the aggregated effect of individual decisions. For that reason we also introduced coordination as the average (Bray-Curtis) similarity distance to other group members decisions through the game. Thus, if coordination is close to one the individual extraction $x_{i,t}$ is very similar to other group members, while if coordination is close to zero, $x_{i,t}$ is very dissimilar to the rest of the group (Fig 2A).
 
-To better understand what does explain the behaviour of individuals we regressed summary statistics from the second part of the game against explanatory variables that were individual attributes. As explanatory variables we used median cooperation, coordination (Fig 2A), the mean extraction, the mean proportion of the stock extracted, and their variances (Fig 2B). As explanatory variables we used our treatments after controlling for socio-economic variables (e.g. age, education, income), risk and ambiguity aversion (See Methods), and place to account for effects that were not necessarily controlled for with our socio-economic terms. We find that all treatments significantly reduce the proportion of stock extracted as well as coordination (Fig 2C). Coordination is however increased in groups that communicated and reached agreements. Interestingly, these agreements had a negative effect on proportion of stock available extracted but a positive effect on the amount of fish caught. This means fishermen who reached agreements were better at maximizing their individual earnings while maintaining the stock on a longer term by avoiding crossing the threshold. Cooperation, as measured here, was only affected by the amount of rounds people reached agreements, showing that it corresponds more  to in-group dynamics rather than treatments or socio-economic effects. Yet, variance of cooperation and individual extraction both were reduced in individuals who belong to a group where agreements emerged. We also found place effects that were not accounted by our socio-economic controls, showing that Las Flores had in average less coordination and higher variance of extraction, while Tasajera had higher extraction and higher cooperation ($C < 1$). People with higher levels of education reduced their share of extraction as well as the variance of extraction, while people who expect their children to be fishers are more likely to coordiate. Controlling for age and risk or ambiguity aversion render weakly significant coefficients (p > 0.1) and their effect sizes are relatively small together with other socio-economic controls.
+To better understand what does explain the behaviour of individuals we regressed summary statistics from the second part of the game against explanatory variables that were individual attributes. As explanatory variables we used median cooperation, coordination (Fig 2A), the mean extraction, the mean proportion of the stock extracted, and their variances (Fig 2B). As explanatory variables we used our treatments after controlling for socio-economic variables (e.g. age, education, income), risk and ambiguity aversion (See Methods), and place to account for effects that were not necessarily controlled for with our socio-economic terms. We find that all treatments significantly reduce the proportion of stock extracted as well as coordination (Fig 2C). Coordination is however increased in groups that communicated and reached agreements. Interestingly, these agreements had a negative effect on proportion of stock available extracted but a positive effect on the amount of fish caught. This means fishermen who reached agreements were better at maximizing their individual earnings while maintaining the stock on a longer term by avoiding crossing the threshold. Cooperation, as measured here, was only affected by the amount of rounds people reached agreements, showing that it corresponds more to in-group dynamics rather than treatments or socio-economic effects. Yet, variance of cooperation and individual extraction both were reduced in individuals who belong to a group where agreements emerged. We also found place effects that were not accounted by our socio-economic controls, showing that Las Flores had in average less coordination and higher variance of extraction, while Tasajera had higher extraction and higher cooperation ($C < 1$). People with higher levels of education reduced their share of extraction as well as the variance of extraction, while people who expect their children to be fishers are more likely to coordiate. Controlling for age and risk or ambiguity aversion render weakly significant coefficients (p > 0.1) and their effect sizes are relatively small together with other socio-economic controls.
 
 
 ## old text
@@ -82,29 +85,18 @@ Our first finding is that people facing thresholds in average increase cooperati
 
 # Methods {#methods}
 
-**Fishing game**
+#### Fishing game
 
-**Surveys**
+#### Surveys
 
-**Risk elicitation task**
+#### Risk elicitation task
 
-**Regressions**
+#### Regressions
 
-## Subsection title {#sec:2}
+## Subsection title {#sec:1}
 
 as required. Don't forget to give each section
 and subsection a unique label (see Sect. \ref{sec:1}).
-
-#### Paragraph headings
-
-Use paragraph headings as needed.
-
-\begin{align}
-a^2+b^2=c^2
-\end{align}
-
-
-
 
 
 # References
