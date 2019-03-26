@@ -12,3 +12,5 @@
 *.png
 *.tex
 *.log
+.bib
+*.RData

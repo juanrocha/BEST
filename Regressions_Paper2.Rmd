@@ -217,8 +217,8 @@ ind_coop <- mutate(ind_coop, ND_log_pesos = log(ND_pesos), BD_log_pesos = log1p(
 ind_coop <- dat %>%
   group_by(ID_player, part) %>%
   summarize(
-    mean_extraction = median(ind_extraction, na.rm = TRUE),
-    mean_prop_extr = median(stock_ratio, na.rm = TRUE),
+    mean_extraction = mean(ind_extraction, na.rm = TRUE),
+    mean_prop_extr = mean(stock_ratio, na.rm = TRUE),
     var_extraction = var(ind_extraction, na.rm = TRUE),
     var_prop_extr = var(stock_ratio, na.rm = TRUE)
   ) %>%
@@ -657,6 +657,40 @@ diff_df2 <- diff_df2 %>%
   mutate(difference = after - before)
 
 
+## Cooperation
+
+coeffs <- coef(c4)
+
+diff_df3 <- data_frame(
+  treatment = c("Baseline","Threshold","Risk","Uncertainty", "Threshold-Baseline", "Risk-Baseline", "Uncertainty-Baseline","Threshold-counter", "Risk-counter", "Uncertainty-counter" ),
+  after = c(
+    sum(coeffs[c(1,5)]), # mu and delta = intercept and partTRUE
+    sum(coeffs[c(1,5,2,7)]),
+    sum(coeffs[c(1,5,3,8)]),
+    sum(coeffs[c(1,5,4,9)]),
+    sum(coeffs[c(2,7)]),
+    sum(coeffs[c(3,8)]),
+    sum(coeffs[c(4,9)]),
+    sum(coeffs[c(1,5,2)]),
+    sum(coeffs[c(1,5,3)]),
+    sum(coeffs[c(1,5,4)])
+  ),
+  before = c(
+    coeffs[1],
+    sum(coeffs[c(1,2)]),
+    sum(coeffs[c(1,3)]),
+    sum(coeffs[c(1,4)]),
+    coeffs[2],
+    coeffs[3],
+    coeffs[4],
+    sum(coeffs[c(1,2)]),
+    sum(coeffs[c(1,3)]),
+    sum(coeffs[c(1,4)])
+  )
+)
+
+diff_df3 <- diff_df3 %>%
+  mutate(difference = after - before)
 
 ## Visualization based on raw data
 # dat %>% 
@@ -678,11 +712,16 @@ stargazer::stargazer(
   type = "latex", header = FALSE, summary = FALSE, #float = FALSE,
   digits = 2, title = "Diff-in-diff table for proportion of stock")
 
+stargazer::stargazer(
+  diff_df3 %>% as.data.frame(),
+  type = "latex", header = FALSE, summary = FALSE, #float = FALSE,
+  digits = 2, title = "Diff-in-diff table for cooperation")
+
 ```
 
 
 
-```{r fig3, include = TRUE, echo = FALSE, fig.height= 2, fig.width=5, fig.cap = "Difference-in-difference comparison for control and treated groups for (A) individual extraction as number of fish, and (B) as proportion of available stock size.", fig.pos = "H", out.extra= '', fig.align='center'}
+```{r fig3, include = TRUE, echo = FALSE, fig.height= 2, fig.width=5, fig.cap = "Difference-in-difference comparison for control and treated groups for (A) individual extraction as number of fish, (B) as proportion of available stock size, and (C) cooperation.", fig.pos = "H", out.extra= '', fig.align='center'}
 
 
 ## Visualization based on model
@@ -706,15 +745,26 @@ g2 <- diff_df2[1:4,] %>% select(1:3) %>%
   labs(tag = "B") +
   theme_light(base_size = 8) + theme( legend.position = "right")
 
-source('~/Dropbox/Code/multiplot.R')
-g <- list (g1,g2 )
+## Visualization based on model
+g3 <- diff_df3[1:4,] %>% select(1:3) %>%
+  gather(key = time, value = estimate, before, after) %>%
+  mutate(time = as_factor(time)) %>%
+  ggplot(aes(time, estimate)) +
+  geom_point(aes(color = treatment)) +
+  geom_line(aes(group = treatment, color = treatment)) +
+  labs(tag = "C") +
+  theme_light(base_size = 8) + theme( legend.position = "right")
 
-layout <- matrix(c(1:2), ncol = 2, nrow = 1, byrow = T)
+
+source('~/Dropbox/Code/multiplot.R')
+g <- list (g1,g2, g3)
+
+layout <- matrix(c(1:3), ncol = 3, nrow = 1, byrow = T)
 multiplot(plotlist = g, layout = layout)
 
 ```
 
-```{r alternative_for_paper}
+```{r alternative_for_paper, include = TRUE, echo = FALSE}
 
 
 diff_df$response <- "individual extraction"
@@ -728,8 +778,6 @@ diff_df <- diff_df %>%
   mutate(time = as_factor(time), type = as_factor(type), treatment = as_factor(treatment)) %>%
   filter(type != "first_difference")
 
-
-
 diff_df2$response <- "proportion stock"
 diff_df2 <- diff_df2 %>%
   mutate(type = ifelse(
@@ -741,21 +789,33 @@ diff_df2 <- diff_df2 %>%
   mutate(time = as_factor(time), type = as_factor(type), treatment = as_factor(treatment)) %>%
   filter(type != "first_difference")
   
-  
-  
-diff_df3 <- bind_rows(
-  diff_df, diff_df2
-)
 
-g_diff <- diff_df3  %>% 
+diff_df3$response <- "cooperation"
+diff_df3 <- diff_df3 %>%
+  mutate(type = ifelse(
+    str_detect(treatment, "-Baseline"), "first_difference", 
+    ifelse(str_detect(treatment, "-counter"), "counterfactual", "observed"))) %>%
+  mutate(treatment = str_remove(treatment, "-Baseline"),
+         treatment = str_remove(treatment, "-counter")) %>%
+    gather(key = time, value = estimate, before, after) %>%
+  mutate(time = as_factor(time), type = as_factor(type), treatment = as_factor(treatment)) %>%
+  filter(type != "first_difference")
+  
+  
+diff_df4 <- bind_rows(
+  diff_df, diff_df2, diff_df3
+) %>%
+  mutate(response = as_factor(response, order = c(2,3,1)))
+
+g_diff <- diff_df4  %>% 
   ggplot(aes(time, estimate, group = type)) +
   geom_point() +
   geom_line(aes(linetype = type)) +
   facet_grid(response ~ treatment, scales = "free_y" ) +
-  theme_light(base_size = 8) + theme(legend.position = "bottom") +
-  labs(title = "Difference in difference")
+  theme_light(base_size = 6) + theme(legend.position = "bottom") +
+  labs()
 
-# ggsave(g_diff, filename = "diff-in-diff.png", device = "png", width = 5, height = 5, units = "in", dpi = 600 )
+# ggsave(g_diff, filename = "diff-in-diff.pdf", device = "pdf", width = 3, height = 3, units = "in", dpi = 600 )
 
 g_diff
 ```
@@ -871,7 +931,7 @@ stargazer::stargazer(
 Jorge also asked me to perform F-tests or linear hypotheses to check that the coefficients in the regression are significantly different. If I understood correctly, the test is to check that the difference between `Treatment*part` and `Treatment` coefficients are indeed different from zero. Going back to our regression formula, I'm testing if $H_0: \hat{\gamma}+\hat{\tau} = 0$, or if the difference of the `Treated-Control` is significantly different from zero. Alternatively, I'm also adding an F-test that check whether all coefficients from our regressions are different from zero. All F-tests use a robust estimation of standard errors using variance-covariance matrix of type "HC4" clustered around group, a more restricted version that the default STATA option developed by Newey-West. Results are shown in Tables 8, 9, and 10. The F-statistic estimated is for the joint hypothesis that $H_0: \hat{\gamma}+\hat{\tau} = 0$ for all treatments, so the alternative model has 3 degrees of freedom, one for each treatment tested. 
 
 ```{r f_test1,  results='asis', warning=FALSE, message=FALSE, include = TRUE, echo = FALSE}
-hyp <- c("TreatmentThreshold:partTRUE + TreatmentThreshold = 0", 
+hyp <- c("TreatmentThreshold:partTRUE + TreatmentThreshold = 0" ,
          "TreatmentRisk:partTRUE + TreatmentRisk = 0",
          "TreatmentUncertainty:partTRUE + TreatmentUncertainty= 0")
 
@@ -880,6 +940,10 @@ lh1 <- linearHypothesis(p4, hyp, test = "F",
   tidy() %>% as.data.frame()
 
 lh2 <- linearHypothesis(q4, hyp, test = "F", 
+                 vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")) %>%
+  tidy() %>% as.data.frame()
+
+lh4 <- linearHypothesis(c4, hyp, test = "F", 
                  vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")) %>%
   tidy() %>% as.data.frame()
 
@@ -910,11 +974,21 @@ I will then go with `p4` and `q4` or models 6 and 10 in the long tables (6 and 7
 pm <- GGally::ggpairs(
   data = ind_coop %>% filter(part == TRUE),
   columns = c(3:6,14,52),
-  aes(color = Treatment, alpha = 0.5),
-  upper = list(continuous = wrap("cor", size = 3, alignPercent = 1, hjust = 0))
+  aes(color = Treatment, fill = Treatment, alpha = 0.5),
+  upper = list(continuous = wrap("cor", size = 2, alignPercent = 0.95, hjust = 0.1)),
+  diag = list(continuous = wrap("densityDiag", size =0.4)),
+  lower = list(continuous = wrap("points", size = 1.5))
   )
 
-pm + theme_light(base_size = 10) + theme(legend.position = "bottom")
+pm <- pm + theme_light(base_size = 6) + theme(legend.position = "bottom")
+
+# ggsave(pm, filename = "correlations.pdf", device = "pdf", width = 4, height = 4, units = "in", dpi = 600 )
+
+pm
+
+# quartz(width = 5, height = 5, pointsize = 6)
+# 
+# quartz.save(file = "correlations.pdf", type = "pdf", width = 5, height = 5, pointsize = 6, dpi = 600)
 ```
 
 
@@ -970,10 +1044,10 @@ g_reg2 <- out %>%
             ifelse(p.value < 0.1, "< 0.1", "> 0.1")
         )), size = 3, show.legend = TRUE) +
     scale_shape_manual(name = "p value", values = c(19,7,1)) +
-    geom_errorbarh(aes(xmin = conf.low, xmax = conf.high, height = .25)) +
+    geom_errorbarh(aes(xmin = conf.low, xmax = conf.high, height = .25), size = 0.3) +
   facet_grid(. ~ model, scales = "free_x") +
-  theme_light(base_size = 8) + theme(legend.position = "bottom") +
-  ggtitle("What does explain the behaviour of individuals?") #subtitle = "Robust estimation with standard errors HC1 (aka. Stata) and clustered around groups"
+  theme_light(base_size = 8) + theme(legend.position = "bottom") 
+  #ggtitle("What does explain the behaviour of individuals?") #subtitle = "Robust estimation with standard errors HC1 (aka. Stata) and clustered around groups"
 
 
 # ggsave(g_reg2, filename = "regression_cooperation.png", device = "png", width = 6, height = 4, units = "in", dpi = 300 )
@@ -1000,6 +1074,194 @@ stargazer::stargazer(
   dep.var.labels.include = FALSE,
   title = "Model comparison between (1) mean extraction, (2) mean proportion of stock available extracted, (3) median cooperation, (4) cooperation variance, and (5) coordination."
 )
+
+```
+
+Figure 2:
+
+```{r fig2, include = TRUE, echo = FALSE, fig.height=7, fig.width=7, fig.align='center', warning=FALSE, message=FALSE, dev.args= list(pointsize = 8), fig.cap = "What drives the behavior of individuals."}
+
+# ind_coop %>% ungroup() %>%
+#   filter(part == TRUE) %>%
+#   select(Treatment, med_coop, coordination) %>%
+#   ggpairs(columns = c(2,3),
+#     aes(color = Treatment, alpha = 0.5),
+#     upper = list(continuous = wrap("points", size = 0.5, alpha = 0.7)),
+#   lower = list(continuous = wrap("cor", size = 3, alignPercent = 1, hjust = 0))
+#   )
+
+
+g1 <- ind_coop %>% ungroup() %>%
+  filter(part == TRUE) %>%
+  select(Treatment, med_coop, coordination) %>%
+  ggplot(aes(coordination)) + 
+  geom_density(aes(color = Treatment, fill = Treatment), 
+               alpha = 0.4, 
+               show.legend = FALSE) + 
+  geom_rug(aes(color = Treatment), 
+               alpha = 0.4, sides = "r",
+               show.legend = FALSE) +
+  coord_flip() + scale_y_reverse() +
+  theme_light(base_size = 8)
+
+g3 <- ind_coop %>% ungroup() %>%
+  filter(part == TRUE) %>%
+  select(Treatment, med_coop, coordination) %>%
+  ggplot(aes(med_coop)) + 
+  geom_density(aes(color = Treatment, fill = Treatment), 
+               alpha = 0.4, 
+               show.legend = FALSE) + 
+  geom_rug(aes(color = Treatment), 
+               alpha = 0.4, sides = "t",
+               show.legend = FALSE) +
+  scale_y_reverse() +
+  theme_light(base_size = 8)
+
+g2 <- ind_coop %>% ungroup() %>%
+  filter(part == TRUE) %>%
+  select(Treatment, med_coop, coordination) %>%
+  ggplot(aes( med_coop, coordination)) + 
+  # geom_rect(aes(xmin = 0, xmax = max(coordination)+0.1, ymin = 0, ymax = 1),
+  #           fill = "skyblue", alpha = , color = "skyblue") +
+  geom_vline(xintercept = 1, color = "orange") +
+  geom_point(aes(color = Treatment), size = 0.5, 
+               alpha = 0.7, 
+               show.legend = FALSE) + 
+  geom_text(
+    data = data.frame(
+      x = c(0.5, 1.5),
+      y = c(.2, .2), 
+      text = c("cooperators", "defectors"),
+      color = c("blue", "red")),
+    aes(x = x,y = y,label = text),
+    color = c("blue", "red"), size = 2.5,
+    show.legend = FALSE) +
+  theme_light(base_size = 8)
+
+library(ggpubr)
+
+leg <- ind_coop %>% ungroup() %>%
+  filter(part == TRUE) %>%
+  select(Treatment, med_coop, coordination) %>%
+  ggplot(aes(med_coop)) + 
+  geom_density(aes(color = Treatment, fill = Treatment), 
+               alpha = 0.4, 
+               show.legend = TRUE) + 
+  geom_rug(aes(color = Treatment), 
+               alpha = 0.4, sides = "r",
+               show.legend = TRUE) +
+  coord_flip() + scale_y_reverse() +
+  theme_light(base_size = 8)
+
+legend <- leg %>%
+  get_legend() %>%
+  as_ggplot()
+
+g5 <- ind_coop %>% ungroup() %>%
+  filter(part == TRUE) %>%
+  select(Treatment, mean_extraction, mean_prop_extr, var_extraction, var_prop_extr) %>%
+  ggplot(aes(mean_prop_extr)) + 
+  geom_density(aes(color = Treatment, fill = Treatment), 
+               alpha = 0.4, 
+               show.legend = FALSE) + 
+  geom_rug(aes(color = Treatment), 
+               alpha = 0.4, sides = "r",
+               show.legend = FALSE) +
+  coord_flip() + scale_y_reverse() +
+  theme_light(base_size = 8)
+
+g6 <- ind_coop %>% ungroup() %>%
+  filter(part == TRUE) %>%
+  select(Treatment, mean_extraction, mean_prop_extr, var_extraction, var_prop_extr) %>%
+  ggplot(aes(mean_extraction)) + 
+  geom_density(aes(color = Treatment, fill = Treatment), 
+               alpha = 0.4, 
+               show.legend = FALSE) + 
+  geom_rug(aes(color = Treatment), 
+               alpha = 0.4, sides = "t",
+               show.legend = FALSE) +
+  scale_y_reverse() +
+  theme_light(base_size = 8)
+
+g7 <- ind_coop %>% ungroup() %>%
+  filter(part == TRUE) %>%
+  select(Treatment, mean_extraction, mean_prop_extr, var_extraction, var_prop_extr) %>%
+  ggplot(aes( mean_extraction, mean_prop_extr)) + 
+  geom_point(aes(color = Treatment), size = 0.5, 
+               alpha = 0.7, 
+               show.legend = FALSE) + 
+  theme_light(base_size = 8)
+
+source('~/Dropbox/Code/multiplot.R')
+
+g <- list(g1, g2, g5, g7, legend, g3,  legend, g6, g_reg2)
+
+
+
+# quartz(width = 7, height = 7, pointsize = 8)
+multiplot(plotlist = g, layout = matrix(c(1:8, rep(9,8)), 4,4, byrow = TRUE))
+# quartz.save(file="fig2_model.pdf", type = "pdf", width = 7, height = 7, pointsize = 8, dpi = 600)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Save work in an R object that can be loaded and used in paper
+
+```{r}
+# save.image(file = "Regressions_paper2.RData", safe = TRUE)
+```
+
+
+
+
+
+### Structural equation model
+
+```{r}
+library(lavaan)
+library(piecewiseSEM)
+library(nlme)
+
+hyp <- "
+cooperation2 ~ optimal + ind_extraction + Treatment
+ind_extraction ~ Treatment
+"
+dat <- dat %>% mutate(
+  Treatment = ordered(Treatment))
+
+
+dat <- dat %>%
+  mutate(
+    Treatment_order = ifelse(
+      Treatment == "Base line", 0,
+      ifelse(Treatment == "Threshold", 1,
+             ifelse(Treatment == "Risk", 2, 3))
+    )
+  )
+
+sem1 <- psem(
+  lme(cooperation2 ~ optimal + ind_extraction + Treatment_order, random  = ~1|group/ID_player,
+      na.action = na.omit,
+      data = filter(dat, Round > 6)),
+  lme(ind_extraction ~ Treatment_order, random = ~1|group/ID_player,
+      na.action = na.omit,
+      data = filter(dat, Round > 6)),
+  "ind_extraction %~~% optimal",
+  data = dat %>% filter(Round > 6) %>% as.data.frame())
+
+summary(sem1)
 
 ```
 

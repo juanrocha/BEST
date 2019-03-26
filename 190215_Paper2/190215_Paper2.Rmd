@@ -4,9 +4,7 @@ subtitle:
 titlerunning:
 authorrunning: Rocha et al
 thanks: |
-    Grants or other notes about the article that should go on the front
-    page should be placed here. General acknowledgments should be placed at the
-    end of the article.
+    We would like to thank the fisher communities that participated in our experiments. This work received valuable feedback on early stages of its design by Anne-Sophie Crépin, Therese Lindahl, Juan Camilo Cárdenas, Maria Alejandra Velez, and Sandra Vilardy. The field work would have not been possible without the support of Nidia Vanegas, Alisson Soche, Darlin Botto, María de los Ángeles González, Cristhian Marrugo, Gloria de León, Jaime González, and Jesús Jiménez. The research was supported by Formas grant XXX and 942-2015-731.
 
 authors:
 - name: Juan Rocha
@@ -21,19 +19,19 @@ authors:
   address: Universidad del Magdalena
   email: lsaavedra@unimagdalena.edu.co
 
-- name: Rocío del Pilar Moreno 
+- name: Rocío del Pilar Moreno
   address: Facultad de Economía, Universidad de los Andes
   email: romoreno@uniandes.edu.co
 
 - name: Jorge Higinio Maldonado
   address: Facultad de Economía, Universidad de los Andes
   email: jmaldona@uniandes.edu.co
-  
+
 keywords:
 - cooperation
 - thresholds
+- risk
 - uncertainty
-- riks
 - regime shifts
 
 #PACS:
@@ -48,6 +46,7 @@ header-includes:
 - \usepackage{dcolumn}
 - \usepackage{lineno}
 - \linenumbers
+- \graphicspath{ {./figures/} }
 # - \documentclass[twocolumn,twoside]{article}
 lineno: yes
 
@@ -59,14 +58,37 @@ csl: nature.csl
 output: rticles::springer_article
 ---
 
+```{r setup, include = FALSE}
+set.seed(12345)
+library(tidyverse)
+library(stringr)
+library(forcats)
+library(RColorBrewer)
+library(ggplot2)
+library(GGally)
+library(moments)
+library(broom)
 
-Sustainability challenges are often characterised by situations pervaded with thresholds[@Liu:2015go]. Achieving sustainable development goals such as eradicating poverty, dealing with climate change, or solving the tragedy of the commons in using natural resources, require all cooperation to deal with situations characterised by non-linear dynamics with tipping points [@Vasconcelos:wz; @Rand:2013by; @Hauser:2014jg]. Under current development trajectories, ecosystems worldwide are at risk of undergoing more frequent and severe regime shifts --abrupt transitions in their function and structure-- changing the flow of ecosystem services on which societies rely upon, and the source of livelihoods for many communities [@IPCC:2013un; @Rocha:2018gn]. Some examples include bush encroachment, a regime shifts that reduces the ability of ranchers to maintain cattle; soil salinisation which compromises the ability of farmers to produce food; or the collapse of fisheries which could compromises the livelihoods of $\sim 51$ million people who today depend on it, most of them from developing countries [@FAO:2017ug]. Over 30 different types of regime shifts have been documented in social-ecological systems, and their frequency and intensity expected to increase [@Rocha:2018gn; @Biggs:2018hx]. Which rises the question: how do people behave when confronted with situations pervaded by thresholds? Do people race to the bottom and collapse their resources, or do they find strategies for dealing with threshold uncertainty?
+library(grid)
+library(gridExtra)
+library(plm)
+library(lmtest)
+library(splm)
+library(car)
+library(estimatr)
+library(kableExtra)
 
-Traditionally these questions have been studied from a rather theoretical point of view [@Crepin:ul; @Barrett:2012hm; @Milinski:2008ky; @Barrett:2013gc; @Budescu:1990hj; @Polasky:2011p7155; @Hauser:2014jg] with a focus on public goods[@Dannenberg:2014ic]. Theoretical and empirical evidence suggest that the relationship between collective action and uncertainty is negative: the higher uncertainty, the higher the likelihood of cooperation to break down [@Barrett:2012hm; @Dannenberg:2014ic; @Milinski:2008ky; @Schill:2015kj; @Gustafsson:1999ho]. However, these empirical results have been largely obtained in lab settings with "weird" subjects: western, educated, industrialised, rich, and democratic [@Henrich:2010gn]. Whether these results hold when tested with real resource users is still an open question. The purpose of this paper is to fill that gap by testing how resource users behave in situations pervaded by thresholds. 
+load("Regressions_paper2.RData")
+```
+
+
+Sustainability challenges are often characterised by situations pervaded by thresholds[@Liu:2015go]. Achieving sustainable development goals such as eradicating poverty, dealing with climate change, or solving the tragedy of the commons in using natural resources, require all cooperation to deal with situations characterised by non-linear dynamics with tipping points [@Vasconcelos:wz; @Rand:2013by; @Hauser:2014jg]. Under current development trajectories, ecosystems worldwide are at risk of undergoing more frequent and severe regime shifts --abrupt transitions in their function and structure-- changing the flow of ecosystem services on which societies rely upon, and the source of livelihoods for many communities [@IPCC:2013un; @Rocha:2018gn]. Some examples include bush encroachment, a regime shifts that reduces the ability of ranchers to maintain cattle; soil salinisation which compromises the ability of farmers to produce food; or the collapse of fisheries which could compromises the livelihoods of $\sim 51$ million people who today depend on it, most of them from developing countries [@FAO:2017ug]. Over 30 different types of regime shifts have been documented in social-ecological systems, and their frequency and intensity expected to increase [@Rocha:2018gn; @Biggs:2018hx]. Which rises the question: how do people behave when confronted with situations pervaded by thresholds? Do people race to the bottom and collapse their resources, or do they find strategies for dealing with threshold uncertainty?
+
+Traditionally these questions have been studied from a rather theoretical point of view [@Crepin:ul; @Barrett:2012hm; @Milinski:2008ky; @Barrett:2013gc; @Budescu:1990hj; @Polasky:2011p7155; @Hauser:2014jg] with a focus on public goods[@Dannenberg:2014ic]. Theoretical and empirical evidence suggest that the relationship between collective action and uncertainty is negative: the higher uncertainty, the higher the likelihood of cooperation to break down [@Barrett:2012hm; @Dannenberg:2014ic; @Milinski:2008ky; @Schill:2015kj; @Gustafsson:1999ho; @Maldonado:2016ij]. However, these empirical results have been largely obtained in lab settings with "weird" subjects: western, educated, industrialised, rich, and democratic [@Henrich:2010gn]. Whether these results hold when tested with real resource users is still an open question. The purpose of this paper is to fill that gap by testing how resource users behave in situations pervaded by thresholds.
 
 To achieve that goal we designed an experimental game with 256 fishermen in 4 coastal communities of the Colombian Caribbean. In the game, fishermen made individual decisions each round of how much they wanted to fish from a common pool resource. Communication was allowed and the social dilemma was faced in groups of 4. The game lasted 16 rounds, of which the last 10 consisted of a treatment. 64 fishermen play the _threshold_ treatment, in round 7 a climate event occurred reducing the recovery rate of the fish. This framing is similar to hypoxia events --low water oxygen-- which could follow times of drought or extreme rain, and have been recorded in the region for decades [@Breitburg:2018iz]. In times of hypoxia fish dies creating death zones [@Diaz:2008p199]. The second treatment was _risk_, fishermen (n = 64) knew that a climate event could occur reducing the fish stock' ability to reproduce, but only with 50% chance. In _uncertainty_ (n = 64) the same framing was used, but the probability of the climate event was between 0.1-0.9. The last treatment was the control group (_baseline_, n = 64). The game was complemented with post-experimental surveys and a lottery activity to elucidate the risk and ambiguity preferences of our participants (See Methods).
 
-We studied the individual decision of fishermen by looking at their individual extraction $x_{i,t}$, and the proportion of the stock they appropriated per round ($x_{i,t}/S_t$). A difference-in-difference panel model with random effects reveals that our treatment effects are in general significant and negative (Table X, Fig. X). Fishermen facing thresholds tend to fish less both in absolute terms as well as in proportion of the available resource, an effect that is stronger under _risk_ than _threshold_ or _uncertainty_ treatments. Our results are robust to different choices of clustering standard errors (See Tables X and Y) which were clustered around individuals, groups and time. While these results already contradict the premise that uncertainty breaks down cooperation, our response variables thus far do not allow us to investigate the context in which each decision was taken. For example, agreements or the emergence of rules are ignored, and 2 fish caught worth the same in the above regression if they are caught before or after crossing potential thresholds. In the game and real life they are not the same thing.
+We studied the individual decision of fishermen by looking at their individual extraction $x_{i,t}$, and the proportion of the stock they appropriated per round ($x_{i,t}/S_t$). A difference-in-difference panel model with random effects reveals that our treatment effects are in general significant and negative (Table X, Fig. \ref{fig:fig1}). Fishermen facing thresholds tend to fish less both in absolute terms as well as in proportion of the available resource, an effect that is stronger under _risk_ than _threshold_ or _uncertainty_ treatments. Our results are robust to different choices of clustering standard errors (See Tables X and Y) which were clustered around individuals, groups and time. While these results already contradict the premise that uncertainty breaks down cooperation, our response variables thus far do not allow us to investigate the context in which each decision was taken. For example, agreements or the emergence of rules are ignored, and 2 fish caught worth the same in the above regression if they are caught before or after crossing potential thresholds. In the game and real life they are not the same thing.
 
 To gain a better understanding of the interplay between group level dynamics and the context in which each individual decision was taken we designed two additional response variables: cooperation and coordination. Broadly speaking cooperation is working together towards a shared goal. Cooperation is also defined as *"a form of working together in which one individual pays a cost (in terms of fitness, whether genetic or cultural) and another gains a benefit as a result"* [@Nowak:2013vr]. In the context of common pool dilemmas (and non-dyadic games) cooperation can also be interpreted as favouring the common good over individual benefits [@Poteete:2010ud; @Ostrom:1990ws]. An important distinction in the literature is that of cooperators versus defectors, while cooperators pay a cost for other(s) to benefit, defectors have no cost and do not deal out benefits [@Nowak:2006p6717; @Axelrod:2006fe]. Here we operationalise these definitions by measuring cooperation as the ratio of the individual decision $x_{i,t}$ with respect to the optimal level for the group. Cooperation $C$ is measured assuming fairness or equal sharing of the stock available for fishing $S_t$ above the threshold $\theta$ ($\theta =  28$ in treatments and $\theta = 20$ in _baseline_ ):
 
@@ -74,14 +96,28 @@ To gain a better understanding of the interplay between group level dynamics and
 C_{i,t} = \frac{x_{i,t}}{\frac{S_t - \theta}{N}}
 \end{align}
 
-where $N$ is the number of players in the group (always 4 in our experimental design). To avoid division by zero or negative values, if the denominator is < 1 and $x_{i,t} = 0$ cooperation is set to $C=1$ (212/4096 obs), and if the denominator is < 1 and $x_{i,t} > 0$ cooperation is set $C=1.5$ (17/4096 obs). Thus, cooperation is maximized when it reaches $C=1$ meaning that the individual took 100% of what was fair to take while avoiding crossing the threshold. If cooperation $C < 1$ it means fishers did cooperate in order to avoid the threshold but were not efficient at maximising their personal utility; while if $C > 1$ it means fishers did not cooperate and preferred maximising their utility over the common good of maintaining the resource on the long run. If $C=2$ it means that an individual took twice as much as it was fair to take, and by doing so the group could have crossed the threshold. Cooperation in this interpretation is not given by a point but by the distribution it forms overtime. A person can take 1 or 2 extra fish by agreement (e.g. a rotation scheme to increase overall group gains), by having weak agreements that do not specify quotas (e.g. "let's fish less"), or by mistake. Crossing the threshold is however the aggregated effect of individual decisions. For that reason we also introduced coordination as the average (Bray-Curtis) similarity distance to other group members decisions through the game. Thus, if coordination is close to one the individual extraction $x_{i,t}$ is very similar to other group members, while if coordination is close to zero, $x_{i,t}$ is very dissimilar to the rest of the group (Fig 2A).
+where $N$ is the number of players in the group (always 4 in our experimental design). To avoid division by zero or negative values, if the denominator is < 1 and $x_{i,t} = 0$ cooperation is set to $C=1$ (212/4096 observations), and if the denominator is < 1 and $x_{i,t} > 0$ cooperation is set $C=1.5$ (17/4096 observations). Thus, cooperation is maximized when it reaches $C=1$ meaning that the individual took 100% of what was fair to take while avoiding crossing the threshold. If cooperation $C < 1$ it means fishers did cooperate in order to avoid the threshold but were not efficient at maximising their personal utility; while if $C > 1$ it means fishers did not cooperate and preferred maximising their utility over the common good of maintaining the resource on the long run. If $C=2$ it means that an individual took twice as much as it was fair to take, and by doing so the group could have crossed the threshold. Cooperation in this interpretation is not given by a point but by the distribution it forms overtime. A person can take 1 or 2 extra fish by agreement (e.g. a rotation scheme to increase overall group gains), by having weak agreements that do not specify quotas (e.g. "let's fish less"), or by mistake. Crossing the threshold is however the aggregated effect of individual decisions. For that reason we also introduced coordination as the average (Bray-Curtis) similarity distance to other group members decisions through the game. Thus, if coordination is close to one the individual extraction $x_{i,t}$ is very similar to other group members, while if coordination is close to zero, $x_{i,t}$ is very dissimilar to the rest of the group (Fig \ref{fig:fig2}).
 
-To better understand what does explain the behaviour of individuals we regressed summary statistics from the second part of the game against explanatory variables that were individual attributes. As explanatory variables we used median cooperation, coordination (Fig 2A), the mean extraction, the mean proportion of the stock extracted, and their variances (Fig 2B). As explanatory variables we used our treatments after controlling for socio-economic variables (e.g. age, education, income), risk and ambiguity aversion (See Methods), and place to account for effects that were not necessarily controlled for with our socio-economic terms. We find that all treatments significantly reduce the proportion of stock extracted as well as coordination (Fig 2C). Coordination is however increased in groups that communicated and reached agreements. Interestingly, these agreements had a negative effect on proportion of stock available extracted but a positive effect on the amount of fish caught. This means fishermen who reached agreements were better at maximizing their individual earnings while maintaining the stock on a longer term by avoiding crossing the threshold. Cooperation, as measured here, was only affected by the amount of rounds people reached agreements, showing that it corresponds more to in-group dynamics rather than treatments or socio-economic effects. Yet, variance of cooperation and individual extraction both were reduced in individuals who belong to a group where agreements emerged. We also found place effects that were not accounted by our socio-economic controls, showing that Las Flores had in average less coordination and higher variance of extraction, while Tasajera had higher extraction and higher cooperation ($C < 1$). People with higher levels of education reduced their share of extraction as well as the variance of extraction, while people who expect their children to be fishers are more likely to coordiate. Controlling for age and risk or ambiguity aversion render weakly significant coefficients (p > 0.1) and their effect sizes are relatively small together with other socio-economic controls.
 
+\begin{figure*}[h]
+\centering
+\includegraphics[width = 3in, height = 3in]{diff-in-diff}
+\caption{\textbf{Difference-in-difference random effect model.} Treatment effects shown with respect to individual extraction, the proportion of the stock extracted, and cooperation. An F-test testing the linear hypothesis that the treatment before and the treatment after is different from zero is significant for individual extraction (F = 5.95, p $<<$ 0.05, df = 3), weakly significant for proportion of stock extracted (F = 2.23, p = 0.08), and non-significant for cooperation (F = 0.3, p = 0.8).}
+\label{fig:fig1}
+\end{figure*}
+
+To better understand what does explain the behaviour of individuals we regressed summary statistics from the second part of the game against explanatory variables that were individual attributes. As explanatory variables we used median cooperation, coordination (Fig \ref{fig:fig2}), the mean extraction, the mean proportion of the stock extracted, and their variances (Fig \ref{fig:fig2}). As explanatory variables we used our treatments after controlling for socio-economic variables (e.g. age, education, income), risk and ambiguity aversion (See Methods), and place to account for effects that were not necessarily controlled for with our socio-economic terms. We find that all treatments significantly reduce the proportion of stock extracted as well as coordination (Fig \ref{fig:fig2}). Coordination is however increased in groups that communicated and reached agreements. Interestingly, these agreements had a negative effect on proportion of stock available extracted but a positive effect on the amount of fish caught. This means fishermen who reached agreements were better at maximising their individual earnings while maintaining the stock on a longer term by avoiding crossing the threshold. Cooperation, as measured here, was only affected by the amount of rounds people reached agreements, showing that it responds more to in-group dynamics rather than treatments or socio-economic effects. Yet, variance of cooperation and individual extraction both were reduced in individuals who belong to a group where agreements emerged. We also found place effects that were not accounted by our socio-economic controls, showing that Las Flores had in average less coordination and higher variance of extraction, while Tasajera had higher extraction and higher cooperation ($C < 1$). People with higher levels of education reduced their share of extraction as well as the variance of extraction, while people who expect their children to be fishers are more likely to coordinate. Controlling for age and risk or ambiguity aversion render weakly significant coefficients ($p > 0.1$) and their effect sizes are relatively small together with other socio-economic controls.
+
+\begin{figure*}[h]
+\centering
+\includegraphics[width = 5in, height = 5in]{fig2_model}
+\caption{\textbf{Individual behavior.} .}
+\label{fig:fig2}
+\end{figure*}
 
 ## old text
 
-Our first finding is that people facing thresholds in average increase cooperation (Fig 1a). They approach the zero line without crossing the threshold in the _uncertainty_ and _risk_ treatments, while in the _threshold_ treatment they cross in average but by less than a fish per capita. However, the distribution of the cooperation variable (Fig 1b) reveals it is not normally distributed (Shapiro-Wilk test p << 0.001) and the medians for all treatments are above the zero line. The mean differences between treatments are all significant (Fig 1c, post-hoc pair-wise comparison with Games Howell non-parametric test, p < 0.05), except for the difference between _risk_ and _uncertainty_ treatments. 
+Our first finding is that people facing thresholds in average increase cooperation (Fig 1a). They approach the zero line without crossing the threshold in the _uncertainty_ and _risk_ treatments, while in the _threshold_ treatment they cross in average but by less than a fish per capita. However, the distribution of the cooperation variable (Fig 1b) reveals it is not normally distributed (Shapiro-Wilk test p << 0.001) and the medians for all treatments are above the zero line. The mean differences between treatments are all significant (Fig 1c, post-hoc pair-wise comparison with Games Howell non-parametric test, p < 0.05), except for the difference between _risk_ and _uncertainty_ treatments.
 
 # Methods {#methods}
 
@@ -93,10 +129,112 @@ Our first finding is that people facing thresholds in average increase cooperati
 
 #### Regressions
 
-## Subsection title {#sec:1}
+
+# Supplementary Material {#sec:SM}
+
+\renewcommand\thefigure{S\arabic{figure}}
+\renewcommand\thetable{S\arabic{table}}
+
+
+```{r SMtables1, results='asis', include=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+
+## Ind extraction:
+stargazer::stargazer(
+  # clustered and robust:
+  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group")),
+  # clustered and robust:
+  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC2", cluster = "group")),
+  # clustered and robust:
+  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC3", cluster = "group")),
+  # clustered and robust:
+  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC4", cluster = "group")),
+  # last model with NW and HC4, more strict
+  coeftest(p4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")),
+  type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, 
+  model.names= FALSE, font.size = "small", digits = 2, 
+  float = TRUE, no.space = TRUE, single.row = FALSE, align = TRUE,
+  dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE,
+  title = "Clustered and robust standard errors estimation for individual extraction with White method and (1) HC1, (2) HC2, (3) HC3, (4) HC4 weighting schemes, and (5) Newey and West method with HC4 scheme."
+  )
+
+## Proportion of stock
+stargazer::stargazer(
+  # clustered and robust:
+  coeftest(q4, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group")),
+  # clustered and robust:
+  coeftest(q4, vcov.=function(x) vcovHC(x, method="white2", type="HC2", cluster = "group")),
+  # clustered and robust:
+  coeftest(q4, vcov.=function(x) vcovHC(x, method="white2", type="HC3", cluster = "group")),
+  # clustered and robust:
+  coeftest(q4, vcov.=function(x) vcovHC(x, method="white2", type="HC4", cluster = "group")),
+  # last model with NW and HC4, more strict
+  coeftest(q4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")),
+  type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, 
+  model.names= FALSE, font.size = "small", digits = 2, 
+  float = TRUE, no.space = TRUE, single.row = FALSE, align = TRUE,
+  dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE,
+  title = "Clustered and robust standard errors estimation for proportion of available stock with White method and (1) HC1, (2) HC2, (3) HC3, (4) HC4 weighting schemes, and (5) Newey and West method with HC4 scheme."
+  )
+
+stargazer::stargazer(
+  # clustered and robust:
+  coeftest(c4, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group")),
+  # clustered and robust:
+  coeftest(c4, vcov.=function(x) vcovHC(x, method="white2", type="HC2", cluster = "group")),
+  # clustered and robust:
+  coeftest(c4, vcov.=function(x) vcovHC(x, method="white2", type="HC3", cluster = "group")),
+  # clustered and robust:
+  coeftest(c4, vcov.=function(x) vcovHC(x, method="white2", type="HC4", cluster = "group")),
+  # last model with NW and HC4, more strict
+  coeftest(c4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")),
+  type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, 
+  model.names= FALSE, font.size = "small", digits = 2, 
+  float = TRUE, no.space = TRUE, single.row = FALSE, align = TRUE,
+  dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE,
+  title = "Clustered and robust standard errors estimation for cooperation with White method and (1) HC1, (2) HC2, (3) HC3, (4) HC4 weighting schemes, and (5) Newey and West method with HC4 scheme."
+  )
+
+```
+
+
+\begin{figure*}[h!]
+\centering
+\includegraphics[width = 5in, height = 5in]{correlations}
+\caption{\textbf{Correlations between response variables.} Correlation coefficients are calculated by variable and by treatment.}
+\label{fig:figS1}
+\end{figure*}
+
+
+```{r table3, results='asis', warning=FALSE, message=FALSE, include = TRUE, echo = FALSE}
+y_vars <- c("mean_extraction", "mean_prop_extr", "med_coop", "variance", "coordination", "var_extraction", "var_prop_extr")
+x_vars <- "Treatment + age + education_yr + BD_how_often + fishing_children  + Risk + Amb + Place + prop_ag"
+
+out <-  map2(x_vars, y_vars, 
+         ~ lm(as.formula(paste(.y, "~", .x)),
+              data = ind_coop %>% filter(part == T) %>% ungroup()
+              )
+  )
+
+stargazer::stargazer(
+  out,
+  type = "latex", font.size = "tiny", model.names = FALSE,
+  multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
+  float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
+  dep.var.labels = NULL, #c("mean_extraction", "mean_prop_extr", "med_coop", "variance", "coordination"),
+  dep.var.labels.include = FALSE,
+  title = "Model comparison between (1) mean extraction, (2) mean proportion of stock available extracted, (3) median cooperation, (4) cooperation variance, (5) coordination, (6) variance of extraction, and (7) variance of proportion of extraction."
+)
+
+```
 
 as required. Don't forget to give each section
-and subsection a unique label (see Sect. \ref{sec:1}).
+and subsection a unique label (see Sect. \ref{sec:SM}).
+ 
 
 
 # References
+
+
+
+
+
