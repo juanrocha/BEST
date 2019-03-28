@@ -1,7 +1,7 @@
 ---
 title: Cooperation in the face of thresholds, risk and uncertainty
 subtitle:
-titlerunning:
+titlerunning: Cooperation in the face of thresholds, risk & uncertainty
 authorrunning: Rocha et al
 thanks: |
     We would like to thank the fisher communities that participated in our experiments. This work received valuable feedback on early stages of its design by Anne-Sophie Crépin, Therese Lindahl, Juan Camilo Cárdenas, Maria Alejandra Velez, and Sandra Vilardy. The field work would have not been possible without the support of Nidia Vanegas, Alisson Soche, Darlin Botto, María de los Ángeles González, Cristhian Marrugo, Gloria de León, Jaime González, and Jesús Jiménez. The research was supported by Formas grant XXX and 942-2015-731.
@@ -88,7 +88,7 @@ Traditionally these questions have been studied from a rather theoretical point 
 
 To achieve that goal we designed an experimental game with 256 fishermen in 4 coastal communities of the Colombian Caribbean. In the game, fishermen made individual decisions each round of how much they wanted to fish from a common pool resource. Communication was allowed and the social dilemma was faced in groups of 4. The game lasted 16 rounds, of which the last 10 consisted of a treatment. 64 fishermen play the _threshold_ treatment, in round 7 a climate event occurred reducing the recovery rate of the fish. This framing is similar to hypoxia events --low water oxygen-- which could follow times of drought or extreme rain, and have been recorded in the region for decades [@Breitburg:2018iz]. In times of hypoxia fish dies creating death zones [@Diaz:2008p199]. The second treatment was _risk_, fishermen (n = 64) knew that a climate event could occur reducing the fish stock' ability to reproduce, but only with 50% chance. In _uncertainty_ (n = 64) the same framing was used, but the probability of the climate event was between 0.1-0.9. The last treatment was the control group (_baseline_, n = 64). The game was complemented with post-experimental surveys and a lottery activity to elucidate the risk and ambiguity preferences of our participants (See Methods).
 
-We studied the individual decision of fishermen by looking at their individual extraction $x_{i,t}$, and the proportion of the stock they appropriated per round ($x_{i,t}/S_t$). A difference-in-difference panel model with random effects reveals that our treatment effects are in general significant and negative (Table X, Fig. \ref{fig:fig1}). Fishermen facing thresholds tend to fish less both in absolute terms as well as in proportion of the available resource, an effect that is stronger under _risk_ than _threshold_ or _uncertainty_ treatments. Our results are robust to different choices of clustering standard errors (See Tables X and Y) which were clustered around individuals, groups and time. While these results already contradict the premise that uncertainty breaks down cooperation, our response variables thus far do not allow us to investigate the context in which each decision was taken. For example, agreements or the emergence of rules are ignored, and 2 fish caught worth the same in the above regression if they are caught before or after crossing potential thresholds. In the game and real life they are not the same thing.
+We studied the individual decision of fishermen by looking at their individual extraction $x_{i,t}$, and the proportion of the stock they appropriated per round ($x_{i,t}/S_t$). A difference-in-difference panel model with random effects reveals that our treatment effects are in general significant and negative (Table S1-S3, Fig. \ref{fig:fig1}). Fishermen facing thresholds tend to fish less both in absolute terms as well as in proportion of the available resource, an effect that is stronger under _risk_ than _threshold_ or _uncertainty_ treatments. Our results are robust to different choices of clustering standard errors (See Tables S1-S3) which were clustered around individuals, groups and time. While these results already contradict the premise that uncertainty breaks down cooperation, our response variables thus far do not allow us to investigate the context in which each decision was taken. For example, agreements or the emergence of rules are ignored, and 2 fish caught worth the same in the above regression if they are caught before or after crossing potential thresholds. In the game and real life they are not the same thing.
 
 To gain a better understanding of the interplay between group level dynamics and the context in which each individual decision was taken we designed two additional response variables: cooperation and coordination. Broadly speaking cooperation is working together towards a shared goal. Cooperation is also defined as *"a form of working together in which one individual pays a cost (in terms of fitness, whether genetic or cultural) and another gains a benefit as a result"* [@Nowak:2013vr]. In the context of common pool dilemmas (and non-dyadic games) cooperation can also be interpreted as favouring the common good over individual benefits [@Poteete:2010ud; @Ostrom:1990ws]. An important distinction in the literature is that of cooperators versus defectors, while cooperators pay a cost for other(s) to benefit, defectors have no cost and do not deal out benefits [@Nowak:2006p6717; @Axelrod:2006fe]. Here we operationalise these definitions by measuring cooperation as the ratio of the individual decision $x_{i,t}$ with respect to the optimal level for the group. Cooperation $C$ is measured assuming fairness or equal sharing of the stock available for fishing $S_t$ above the threshold $\theta$ ($\theta =  28$ in treatments and $\theta = 20$ in _baseline_ ):
 
@@ -102,7 +102,7 @@ where $N$ is the number of players in the group (always 4 in our experimental de
 \begin{figure*}[h]
 \centering
 \includegraphics[width = 3in, height = 3in]{diff-in-diff}
-\caption{\textbf{Difference-in-difference random effect model.} Treatment effects shown with respect to individual extraction, the proportion of the stock extracted, and cooperation. An F-test testing the linear hypothesis that the treatment before and the treatment after is different from zero is significant for individual extraction (F = 5.95, p $<<$ 0.05, df = 3), weakly significant for proportion of stock extracted (F = 2.23, p = 0.08), and non-significant for cooperation (F = 0.3, p = 0.8).}
+\caption{\textbf{Difference-in-difference random effect model.} Treatment effects shown with respect to individual extraction, the proportion of the stock extracted, and cooperation. An test of the linear hypothesis that the effect before and after the treatment is indeed different from zero is significant for individual extraction (F = 5.95, p $<<$ 0.05, df = 3), weakly significant for proportion of stock extracted (F = 2.23, p = 0.08), and non-significant for cooperation (F = 0.3, p = 0.8).}
 \label{fig:fig1}
 \end{figure*}
 
@@ -115,20 +115,41 @@ To better understand what does explain the behaviour of individuals we regressed
 \label{fig:fig2}
 \end{figure*}
 
-## old text
+**Discussion outline:**
 
-Our first finding is that people facing thresholds in average increase cooperation (Fig 1a). They approach the zero line without crossing the threshold in the _uncertainty_ and _risk_ treatments, while in the _threshold_ treatment they cross in average but by less than a fish per capita. However, the distribution of the cooperation variable (Fig 1b) reveals it is not normally distributed (Shapiro-Wilk test p << 0.001) and the medians for all treatments are above the zero line. The mean differences between treatments are all significant (Fig 1c, post-hoc pair-wise comparison with Games Howell non-parametric test, p < 0.05), except for the difference between _risk_ and _uncertainty_ treatments.
+  - Comparison of our results with previous field studies on CPR (eg. refs @Maldonado:2016ij; @Finkbeiner:2018ds) -- do you know other relevant work?
+  - People do reduce fishing in presence of thresholds, but the effect occurs to a lesser extend when uncertainty is high.
+  - By reducing fishing effort or keeping close to the social optimal people do cooperate. However, cooperation by itself is not affected by our treatments, it seems to be driven more by personal and group dynamics.
+  - Concluding remark: If the existence of threshold effects already triggers cooperative behavior in natural resource users, then communicating their potential effects on ecosystems and society is more important that quantifying the precise point at which ecosystems tip over. Specially because such thresholds are hard to observe, measure and change over time.
 
 # Methods {#methods}
+The fishing game was part of a $~3$ hour workshops that were carried out in four Colombian fishing communities in the Caribbean coast in February 2016. Each workshop consisted of the fishing game, a post-experimental survey, and a risk elicitation task. Before starting, each participant signed a consent form committing to participating in all three activities and authorising us to use the anonymised data for research purposes.
 
 #### Fishing game
+Participants knew that the total duration of the workshop was ~3hrs but they did not know how long the fishing game would last. This was to avoid last round effects -- people crashing the resource to maximise their individual earnings. The fishing game consisted in 2-3 practice rounds, 6 rounds playing the _baseline_ treatment, and 10 rounds with a treatment that was framed as a climate event. The climate event arrived with probability $p=1$ in the _threshold_ treatment, with $p=0.5$ in _risk_, and with $p = 0.1:0.9$ in the _uncertainty_ treatment. The event was meant to reduce the capacity of the fish stock to reproduce. On the _baseline_ the reproduction rate was 5 fish if the remaining fish stock was between 5-19 or 35-45 fishes, and 10 fishes if the remaining fish stock was between 20-34. If the climate event occurred in the game, the reproduction rate changed to 1 fish for remaining fish stock of 5-27, 10 fish for remaining fish stock of 28-34, and 5 fish for remaining fish stock of 35-45. The game started with a fish stock of 50 fishes and in round 7 the fish stock was restored to 50 for all treatments. There was no reproduction in either treatment for fish stocks below 5 or above 45, which was justified in the game as Allee effects. In too low densities or highly populated ponds the fish finds harder to reproduce due to lack of partners or competition for resources. Once the climate event occurred, the reproduction rate changed for the rest of the game mimicking a long lasting effect on the function and structure of the ecosystem -- a regime shift.
+
+We communicated _risk_ and _uncertainty_ with a ballot system to avoid deception. For _risk_, five green and five red stones were shown at the beginning of the round. We drew one stone in private. If it was red the climate event occurred and we calculated the reproduction rate at the end of the round accordingly. If the stone was green, we kept the reproduction scheme of the _baseline_. Thus, fishers could not know if the climate event happened if the remaining stock was above the threshold $\theta = 28$ since both reproduction schemes are identical for $S_{t} > 28$. For the _ambiguity_ treatment, we showed them ten red and ten green stones. We first took one stone of each colour and put them into an urn. The remaining 18 stones were mixed in another urn. Once mixed, 8 stones were moved to the first urn without revealing their colour, so neither experimenters or fishers knew the exact distributions of stones of the urn we later used to draw the climate event. All we knew was that the probability could be between 0.1 and 0.9 since for sure there was one green and one red stone in the urn. For the treatments _risk_ and _uncertainty_, we drew a stone every round regardless if the climate event occurred or not, and the stone was returned to the urn so each round had exactly the same odds.
+
+To make the decisions in the game more realistic, each fisher earned $COL500 for each fish caught, in addition to a show up fee (COL$15000) meant to compensate for the time invested in the workshop. A day spent in the workshop meant for them a day without going fishing, so their average earnings were adjusted in a way that represented a typical working wage. The full instructions of the game (english version) are available in Appendix 1.
 
 #### Surveys
+After the game each fisher participated in a 56 questions survey. The purpose of the survey was to better investigate the context of the fishing activities and to collect socio-economic data important for our regressions. The survey was divided in 5 sections. The fist section was about the game and their perceptions on the activity, for example, whether they expected the game to end when it did. The second section was about their fishing habits: how much effort they put on fishing (time per day or year), how much earnings they get in a good or bad day, whether they own and share the fishing gear, whether they fish in groups, or what are the species targeted. The third section was about traditional ecological knowledge focused on questions about abrupt changes in their fishing grounds in the past and the type of strategies they have used to cope with it. The fourth section was about cooperative activities and associations in the community. The last section were questions about demographic socio-economic data and sense of place. The full questionnaire is available in Appendix 2.
 
-#### Risk elicitation task
+#### Risk and ambiguity elicitation task
+After the survey fishers were asked to do a final game for risk and ambiguity elicitation [@Cardenas:2013km]. To measure risk and ambiguity aversion we asked fishers to choose between 6 binary lotteries: $13000|$13000; $10000|$19000; $7000|$25000; $4000|$31000; and $0|$38000. For risk the chances of getting the high payoff was 0.5, while for ambiguity it was a probability between 0.1-0.9 but unknown. Half of the people started with risk task and another half with ambiguity task in order to control for order effects. Their choices were transformed to a discrete variable used in our regressions that takes 1 if the fisher is risk or ambiguity averse (when the $13000|$13000 lottery was chosen), and 6 when the fisher is risk or ambiguity keen (when the $0|$38000 lottery was chosen). The risk and ambiguity elicitation task was paid to only one fisher per group.
 
 #### Regressions
+We fitted a random effects panel model to our full game dataset (N = 4096) to disentangle treatment effects with a difference-in-difference regression (Fig \ref{fig:fig1}). It follows the form:
 
+\begin{align}
+\hat{Y_i} = \hat{\mu} + \hat{\gamma}G_i + \hat{\delta}T_i + \hat{\tau}G_iT_i
+\end{align}
+
+where $\hat{\gamma}$ is the effect of being assigned to a group with a treatment, $\hat{\delta}$ is a dummy variable that specifies when the treatment starts (before-after), and $\hat{\tau}$ is the interaction term that captures the average treatment effect on the treated. As response variables $\hat{Y_i}$ we used individual extraction, proportion of stock extracted, and cooperation. A Hausman test suggest that our choice for random effects is preferred for proportion of stock available and cooperation ($p>0.05$), but it supports fixed effects for individual extraction ($p<0.05$). Since our panel is nested, we fitted a random effects model clustered around individuals, groups, and time following our hierarchical design. A fixed effects model would have not allowed us to control for the different levels of nestedness. A Breusch-Pagan Lagrange multiplier test further supported our choice of random model when compared with a pooled regression with any of the response variables ($p<<0.05$).
+
+Given the nested structure of our design and that decisions in the past affect the stock size in the future, we expected that our dynamic game data presents cross-sectional dependence. We confirmed these expectations with a Breusch-Pagan LM test for cross-sectional dependence ($p<<0.05$ for all response variables) and a Breusch-Godfrey/Wooldridge test for serial correlation ($p<<0.05$ for all response variables). In addition, a Breusch-Pagan test reveals that our models are heteroskedastic ($p<0.05$), meaning that the variances change over time. To correct for heteroskedasticity, cross-sectional correlation, and serial correlation, we calculated robust standard errors by estimating the variance-covariance matrix with heteroskedasticity and autocorrelation consistent estimators (Tables S1-S3). We also performed a F-test to the joint linear hypothesis $H_0: \hat{\gamma}+\hat{\tau} = 0$, this is that the difference in the coefficients before and after treatments (_threshold_, _risk_, and _uncertainty_) are indeed different from zero. We found that our differences are significant for individual extraction (F = 5.95, p $<<$ 0.05, df = 3), weakly significant for proportion of stock extracted (F = 2.23, p = 0.08), and non-significant for cooperation (F = 0.3, p = 0.8). When tested individually for each treatment in the case of proportion of stock extracted, the weakly significant treatment was _risk_ (p = 0.08), while _threshold_ and _uncertainty_ were both significant (p = 0.02, 0.01 respectively).
+
+We further explored what influences individual behaviour with an ordinary least squares approximation. As response variables we used summary statistics for the second part of the game, namely coordination, median cooperation, mean extraction, mean proportion of stock available extracted, and their variances. As regressors we used some socio-economic variables from the survey, the proportion of rounds that groups reached agreements, a place term to account for place differences that were not accounted by socio-economic factors, and the treatments.
 
 # Supplementary Material {#sec:SM}
 
@@ -150,8 +171,8 @@ stargazer::stargazer(
   coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC4", cluster = "group")),
   # last model with NW and HC4, more strict
   coeftest(p4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")),
-  type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, 
-  model.names= FALSE, font.size = "small", digits = 2, 
+  type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE,
+  model.names= FALSE, font.size = "small", digits = 2,
   float = TRUE, no.space = TRUE, single.row = FALSE, align = TRUE,
   dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE,
   title = "Clustered and robust standard errors estimation for individual extraction with White method and (1) HC1, (2) HC2, (3) HC3, (4) HC4 weighting schemes, and (5) Newey and West method with HC4 scheme."
@@ -169,8 +190,8 @@ stargazer::stargazer(
   coeftest(q4, vcov.=function(x) vcovHC(x, method="white2", type="HC4", cluster = "group")),
   # last model with NW and HC4, more strict
   coeftest(q4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")),
-  type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, 
-  model.names= FALSE, font.size = "small", digits = 2, 
+  type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE,
+  model.names= FALSE, font.size = "small", digits = 2,
   float = TRUE, no.space = TRUE, single.row = FALSE, align = TRUE,
   dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE,
   title = "Clustered and robust standard errors estimation for proportion of available stock with White method and (1) HC1, (2) HC2, (3) HC3, (4) HC4 weighting schemes, and (5) Newey and West method with HC4 scheme."
@@ -187,8 +208,8 @@ stargazer::stargazer(
   coeftest(c4, vcov.=function(x) vcovHC(x, method="white2", type="HC4", cluster = "group")),
   # last model with NW and HC4, more strict
   coeftest(c4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")),
-  type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, 
-  model.names= FALSE, font.size = "small", digits = 2, 
+  type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE,
+  model.names= FALSE, font.size = "small", digits = 2,
   float = TRUE, no.space = TRUE, single.row = FALSE, align = TRUE,
   dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE,
   title = "Clustered and robust standard errors estimation for cooperation with White method and (1) HC1, (2) HC2, (3) HC3, (4) HC4 weighting schemes, and (5) Newey and West method with HC4 scheme."
@@ -209,7 +230,7 @@ stargazer::stargazer(
 y_vars <- c("mean_extraction", "mean_prop_extr", "med_coop", "variance", "coordination", "var_extraction", "var_prop_extr")
 x_vars <- "Treatment + age + education_yr + BD_how_often + fishing_children  + Risk + Amb + Place + prop_ag"
 
-out <-  map2(x_vars, y_vars, 
+out <-  map2(x_vars, y_vars,
          ~ lm(as.formula(paste(.y, "~", .x)),
               data = ind_coop %>% filter(part == T) %>% ungroup()
               )
@@ -227,14 +248,7 @@ stargazer::stargazer(
 
 ```
 
-as required. Don't forget to give each section
-and subsection a unique label (see Sect. \ref{sec:SM}).
- 
-
-
 # References
-
-
 
 
 

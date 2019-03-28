@@ -928,10 +928,10 @@ stargazer::stargazer(
 )
 ```
 
-Jorge also asked me to perform F-tests or linear hypotheses to check that the coefficients in the regression are significantly different. If I understood correctly, the test is to check that the difference between `Treatment*part` and `Treatment` coefficients are indeed different from zero. Going back to our regression formula, I'm testing if $H_0: \hat{\gamma}+\hat{\tau} = 0$, or if the difference of the `Treated-Control` is significantly different from zero. Alternatively, I'm also adding an F-test that check whether all coefficients from our regressions are different from zero. All F-tests use a robust estimation of standard errors using variance-covariance matrix of type "HC4" clustered around group, a more restricted version that the default STATA option developed by Newey-West. Results are shown in Tables 8, 9, and 10. The F-statistic estimated is for the joint hypothesis that $H_0: \hat{\gamma}+\hat{\tau} = 0$ for all treatments, so the alternative model has 3 degrees of freedom, one for each treatment tested. 
+Jorge also asked me to perform F-tests or linear hypotheses to check that the coefficients in the regression are significantly different. If I understood correctly, the test is to check that the difference between `Treatment*part` and `Treatment` coefficients are indeed different from zero. Going back to our regression formula, I'm testing if $H_0: \hat{\gamma}+\hat{\tau} = 0$, or if the difference of the `Treated-Control` is significantly different from zero. Alternatively, I'm also adding an F-test that check whether all coefficients from our regressions are different from zero. All F-tests use a robust estimation of standard errors using variance-covariance matri of type "HC4" clustered around group, a more restricted version that the default STATA option developed by Newey-West. Results are shown in Tables 8, 9, and 10. The F-statistic estimated is for the joint hypothesis that $H_0: \hat{\gamma}+\hat{\tau} = 0$ for all treatments, so the alternative model has 3 degrees of freedom, one for each treatment tested. 
 
 ```{r f_test1,  results='asis', warning=FALSE, message=FALSE, include = TRUE, echo = FALSE}
-hyp <- c("TreatmentThreshold:partTRUE + TreatmentThreshold = 0" ,
+hyp <- c("TreatmentThreshold:partTRUE + TreatmentThreshold = 0",
          "TreatmentRisk:partTRUE + TreatmentRisk = 0",
          "TreatmentUncertainty:partTRUE + TreatmentUncertainty= 0")
 
@@ -1265,3 +1265,97 @@ summary(sem1)
 
 ```
 
+### Some tests for panel data:
+
+Fixed or random? The Haussman test below suggest a fixed effects model when using individual extraction as response variable, it does suggest random effect (p>0.05) for cooperation and proportion of stock. However, the nested structure to control for 3D: individual, group, time, is not possible to implement in fixed effects version. The rest of the analysis is done with random effects.
+```{r}
+fixed <- plm(
+  prop ~ Treatment + part +Treatment * part + as.numeric(Round) , 
+  data = pdata.frame(dat, index = c('ID_player' ,'Round', "group")),
+  model = "within"
+)
+p4 <- plm(
+  prop ~ Treatment + part +Treatment * part + as.numeric(Round), 
+  data = pdata.frame(dat, index = c('ID_player' ,'Round', "group")),
+  model = "random", random.method = "walhus",
+  effect = "nested" )
+
+phtest(fixed, p4)
+# coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group"))
+```
+
+### Breusch-Pagan Lagrange multiplier (LM)
+The Lagrange multiplier helps decide between random effects regression or a simple OLS regression. The null hypothesis is that variances across entitites is zero, thus no significant difference across units (no panel effect). If p<0.05 a random model is preferred, meaning there is evidence that there is differences amongst treatments. 
+
+```{r}
+
+pool <- plm(
+  ind_extraction ~ Treatment + part +Treatment * part + as.numeric(Round) + StockSizeBegining , 
+  data = pdata.frame(dat, index = c('ID_player' ,'Round', "group")),
+  model = "pooling"
+)
+
+plmtest(pool, type = 'bp')
+```
+
+### Testing for cross-sectional dependnece
+The cross-sectional dependence test check if the residuals are correlated accross entities. It seems that there is cross-sectional dependence, probably the group or location effect. This test in R cannot be performed with the nested model reported in the paper. Cross-sectional dependence can lead to bias in test results (contemporaneous correlation).
+
+```{r}
+pcdtest(
+  plm(
+  ind_extraction ~ Treatment + part +Treatment * part + as.numeric(Round) + StockSizeBegining , 
+  data = pdata.frame(dat, index = c('ID_player' ,'Round')),
+  model = "random", random.method = "walhus",
+  effect = "twoway" )
+  , test = c('lm'))
+pcdtest(
+  plm(
+  prop ~ Treatment + part + Treatment * part + as.numeric(Round) , 
+  data = pdata.frame(dat, index = c('ID_player' ,'Round')),
+  model = "random", random.method = "walhus",
+  effect = "twoway" )
+  , test = c("cd"))
+pcdtest(
+  plm(
+    cooperation2 ~ Treatment + part + Treatment * part + as.numeric(Round),
+    data = pdata.frame(dat, index = c('ID_player' ,'Round')),
+    model = "random", random.method = "walhus",
+    effect = "twoway" ), 
+  test = c("cd")
+)
+
+```
+
+### Testing for serial correlation
+There is serieal correlation (p < 0.05). The null hypothesis is that residuals across entities are not correlated, here entities I believe is groups. It shouldn't be a problem in micropanels with few time steps like ours, but we have it both on the random model and the random with time effects.
+```{r test4}
+pbgtest(p4)
+pbgtest(q4)
+pbgtest(c4)
+```
+
+
+### Dickey-Fuller test
+It checks for stochastic trends, the null hypothesis is that the series as a unit root (non-stationary). If root is present one can take the first difference of the variable. p-value is < 0.05 then there is no unit roots present. The second test fails in proportion of stock or cooperation because there is missing values (0/0) for collapsed rounds.
+```{r test5, warning = FALSE}
+panel.set <- plm.data (dat %>% filter(part == T) , index = c('ID_player' ,'Round') ) 
+library(tseries)
+adf.test (panel.set$ind_extraction, k=2)
+adf.test (panel.set$prop, k=2)
+```
+
+
+### Breusch-Pagan test for homoskedasticity
+p < 0.05 therefore there is presence of heteroskedasticity, one can use robust covariance matrix to account for it. Both tutorials in R and STATA suggest good ways of dealing with heteroskedasticity but I will stop here. First we need to define which model are we fitting and presenting on the papers: fixed, random, with treatment + location + time effects?
+
+```{r test6, echo = FALSE, warning= FALSE}
+library(lmtest)
+bptest(ind_extraction ~ Treatment + part +Treatment * part + as.numeric(Round) + StockSizeBegining ,
+       data = filter (dat, part == TRUE) , studentize = F )
+bptest(prop ~ Treatment + part +Treatment * part + as.numeric(Round) ,
+       data = filter (dat, part == TRUE) , studentize = F )
+bptest(cooperation2 ~ Treatment + part +Treatment * part + as.numeric(Round),
+       data = filter (dat, part == TRUE) , studentize = F )
+
+```
