@@ -15,10 +15,10 @@ library(plotly)
 library(GGally)
 library(moments)
 
-library(ggmap)
-library(maptools)
-library(maps)
-library(mapproj)
+# library(ggmap)
+# library(maptools)
+# library(maps)
+# library(mapproj)
 
 library(grid)
 library(gridExtra)
@@ -145,6 +145,9 @@ group_dat <- mutate( group_dat, group_color = interaction(Session, day))
 
 
 group_dat <- as_tibble(group_dat)
+
+
+
 
 
 

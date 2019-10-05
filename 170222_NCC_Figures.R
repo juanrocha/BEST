@@ -191,16 +191,16 @@ f2a <- ggmap(map) +
 
 ## new figure needs the stage-wise means for both stock size and gini
 by_group_treat1 <- group_by(filter(group_dat, part == F), Treatment, Place, group) %>%
-  summarise(mean_st1 = median(IntermediateStockSize))
+  summarise(median_st1 = median(IntermediateStockSize))
 
 by_group_treat2 <- group_by(filter(group_dat, part == T), Treatment, Place, group) %>%
-  summarise(mean_st2 = median(IntermediateStockSize))
+  summarise(median_st2 = median(IntermediateStockSize))
 
 by_group_catch <- group_by(filter(group_dat, part == T), Treatment, Place, group) %>%
   summarise(catch_st2 = mean(SumTotalCatch))
 
 stockSize <- left_join(by_group_treat1, by_group_treat2) %>%
-  mutate(sw_mean = (mean_st1 + mean_st2) / 2)
+  mutate(sw_median = (median_st1 + median_st2) / 2)
 
 ginis <- left_join(select(gini0, -part),
                    select(gini1, -part)) %>%
@@ -348,10 +348,11 @@ quartz(width = 5, height = 2.5)
 
 multiplot(plotlist = g, layout = layout)
 
-quartz.save(file = '180528_Schill_NCC_Fig1.pdf', type = 'pdf', dpi = 1200,
-            pointsize = 5, family = "helvetica", width = 5, height = 2.5)
+quartz.save(file = 'Schill_NCC_Fig1.png', type = 'png', dpi = 300,
+            pointsize = 5, family = "helvetica", width = 5, height = 2)
 
-
+# ggsave( filename = 'Schill_NCC_Fig1.png', device = 'png', dpi = 300,
+#        width = 5, height = 2.5, units = 'in')
 ### Figure 2
 source('~/Documents/Projects/BEST - Beijer/BEST/games_howell/games_howell.R')
 
@@ -561,7 +562,7 @@ surv.dat$color[is.na(surv.dat$color)] <- "Morado"
 
 
 agree <- surv.dat %>%
-  select(group, groupID, color, Round = round #, # agree1 = A11.3..agreement, agree2 = B11.3..agreement,
+  select(group, groupID, color, Round = round ,agree1 = A11.3..agreement, agree2 = B11.3..agreement #,
          # exact1 = A3.1..agreement.exact, exact2 = B3.1..Bgreement.exBct,
          # range1 = A3.2..agreement.range, range2 = B3.2..agreement.range,
          #comm1 = A11.2..communication, comm2 = B11.2..communication,
@@ -572,7 +573,7 @@ agree <- surv.dat %>%
   unique()
 
 agree$Round <- as.numeric(agree$Round)
-group_dat <- left_join(group_dat, agree, by = c('group', 'Round'))
+group_dat <- left_join(group_dat, agree)
 
 group_dat$agree1 <- as.factor(group_dat$agree1 )
 group_dat$agree2 <- as.factor(group_dat$agree2 )
@@ -622,7 +623,7 @@ s1b <- ggplot(data = filter(group_dat, part == T), aes(y =IntermediateStockSize,
   geom_point(aes(color = gini_round, shape = factor(agree2)) , show.legend = T, size = 1) +
   scale_color_gradient(low = 'blue', high = 'red') +
   facet_grid(Treatment ~ Place) + ylab("Intermediate Stock Size") +
-  + theme_gray(base_size = 5) #  ggtitle('b) Assisstant 2')
+  theme_gray(base_size = 5) #  ggtitle('b) Assisstant 2')
 
 sm <- ggplot(data = filter(events, part == T), aes(y =IntermediateStockSize, x= Round, group = group)) +
   geom_hline(yintercept = 28, color = 'pink') +
@@ -683,7 +684,7 @@ g
 
 ### combine the agreements on the time lines
 
-f3a <- ggplot(data = filter(group_dat, part == T), aes(y =IntermediateStockSize, x= Round, group = group)) +
+f3a <- ggplot(data = group_dat, aes(y =IntermediateStockSize, x= Round, group = group)) +
   geom_hline(yintercept = 28, color = 'pink') +
   geom_line(aes(color = gini_round), show.legend = T) + geom_point(aes(color = gini_round), show.legend = T, size = 0.5) +
   scale_color_gradient(low = "#0000FFCC", high = "#FF0000CC") +
@@ -691,7 +692,7 @@ f3a <- ggplot(data = filter(group_dat, part == T), aes(y =IntermediateStockSize,
   ggtitle('a)') + theme_gray(base_size = 5)
 
 
-
+ggsave(filename = "Schill_Fig4.png", device = "png", width = 4, height = 4, dpi = 300)
 
 ####### Figure with model
 
@@ -708,35 +709,111 @@ by_group_below_t <- group_by(filter(group_dat, part == T), Treatment, Place, gro
 df <- left_join(stagewise, by_group_catch)
 df <- left_join(df, by_group_below_t)
 
-fit1 <- lm(mean_st2 ~ gini_st1 + mean_st1 + Place + Treatment, data = df )
-fit2 <- lm(catch_st2 ~ gini_st1 + mean_st1 + Place + Treatment, data = df )
-fit3 <- lm(rounds_below ~ gini_st1 + mean_st1 + Place + Treatment, data = df )
+fit1 <- lm(median_st2 ~ gini_st1 + median_st1 + Place + Treatment, data = df )
+fit2 <- lm(catch_st2 ~ gini_st1 + median_st1 + Place + Treatment, data = df )
+fit3 <- lm(rounds_below ~ gini_st1 + median_st1 + Place + Treatment, data = df )
 summary(fit3)
 
 df1 <- tidy( coeftest(fit1, vcov = vcovHC(fit1, "HC3")) ) %>% mutate(hi = estimate + std.error, low = estimate - std.error)
-df1$variable <- "Mean stock size"
-df2 <- tidy( coeftest(fit2, vcov = vcovHC(fit2, "HC3")) ) %>% mutate(hi = estimate + std.error, low = estimate - std.error)
-df2$variable <- "Mean catch"
+df1$variable <- "Median stock size"
+#df2 <- tidy( coeftest(fit2, vcov = vcovHC(fit2, "HC3")) ) %>% mutate(hi = estimate + std.error, low = estimate - std.error)
+#df2$variable <- "Mean catch"
 df3 <- tidy( coeftest(fit3, vcov = vcovHC(fit3, "HC3")) ) %>% mutate(hi = estimate + std.error, low = estimate - std.error)
 df3$variable <- "% rounds below threshold"
 
-df <- dplyr::bind_rows(df1,df2,df3)
-df$variable <- factor(df$variable, levels = c("Mean stock size","Mean catch","% rounds below threshold") )
+df <- dplyr::bind_rows(df1,df3)
+df$variable <- factor(df$variable, levels = c("Median stock size","% rounds below threshold") )
+
+df <- df %>%
+  mutate(
+    var_type = ifelse(
+      str_detect(term, "Treatment"), "Treatment",
+      ifelse(str_detect(term, "Place"), "Place", "Other"))
+    ) %>%
+  mutate(
+    term = str_remove(term, "Treatment"),
+    term = str_remove(term, "Place")
+  )
+df$var_type <- factor(df$var_type, levels = c("Treatment", "Place", "Other"))
+
 levels(df$variable)
 
-write.csv(df, file = 'Fig3_models_HC3corrected_v2.csv')
+# write.csv(df, file = 'Fig3_models_HC3corrected_v2.csv')
 
 ## graph
-g <- ggplot(df, aes(estimate, term, xmin = low, xmax = hi, height = 0, color = variable)) +
+g <- ggplot(df, aes(estimate, term, xmin = low, xmax = hi, height = 0)) +
   geom_vline(xintercept = 0, color = "grey" ) +
-  geom_point(show.legend = F) +
-  geom_errorbarh( show.legend = F) +
-  theme_minimal(base_size = 7) +
-  facet_wrap( ~ variable, scales = "free_x")
+  geom_point(
+    aes(shape = ifelse(
+      p.value < 0.05, "< 0.05" ,
+      ifelse(p.value < 0.1, "< 0.1", "> 0.1")
+    )), size = 2, show.legend = TRUE
+  ) +
+  scale_shape_manual(name = "p value", values = c(19,7,1)) +
+  geom_errorbarh( show.legend = F) + 
+  labs(tag = "A)") + ylab("") +
+  facet_grid(var_type ~ variable, scales = "free", switch = "y") +
+  theme_light(base_size = 6) + theme(legend.position = "bottom")
 
 g
 
+## J190629: Second new regression for Figure 5. Treatments exclude baseline
+df <- left_join(stagewise, by_group_catch)
+df <- left_join(df, by_group_below_t)
+
+fit4 <- lm(median_st2 ~ gini_st1 + median_st1 + Place + Treatment, data = filter(df, Treatment != "Baseline"))
+fit5 <- lm(rounds_below ~ gini_st1 + median_st1 + Place + Treatment, data = filter(df, Treatment != "Baseline") )
+
+df4 <- tidy( coeftest(fit4, vcov = vcovHC(fit4, "HC3")) ) %>% mutate(hi = estimate + std.error, low = estimate - std.error)
+df4$variable <- "Median stock size"
+df5 <- tidy( coeftest(fit5, vcov = vcovHC(fit5, "HC3")) ) %>% mutate(hi = estimate + std.error, low = estimate - std.error)
+df5$variable <- "% rounds below threshold"
+
+df <- dplyr::bind_rows(df4,df5)
+df$variable <- factor(df$variable, levels = c("Median stock size","% rounds below threshold") )
+df <- df %>%
+  mutate(
+    var_type = ifelse(
+      str_detect(term, "Treatment"), "Treatment",
+      ifelse(str_detect(term, "Place"), "Place", "Other"))
+  ) %>%
+  mutate(
+    term = str_remove(term, "Treatment"),
+    term = str_remove(term, "Place")
+  )
+df$var_type <- factor(df$var_type, levels = c("Treatment", "Place", "Other"))
+
+
+g2 <- ggplot(df, aes(estimate, term, xmin = low, xmax = hi, height = 0)) +
+  geom_vline(xintercept = 0, color = "grey" ) +
+  geom_point(
+    aes(shape = ifelse(
+      p.value < 0.05, "< 0.05" ,
+      ifelse(p.value < 0.1, "< 0.1", "> 0.1")
+    )), size = 2, show.legend = TRUE
+  ) +
+  scale_shape_manual(name = "p value", values = c(19,7,1)) +
+  geom_errorbarh( show.legend = F) +
+  labs(tag = "B)") + ylab("") +
+  facet_grid( var_type ~ variable, scales = "free", switch = "y") +
+  theme_light(base_size = 6) + theme(legend.position = "bottom") 
+
+g2
+
+
+## Combine the figure
+gg <- list (g, g2)
+
+source('~/Dropbox/Code/multiplot.R')
+layout <- matrix(c(1,2), 1,2, byrow = F)
+multiplot(plotlist = gg, layout = layout)
+
+quartz.save(file = 'Schill_Fig5_Regressions.png', type = 'png', dpi = 400, width = 6, height = 3)
+
+
+
 quartz.save(file = '170316_Schill_NCC_Fig3.png', type = 'png', dpi = 600, width = 4, height = 2)
+ggsave(filename = "Schill_Fig5a_regression.png" , height = 3, width = 4, units = "in", dpi = 500, device = "png")
 
 # welch_aov = userfriendlyscience::oneway(y=df$sw_mean, x=df$Place,  posthoc="games-howell")
 # round(welch_aov$intermediate$posthocTGH$output$games.howell, 3)
@@ -901,7 +978,7 @@ group_dat %>%
         ylab("Median stock size") +
         coord_flip() + theme_light(base_size = 8)
 
-ggsave("180528_medianStockSize.pdf", device = "pdf", width = 4, height = 4, units = "in")
+ggsave("Schill_Fig3_medianStockSize.png", device = "png", width = 4, height = 4, units = "in", dpi = 300)
 
 ## gini
 group_dat %>%
@@ -914,6 +991,7 @@ group_dat %>%
         facet_wrap(~stage, ncol = 1, nrow = 2) +
         ylab("Gini coefficient") +
         coord_flip() + theme_light(base_size = 8)
-ggsave("180528_gini.pdf", device = "pdf", width = 4, height = 4, units = "in")
+
+ggsave("Schill_Fig3_gini.png", device = "png", width = 4, height = 4, units = "in", dpi = 300)
 
 ##
