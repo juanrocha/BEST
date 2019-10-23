@@ -254,13 +254,13 @@ ind_coop <- ind_coop %>%
   ) 
 
 
-
-surv %>%
-  select(grop_fishing_partner = 21, fishing_group = 52, art = 64, fishing_future=88, 
-         same_spp = 92, dramatic_changes = 96, share_art = 137, coop = 139) %>%
-  mutate(art = as.character(art)) %>%
-  skimr::skim()
-  pull(coop) %>% unique()
+# 
+# surv %>%
+#   select(grop_fishing_partner = 21, fishing_group = 52, art = 64, fishing_future=88, 
+#          same_spp = 92, dramatic_changes = 96, share_art = 137, coop = 139) %>%
+#   mutate(art = as.character(art)) %>%
+#   skimr::skim()
+#   pull(coop) %>% unique()
 
 ```
 
@@ -444,7 +444,7 @@ p4 <- plm(ind_extraction ~ Treatment + part +Treatment * part + as.numeric(Round
 ```{r include = FALSE}
 # simple
 p5 <- plm(ind_extraction ~ Treatment + as.numeric(Round) + StockSizeBegining , 
-            data = pdata.frame(dat %>% filter(part == TRUE), index = c('ID_player' ,'Round', "group")),
+          data = pdata.frame(dat %>% filter(part == TRUE), index = c('ID_player' ,'Round', "group")),
           model = "random", 
           effect = "individual" )
 
@@ -1529,7 +1529,7 @@ Save work in an R object that can be loaded and used in paper
 
 ### Structural equation model
 
-```{r}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 library(lavaan)
 library(piecewiseSEM)
 library(nlme)

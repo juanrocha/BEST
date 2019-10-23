@@ -1,0 +1,481 @@
+---
+title: "final_regression_paper2"
+author: "Juan Rocha"
+date: "10/10/2019"
+output:
+  pdf_document:
+    toc: no
+  html_document:
+    code_folding: hide
+    dev: png
+    highlight: tango
+    self_contained: yes
+    theme: paper
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+header-includes:
+- \usepackage{dcolumn,rotating, longtable}
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+set.seed(12345)
+library(tidyverse)
+library(stringr)
+library(forcats)
+library(RColorBrewer)
+library(ggplot2)
+library(GGally)
+library(moments)
+library(broom)
+
+library(grid)
+library(gridExtra)
+library(plm)
+library(lmtest)
+library(splm)
+library(car)
+library(estimatr)
+library(kableExtra)
+```
+
+```{r data, warnings = FALSE, message = FALSE, include = FALSE}
+
+### load dataset
+## Survey data
+source('~/Documents/Projects/BEST - Beijer/BEST/160525_ErrorIdentificationSurvey.R')
+
+#key
+key <- read.csv2(file = '~/Dropbox/BEST/Colombia/Survey/key_consolidado_survey.csv', encoding = "Latin-1" )
+key <- key [c(1:16,23:240),c(2:5)]
+  key$Name.in.datasheet <- as.character(key$Name.in.datasheet)
+  levels(key$Data.type)[3] <- "binary"
+  key <- droplevels(key)
+  key$Column.datasheet <- seq(1:234)
+
+# load game data in long format, short format also available
+dat <- read.csv(file="~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv", row.names=1)
+
+# Create player ID's as in Surveys.R
+dat <- transform(dat, ID_player = interaction(Date, Treatment, Session, Player, drop = TRUE))
+# Create ID group
+dat <- transform(dat, group = interaction (Date, Treatment, Session, drop=T))
+dat <- as_tibble(dat) %>%
+  rename(ind_extraction = value)
+
+# reorder levels
+dat$Treatment <- factor(dat$Treatment, levels(dat$Treatment)[c(1,3,2,4)])
+# levels(dat$Treatment)
+
+dat <- mutate (dat, threshold = ifelse (dat$Treatment == "Base line" | dat$part == FALSE, 20, 28 ))
+dat <- dat %>% mutate(
+  dummy_threshold = ifelse(NewStockSize - threshold > 0, FALSE, TRUE))
+
+## Use the deviation from threshold, and dev_t_divided by 4
+dat <- dat %>%
+  mutate (dev_drop = ifelse(dat$Treatment == 'Base line' | dat$part == FALSE,
+                                ((dat$IntermediateStockSize - 20)) ,  # - dat$value
+                                 ((dat$IntermediateStockSize - 28))   )) #- dat$value
+## here cooperation is calculated.
+dat <- dat %>%
+  mutate (optimal = (StockSizeBegining - threshold) / 4) %>%
+  mutate (cooperation = ifelse(
+    StockSizeBegining == 0, NA, 
+    ifelse((4*optimal) < 0 & ind_extraction == 0, 0, optimal - ind_extraction))) %>%
+  mutate(cooperation2 = ifelse(
+    optimal < 1 & ind_extraction == 0, 1,
+    ifelse(optimal == 0 & ind_extraction == 1, 1.5, 
+    ifelse(optimal < 1 & ind_extraction > 0, ind_extraction, ind_extraction / optimal)
+  )))
+
+## use the demeaned extraction as a try:
+dat <- dat %>%
+  mutate(demean_extraction = (ind_extraction - mean(ind_extraction))/ sd(ind_extraction)) %>%
+  mutate(stock_ratio = ind_extraction/StockSizeBegining)
+
+## test of normality:
+# shapiro.test(dat$cooperation2)
+# interpretation: if p > 0.05 then is normal, if not, it's not normally distributed.
+
+
+## coordination is calculated next
+
+dist_group <- function(x){ # x will be the character identifier for each player
+  y <- dat %>% select(ID_player, Round, ind_extraction, group) %>%
+    filter(group == substr(x,start = 1, stop = nchar(x) - 2)) %>% # filter per group based on ID_player
+    select(-group) %>% spread(Round, ind_extraction)
+  z <- vegan::vegdist(y[-1], "bray") # Bray-curtis is bounded 0:1 with zero absolute similarity and 1 complete different
+  player <- substr(x, start = nchar(x), stop = nchar(x)) # the player is the last number of the string
+  mean_dist <- colSums(as.matrix(z))[as.numeric(player)] / 3 # divided by the other 3 players. Note the dist to self is 0
+  df <- data_frame(ID_player = x, mean_dist = mean_dist)
+  return(df)
+}
+
+x <- lapply(levels(dat$ID_player), dist_group)
+x <- bind_rows(x)
+x$ID_player <- as.factor(x$ID_player)
+x <- mutate(x, coordination = 1-mean_dist)
+
+
+
+### For the analysis proposed by Jorge I need to get rid of missing values, set all NA to zero before calculating anything else.
+dat <-  dat %>%
+  replace_na(list(StockSizeBegining = 0, SumTotalCatch = 0, IntermediateStockSize = 0, Regeneration = 0, NewStockSize = 0))
+
+
+
+# rm(y , z, player, mean_dist, df)
+
+ind_coop <- dat %>% filter(part == TRUE) %>%
+  select( Treatment, Place, ID_player, group, Round, cooperation2, part, Player) %>%
+  group_by(Treatment, Place, ID_player, group, part, Player) %>%
+  summarize(Cooperation = mean(cooperation2, na.rm = T),
+            variance = var(cooperation2, na.rm = T),
+            skewness = skewness(cooperation2, na.rm = T),
+            med_coop = median(cooperation2, na.rm = T))
+
+exp_notes <- as_tibble(exp_notes)
+agreements <- exp_notes %>% 
+  select(39,98, A.round, ID_player, ID_Obs) %>% 
+  mutate(
+    round = as.numeric(A.round), 
+    agreement = pmax(A11.3..agreement, B11.3..agreement, na.rm = TRUE)) %>% 
+  filter(round>6) %>% 
+  group_by(ID_player) %>% 
+  summarize(prop_ag = sum(agreement, na.rm = T)/10)
+
+
+risk_amb <- exp_notes %>% select(119:130,132) %>% unique()
+
+risk <- risk_amb %>% select(13,
+    Risk_0_38k = 1, Risk_13k =2, Risk_10_19k = 3,
+    Risk_7_25k = 4, Risk_4_31k = 5, Risk_2_36k = 6)
+
+risk <- risk %>%
+    mutate(Risk_0_38k = forcats::fct_recode(Risk_0_38k, NULL = '', '1' = '|')) %>% mutate(Risk_0_38k = as.numeric(as.character(Risk_0_38k))) %>%
+    gather(key = Risk, value = choice, 2:7, na.rm = FALSE) %>%
+    filter(choice == 1)
+
+risk$Risk <- as.factor(risk$Risk)
+levels(risk$Risk) <- c(6,2,1,5,4,3)
+risk$Risk <- as.numeric(risk$Risk)
+
+# J190219: Note that there are few people with no choice in the risk task. So one looses something here (7obs), need to go back to original data.
+
+### J180102: There is errors also on the ambiguity elicitation task data. The group of 2016-02-09.Threshold.am all players have NAs.
+amb <- risk_amb %>% select(13, Amb_0_38k = 7, Amb_13k =8, Amb_10_19k = 9, Amb_7_25k = 10, Amb_4_31k = 11, Amb_2_36k = 12)
+
+## for the people with two choices, I leave only one manually, but note, this needs to be checked with raw data and change afterwards here to correct for the right one.
+# this command shows the errors:
+# amb %>% group_by(ID_player) %>% summarize(choice = sum(Amb_0_38k, Amb_13k, Amb_10_19k, Amb_7_25k ,Amb_4_31k ,Amb_2_36k)) %>% filter(choice == 0 | choice == 2 | is.na(choice))
+## Manual corrections
+amb[amb$ID_player == "2016-02-01.Threshold.am.2", "Amb_4_31k"] <- 0
+amb[amb$ID_player == "2016-02-05.Uncertainty.am.2", "Amb_10_19k"] <- 0
+amb[amb$ID_player == "2016-02-02.Base line.am.4", "Amb_10_19k"] <- 1
+
+## note, this still keeps the NA players and they are dropped when choice == 1, but at least there is no duplicates now.
+## The dataset still only has 252/256 obs, for 4 people all choices were coded as zero.
+amb <- amb %>%
+  gather(key = Amb, value = choice, 2:7) %>%
+  filter(choice == 1)
+
+amb$Amb <- as.factor(amb$Amb)
+levels(amb$Amb) <- c(6,2,1,5,4,3)
+amb$Amb <- as.numeric(amb$Amb)
+
+ind_coop <- left_join(ind_coop, surv, by = "ID_player") %>%  ## Now drop the columns that are not useful for now in the regression
+  select( c(1:21, life_satisfaction = 29, EE_before = 30, partner_in_group = 31,
+            fishing_age=35,fishing_last_yr = 39, week_days = 53, ND_hrs = 54, ND_kg = 55, ND_pesos =56,
+            BD_kg = 59, BD_pesos = 60, BD_how_often = 61, group_fishing = 62, boat = 68,
+            take_home= 94, sale= 95, give_away = 97, 
+            fishing_future = 98, fishing_children=100, history_rs = 106,  sharing_art=147,
+            belongs_coop=149, age=167, education = 168, education_yrs=169 ))
+
+ind_coop$BD_how_often[is.na(ind_coop$BD_how_often)] <- 0
+
+ind_coop$ID_player <- as.character(ind_coop$ID_player)
+risk$ID_player <- as.character(risk$ID_player)
+amb$ID_player <- as.character(amb$ID_player)
+x$ID_player <- as.character(x$ID_player)
+
+ind_coop <- left_join(ind_coop, x, by = "ID_player")
+
+ind_coop <- left_join(ind_coop, select(risk, 1,2), by = "ID_player")
+
+
+### here is the error now
+ind_coop <- left_join(ind_coop, select(amb, 1,2), by = "ID_player")
+
+## log-transform money related variables
+
+ind_coop <- mutate(ind_coop, ND_log_pesos = log(ND_pesos), BD_log_pesos = log1p(BD_pesos))
+
+ind_coop <- dat %>%
+  group_by(ID_player, part) %>%
+  summarize(
+    mean_extraction = mean(ind_extraction, na.rm = TRUE),
+    mean_prop_extr = mean(stock_ratio, na.rm = TRUE),
+    var_extraction = var(ind_extraction, na.rm = TRUE),
+    var_prop_extr = var(stock_ratio, na.rm = TRUE)
+  ) %>%
+  right_join(ind_coop)
+
+## correct education, there is two variables with the same info, unify to avoid missing values:
+
+ind_coop <- ind_coop %>%
+  mutate(education_yr = ifelse(
+    !is.na(education_yrs), education_yrs,
+    ifelse(
+      education == 1, 0,
+      ifelse(
+        education == 2, 5, 
+        ifelse(education == 3, 11, 16)
+      )
+    )
+  ))
+
+ind_coop <- ind_coop %>% 
+  left_join(agreements)
+
+## correct fishing_children:
+
+ind_coop <- ind_coop %>%
+  mutate(
+    fishing_children = ifelse(
+      is.na(fishing_children), 0,
+      ifelse(
+        (fishing_children < 2 | fishing_children == 4), 0, 1
+        )
+    )
+  ) 
+
+
+
+surv %>%
+  select(group_fishing_partner = 21, fishing_group = 52, art = 64, fishing_future=88,
+         same_spp = 92, dramatic_changes = 96, share_art = 137, coop = 139) %>%
+  mutate(art = as.character(art)) %>%
+  skimr::skim()
+  #pull(coop) %>% unique()
+
+```
+
+
+```{r regression_survey, include = TRUE, echo = FALSE, message=FALSE, warning=FALSE}
+
+ind_coop <-  ind_coop %>%
+  mutate(Place = fct_recode(Place, A = "Buenavista", B = "Las Flores", C = "Taganga", D = "Tasajera"))
+
+write_csv(ind_coop, path = "ind_coop.csv")
+
+
+y_vars <- c("mean_extraction", "mean_prop_extr", "med_coop", "variance", "coordination", "var_extraction", "var_prop_extr")
+x_vars <- c("Treatment + Place + education_yr + BD_how_often + fishing_children  + Risk + Amb  + prop_ag")
+out1 <-  map2(x_vars, y_vars, 
+         ~ lm_robust(as.formula(paste(.y, "~", .x)),
+              data = ind_coop %>% filter(part == T) %>% ungroup(),
+              se_type = 'stata', cluster = group)
+  )
+  
+x_vars <- c( "Treatment + education_yr + BD_how_often + fishing_children  + Risk + Amb  + prop_ag")
+out2 <-  map2(x_vars, y_vars, 
+         ~ lm_robust(as.formula(paste(.y, "~", .x)),
+              data = ind_coop %>% filter(part == T) %>% ungroup(),
+              se_type = 'stata', cluster = group)
+  )
+
+x_vars <- c( "Treatment + Place")
+out3 <-  map2(x_vars, y_vars, 
+         ~ lm_robust(as.formula(paste(.y, "~", .x)),
+              data = ind_coop %>% filter(part == T) %>% ungroup(),
+              se_type = 'stata', cluster = group)
+  )
+  
+x_vars <- c( "Treatment + education_yr + BD_how_often + fishing_children + fishing_future + Risk + group_fishing + Amb  + prop_ag  ")
+out4 <-  map2(x_vars, y_vars, 
+         ~ lm_robust(as.formula(paste(.y, "~", .x)),
+              data = ind_coop %>% filter(part == T) %>% ungroup(),
+              se_type = 'stata', cluster = group)
+  )
+
+df_rsqr <- tibble(
+  original =   out1 %>% map(., summary) %>%  map(.,"r.squared") %>% unlist(),
+  no_place = out2 %>% map(., summary) %>%  map(.,"r.squared") %>% unlist(),
+  just_place = out3 %>% map(., summary) %>%  map(.,"r.squared") %>% unlist(),
+  extras = out4 %>% map(., summary) %>%  map(.,"r.squared") %>% unlist(),
+  vars = y_vars
+)
+
+
+g_reg2 <- out1 %>%
+  map(tidy) %>%
+  map2(., .y = y_vars , function(x,y) {x$model <- y; return(x)}) %>%
+  bind_rows() %>% #pull(model) %>% unique()
+  mutate( # correct the names of terms
+    term = str_replace_all(string = term, pattern = "\\(Intercept\\)", replacement = "Intercept"),
+    term = str_replace_all(string = term, pattern = "age", replacement = "Age [years]"),
+    term = str_replace_all(string = term, pattern = "education_yr", replacement = "Education [years]"),
+    term = str_replace_all(string = term, pattern = "BD_how_often",
+                           replacement = "How often do you have bad days?\n [1:yearly - 4:daily]"),
+    term = str_replace_all(term, "^Risk", "Risk aversion"),
+    term = str_replace_all(term, "Amb", "Ambiguity aversion"),
+    term = str_replace_all(term, "prop_ag", "% rounds with agreements"),
+    term = str_replace_all(term, "fishing_children", "Do you expect your children to fish?\n[0:No, 1:Yes]") 
+    ## correct on data and regressions
+  ) %>%
+  mutate(
+    model = str_replace_all(model, "mean_extraction", "mean extraction"),
+    model = str_replace_all(model, "mean_prop_extr", "mean %\n extraction"),
+    model = str_replace_all(model, "med_coop", "median\n cooperation"),
+    model = str_replace_all(model, "variance", "variance\n cooperation"),
+    model = str_replace_all(model, "var_extraction", "variance\n extraction"),
+    model = str_replace_all(model, "var_prop_extr", "variance %\n extraction"),
+    model = factor(model, levels = 
+                     c("mean extraction", "mean %\n extraction", "variance\n extraction", "variance %\n extraction",
+                      "median\n cooperation", "variance\n cooperation", "coordination"))
+  ) %>%
+  mutate(
+    var_type = ifelse(
+      str_detect(term, "Treatment"), "Treatment",
+      ifelse(
+        str_detect(term, "Place"), "Place",
+             ifelse(
+               str_detect(term, "Intercept"), ".", "Socio-economic aspects")))
+  ) %>% # pull(var_type) %>% unique()
+  mutate(
+    term = str_remove(term, "Treatment"),
+    term = str_remove(term, "Place"),
+    var_type = factor(var_type, levels = c("." ,"Treatment", "Place", "Socio-economic aspects") )
+  ) %>%
+  
+  mutate(term = factor(term, levels = rev(unique(term)))) %>%
+  mutate(conf.high = estimate + std.error,
+         conf.low = estimate - std.error,) %>%
+  ggplot(aes(x = estimate, y = term)) +
+  geom_vline(xintercept = 0, color = "grey84", linetype = 2, size = 0.5) +
+    geom_point(aes(shape = ifelse(
+        p.value < 0.05, "< 0.05" ,
+            ifelse(p.value < 0.1, "< 0.1", "> 0.1")
+        )), size = 2, show.legend = TRUE) +
+    scale_shape_manual(name = "p value", values = c(19,7,1)) +
+    geom_errorbarh(aes(xmin = conf.low, xmax = conf.high, height = .25), size = 0.3) +
+  scale_x_continuous(minor_breaks = NULL, breaks = scales::pretty_breaks(n=3)) +
+  theme_light(base_size = 7) + 
+  theme(legend.position = "bottom", axis.title.y = element_blank(), axis.text.x = element_text(size = 5) ) +
+  facet_grid(var_type ~ model, scales = "free", switch = "y", space = "free_y") 
+  #ggtitle("What does explain the behaviour of individuals?") #subtitle = "Robust estimation with standard errors HC1 (aka. Stata) and clustered around groups"
+
+
+# ggsave(g_reg2, filename = "fig3_regression_cooperation.png", device = "png", width = 6, height = 4, units = "in", dpi = 600 )
+g_reg2
+
+# quartz(width = 6, height = 4, pointsize = 6)
+# g_reg2
+# quartz.save(file = "fig3_regression_cooperation.pdf", type = "pdf", width = 6, height = 4, pointsize = 6, dpi = 600, bg = "white")
+
+```
+
+```{r table3, results='asis', warning=FALSE, message=FALSE, include = TRUE, echo = FALSE}
+
+y_vars <- c("mean_extraction", "mean_prop_extr", "med_coop", "variance", "coordination", "var_extraction", "var_prop_extr")
+x_vars <- c("Treatment + Place + education_yr + BD_how_often + fishing_children  + Risk + Amb  + prop_ag")
+out1 <-  map2(x_vars, y_vars, 
+         ~ lm(as.formula(paste(.y, "~", .x)),
+              data = ind_coop %>% filter(part == T) %>% ungroup()
+              )
+  )
+
+x_vars <- c( "Treatment + education_yr + BD_how_often + fishing_children  + Risk + Amb  + prop_ag")
+out2 <-  map2(x_vars, y_vars, 
+         ~ lm(as.formula(paste(.y, "~", .x)),
+              data = ind_coop %>% filter(part == T) %>% ungroup()
+              )
+  )
+
+x_vars <- c( "Treatment + Place")
+out3 <-  map2(x_vars, y_vars, 
+         ~ lm(as.formula(paste(.y, "~", .x)),
+              data = ind_coop %>% filter(part == T) %>% ungroup()
+              )
+  )
+
+
+x_vars <- c( "Treatment + education_yr + BD_how_often + fishing_children + fishing_future + Risk + group_fishing + Amb  + prop_ag  ")
+out4 <-  map2(x_vars, y_vars, 
+         ~ lm(as.formula(paste(.y, "~", .x)),
+              data = ind_coop %>% filter(part == T) %>% ungroup()
+              )
+  )
+
+# out_df <- map(out1, function(x) x$coefficients)
+# names(out_df) <- c("mean extraction", "mean %\n extraction", "variance\n extraction", "variance %\n extraction",
+#                       "median\n cooperation", "variance\n cooperation", "coordination")
+# 
+# stargazer::stargazer(
+#   as.data.frame(out_df),
+#   type = "latex", font.size = "small", model.names = FALSE,
+#   multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
+#   float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
+#   dep.var.labels = c("mean extraction", "mean %\n extraction", "variance\n extraction", "variance %\n extraction",
+#                       "median\n cooperation", "variance\n cooperation", "coordination"),
+#   dep.var.labels.include = TRUE,
+#   title = "Model comparison between (1) mean extraction, (2) mean proportion of stock available extracted, (3) median cooperation, (4) cooperation variance, and (5) coordination.",
+#   summary = FALSE, 
+#   coef = map(out1, function(x) x$coefficients),
+#   se = map(out1, function(x) x$std.error),
+#   p = map(out1, function(x) x$p.value),
+#   keep = "all"
+# )
+
+
+stargazer::stargazer(
+  out1,
+  type = "latex", font.size = "tiny", model.names = FALSE,
+  multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
+  float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
+  dep.var.labels = NULL, #c("mean extraction", "mean %\n extraction", "variance\n extraction", "variance %\n extraction",
+                     #"median\n cooperation", "variance\n cooperation", "coordination"),
+  dep.var.labels.include = FALSE,
+  title = "Original models")
+
+stargazer::stargazer(
+  out2,
+  type = "latex", font.size = "tiny", model.names = FALSE,
+  multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
+  float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
+  dep.var.labels = NULL, #c("mean_extraction", "mean_prop_extr", "med_coop", "variance", "coordination"),
+  dep.var.labels.include = FALSE,
+  title = "Without place")
+
+stargazer::stargazer(
+  out3,
+  type = "latex", font.size = "tiny", model.names = FALSE,
+  multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
+  float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
+  dep.var.labels = NULL, #c("mean_extraction", "mean_prop_extr", "med_coop", "variance", "coordination"),
+  dep.var.labels.include = FALSE,
+  title = "Only place")
+
+stargazer::stargazer(
+  out4,
+  type = "latex", font.size = "tiny", model.names = FALSE,
+  multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
+  float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
+  dep.var.labels = NULL, #c("mean_extraction", "mean_prop_extr", "med_coop", "variance", "coordination"),
+  dep.var.labels.include = FALSE,
+  title = "Extra suggestions from LMS")
+
+
+kable(df_rsqr, format = "latex", digits = 2, caption = "Comparison of R2" )
+
+```
+
+
+### Ideas
+
+regress the difference, not the variable in the second part. Plot Figure 2 again but instead of the raw variable in the second part, plot the vector of change before - after in the phase space. 
