@@ -1,7 +1,7 @@
 ---
-title: "final_regression_paper2"
+title: "Regressions Paper2"
 author: "Juan Rocha"
-date: "10/10/2019"
+date: "2019 11 06"
 output:
   pdf_document:
     toc: no
@@ -284,6 +284,8 @@ amb$Amb <- as.numeric(amb$Amb)
 
 n <- dim(ind_coop2)[2]
 
+## ind_coop will be the dataframe for the regressions. Note that first I construct it with data for the second part of the game,
+## then I add control variables from the survey, and last I will combine again with control variables from the first part of the game.
 ind_coop <- left_join(ind_coop2, surv, by = "ID_player") %>%  ## Now drop the columns that are not useful for now in the regression
   select( c(1:n,
     life_satisfaction = 19+n, EE_before = 20+n, partner_in_group = 21+n,
@@ -343,13 +345,23 @@ ind_coop <- ind_coop %>%
     )
   )
 
+## correct fishing_cfuture:
+## Dropping fishing future, it has too many missing values:
+## ind_coop$fishing_future %>% table()
+## and the coding reveals that 4 was missing values. I don't know if code that as "don't know" or real 
+## missing values given that we also have NAs in the dataset.
+## ind_coop$fishing_future %>% table(useNA = "always")
+## 
+## attempt with sharing art
+# levels(surv[,64]) # ask LMS
 
-surv %>%
-  select(group_fishing_partner = 21, fishing_group = 52, art = 64, fishing_future=88,
-         same_spp = 92, dramatic_changes = 96, share_art = 137, coop = 139) %>%
-  mutate(art = as.character(art)) %>%
-  skimr::skim()
-  #pull(coop) %>% unique()
+
+# surv %>%
+#   select(group_fishing_partner = 21, fishing_group = 52, art = 64, fishing_future=88,
+#          same_spp = 92, dramatic_changes = 96, share_art = 137, coop = 139) %>%
+#   mutate(art = as.character(art)) %>%
+#   skimr::skim()
+#   #pull(coop) %>% unique()
 
 ```
 
@@ -365,61 +377,98 @@ ind_coop <-  ind_coop %>%
 names(ind_coop) <- str_remove_all(names(ind_coop), pattern = "2" )
 
 # write_csv(ind_coop, path = "ind_coop.csv") # file for Caroline to play around with regressions
-#
+
+## Manual regressions to implement Caroline's suggestion of using part one as predictor of part 2.
+
+## The final regression for the survey will contain a control variable for behaviour in the first part of the game
+ind_coop <- ind_coop %>%
+  select(-part) %>% ungroup() %>%
+  left_join(ind_coop1 %>% select(-Place))
+
+# history_rs?
+y_vars <- c("mean_extraction", "mean_prop_extr", "med_coop", "variance", "var_extraction", "var_prop_extr", "coordination")
+x_vars <- c("Treatment + Place + education_yr + BD_how_often + fishing_children + sharing_art + group_fishing + Risk + Amb  + prop_ag")
+z_vars <- c("mean_extraction1", "mean_prop_extr1", "med_coop1", "variance1", "var_extraction1", "var_prop_extr1", "coordination1")
+
+rhs <- map2(.x = x_vars, .y = z_vars,
+  ~ paste(.x, .y, sep = " + "))
+
+out <-  map2(rhs, y_vars,
+           ~ lm_robust(as.formula(paste(.y, "~", .x)),
+                data = ind_coop  %>% ungroup(),
+                se_type = 'CR2', cluster = group)
+    )
+
+## Note 191106: Stargazer does not currently recognize objects of the class lm_robust.
+## to cirunvent that problem I create the same regression with lm and then manually
+## modify coefficients, se, and p-values. See code below. The lm results are only used as 
+## template, table results are replaced manually.
+out_lm2 <-  map2(rhs, y_vars,
+           ~ lm(as.formula(paste(.y, "~", .x)),
+                data = ind_coop  %>% ungroup())
+    )
 
 
-y_vars <- c("mean_extraction", "mean_prop_extr", "med_coop", "variance", "coordination", "var_extraction", "var_prop_extr")
-x_vars <- c("Treatment + Place + education_yr + BD_how_often + fishing_children  + Risk + Amb  + prop_ag")
-out1 <-  map2(x_vars, y_vars,
-         ~ lm_robust(as.formula(paste(.y, "~", .x)),
-              data = ind_coop %>% filter(part == T) %>% ungroup(),
-              se_type = 'stata', cluster = group)
-  )
+## without place
+x_vars <- c("Treatment + education_yr + BD_how_often + fishing_children + sharing_art + group_fishing + Risk + Amb  + prop_ag")
+rhs <- map2(.x = x_vars, .y = z_vars,
+  ~ paste(.x, .y, sep = " + "))
 
-x_vars <- c( "Treatment + education_yr + BD_how_often + fishing_children  + Risk + Amb  + prop_ag")
-out2 <-  map2(x_vars, y_vars,
-         ~ lm_robust(as.formula(paste(.y, "~", .x)),
-              data = ind_coop %>% filter(part == T) %>% ungroup(),
-              se_type = 'stata', cluster = group)
-  )
+out_noplace <-  map2(rhs, y_vars,
+           ~ lm_robust(as.formula(paste(.y, "~", .x)),
+                data = ind_coop  %>% ungroup(),
+                se_type = 'CR2', cluster = group)
+    )
 
+out_lm_noplace <-  map2(rhs, y_vars,
+           ~ lm(as.formula(paste(.y, "~", .x)),
+                data = ind_coop  %>% ungroup())
+    )
+
+## only place
 x_vars <- c( "Treatment + Place")
-out3 <-  map2(x_vars, y_vars,
-         ~ lm_robust(as.formula(paste(.y, "~", .x)),
-              data = ind_coop %>% filter(part == T) %>% ungroup(),
-              se_type = 'stata', cluster = group)
-  )
+rhs <- map2(.x = x_vars, .y = z_vars,
+  ~ paste(.x, .y, sep = " + "))
 
-x_vars <- c( "Treatment + education_yr + BD_how_often + fishing_children + fishing_future + Risk + group_fishing + Amb  + prop_ag  ")
-out4 <-  map2(x_vars, y_vars,
-         ~ lm_robust(as.formula(paste(.y, "~", .x)),
-              data = ind_coop %>% filter(part == T) %>% ungroup(),
-              se_type = 'stata', cluster = group)
-  )
+out_onlyplace <-  map2(rhs, y_vars,
+           ~ lm_robust(as.formula(paste(.y, "~", .x)),
+                data = ind_coop  %>% ungroup(),
+                se_type = 'CR2', cluster = group)
+    )
+
+out_lm_onlyplace <-  map2(rhs, y_vars,
+           ~ lm(as.formula(paste(.y, "~", .x)),
+                data = ind_coop  %>% ungroup())
+    )
+
+
 
 df_rsqr <- tibble(
-  original =   out1 %>% map(., summary) %>%  map(.,"adj.r.squared") %>% unlist(),
-  no_place = out2 %>% map(., summary) %>%  map(.,"adj.r.squared") %>% unlist(),
-  just_place = out3 %>% map(., summary) %>%  map(.,"adj.r.squared") %>% unlist(),
-  extras = out4 %>% map(., summary) %>%  map(.,"adj.r.squared") %>% unlist(),
+  original =   out %>% map(., summary) %>%  map(.,"adj.r.squared") %>% unlist(),
+  no_place = out_noplace %>% map(., summary) %>%  map(.,"adj.r.squared") %>% unlist(),
+  just_place = out_onlyplace %>% map(., summary) %>%  map(.,"adj.r.squared") %>% unlist(),
   vars = y_vars
 )
 
 
-g_reg2 <- out1 %>%
+g_reg2 <- out %>%
   map(tidy) %>%
   map2(., .y = y_vars , function(x,y) {x$model <- y; return(x)}) %>%
+  map(., function(x) {
+    mutate(x, term = ifelse(str_ends(term, "1"), "Response variable\n part 1", term)) }) %>%
   bind_rows() %>% #pull(model) %>% unique()
   mutate( # correct the names of terms
     term = str_replace_all(string = term, pattern = "\\(Intercept\\)", replacement = "Intercept"),
-    term = str_replace_all(string = term, pattern = "age", replacement = "Age [years]"),
+    # term = str_replace_all(string = term, pattern = "age", replacement = "Age [years]"),
     term = str_replace_all(string = term, pattern = "education_yr", replacement = "Education [years]"),
     term = str_replace_all(string = term, pattern = "BD_how_often",
-                           replacement = "How often do you have bad days?\n [1:yearly - 4:daily]"),
+                           replacement = "Frequency of bad fishing days\n [1:yearly - 4:daily]"),
     term = str_replace_all(term, "^Risk", "Risk aversion"),
     term = str_replace_all(term, "Amb", "Ambiguity aversion"),
     term = str_replace_all(term, "prop_ag", "% rounds with agreements"),
-    term = str_replace_all(term, "fishing_children", "Do you expect your children to fish?\n[0:No, 1:Yes]")
+    term = str_replace_all(term, "fishing_children", "Expect children to fish\n[0:No, 1:Yes]"),
+    term = str_replace_all(term, "sharing_art", "Fishing art sharing\n [0:No - 1:Yes]"),
+    term = str_replace_all(term, "group_fishing", "Fishing in groups\n[0:No, 1:Yes]"),
     ## correct on data and regressions
   ) %>%
   mutate(
@@ -446,10 +495,9 @@ g_reg2 <- out1 %>%
     term = str_remove(term, "Place"),
     var_type = factor(var_type, levels = c("." ,"Treatment", "Place", "Socio-economic aspects") )
   ) %>%
-
   mutate(term = factor(term, levels = rev(unique(term)))) %>%
-  mutate(conf.high = estimate + std.error,
-         conf.low = estimate - std.error,) %>%
+  # mutate(conf.high = estimate + std.error,
+  #        conf.low = estimate - std.error,) %>%
   ggplot(aes(x = estimate, y = term)) +
   geom_vline(xintercept = 0, color = "grey84", linetype = 2, size = 0.5) +
     geom_point(aes(shape = ifelse(
@@ -474,167 +522,131 @@ g_reg2
 
 ```
 
+## Tables for Supplementary material:
+
+
 ```{r table3, results='asis', warning=FALSE, message=FALSE, include = TRUE, echo = FALSE}
 
-y_vars <- c("mean_extraction", "mean_prop_extr", "med_coop", "variance", "coordination", "var_extraction", "var_prop_extr")
-x_vars <- c("Treatment + Place + education_yr + BD_how_often + fishing_children  + Risk + Amb  + prop_ag")
-out5 <-  map2(x_vars, y_vars,
-         ~ lm(as.formula(paste(.y, "~", .x)),
-              data = ind_coop %>% filter(part == T) %>% ungroup()
-              )
-  )
-
-x_vars <- c( "Treatment + education_yr + BD_how_often + fishing_children  + Risk + Amb  + prop_ag")
-out6 <-  map2(x_vars, y_vars,
-         ~ lm(as.formula(paste(.y, "~", .x)),
-              data = ind_coop %>% filter(part == T) %>% ungroup()
-              )
-  )
-
-x_vars <- c( "Treatment + Place")
-out7 <-  map2(x_vars, y_vars,
-         ~ lm(as.formula(paste(.y, "~", .x)),
-              data = ind_coop %>% filter(part == T) %>% ungroup()
-              )
-  )
-
-
-x_vars <- c( "Treatment + education_yr + BD_how_often + fishing_children + fishing_future + Risk + group_fishing + sharing_art + Amb  + prop_ag  ")
-out8 <-  map2(x_vars, y_vars,
-         ~ lm(as.formula(paste(.y, "~", .x)),
-              data = ind_coop %>% filter(part == T) %>% ungroup()
-              )
-  )
+## Fix nice names for tables
+##  Doesn't work because stargazer uses name matching to apply different statistics (p, se, ci)
+# out_lm2 <- out_lm2 %>%
+#   map(., function(x){
+#     names(x$coefficients) <- 
+#   ) 
+#   return(x)}) 
+# 
+# out_lm_noplace <- out_lm_noplace %>%
+#   map(., function(x){
+#     names(x$coefficients) <- c(
+#     "Constant", "Treatment: Threshold", "Treatment: Risk", "Treatment: Uncertainty",
+#     "Education", "Frequency of bad fishing days",
+#     "Expectation of fishing children", "Fishing art sharing", "Group fishing",
+#     "Risk aversion", "Ambiguity aversion", "% rounds with agreements", "Dependent var (part 1)"
+#   ) 
+#   return(x)}) 
+# 
+# out_lm_onlyplace <- out_lm_onlyplace %>%
+#   map(., function(x){
+#     names(x$coefficients) <- c(
+#     "Constant", "Treatment: Threshold", "Treatment: Risk", "Treatment: Uncertainty",
+#     "Place: B", "Place: C", "Place:D", "Dependent var (part 1)"
+#   ) 
+#   return(x)}) 
 
 
+
+
+
+
+## Original model
 stargazer::stargazer(
-  out5,
-  type = "latex", model.names = FALSE, font.size = "scriptsize",
-  multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
-  float = TRUE, no.space = TRUE, single.row = FALSE, df = TRUE, align = TRUE,
-  #float.env = "sidewaystable",
-  dep.var.labels = NULL, column.sep.width = "1pt",
-   #  c( ## I need to change \n for \\ so LaTex inserts new line
-   #  "mean extraction", "mean \\ proportion \\ extraction",  "median  cooperation",
-   # "variance cooperation", "coordination",  "variance extraction", "variance proportion extraction"),
-  dep.var.labels.include = FALSE,
-  se = out1 %>%  map(.,"std.error"),
-  p = out1 %>% map(., "p.value"),
-  coef = out1 %>% map(., "coefficients"),
-  title = "Original models", 
-  notes = c("Dependend variables are (1) mean extraction, (2) mean proportion of extraction, (3) median cooperation,",
-  "(4) variance of cooperation, (5) coordination, (6) variance of extraction, and",
-  "(7) variance of the proportion of extraction. Clustered robust standard errors reported."),
-  notes.append = TRUE, notes.align = "l")
-
-stargazer::stargazer(
-  out6,
-  type = "latex", font.size = "tiny", model.names = FALSE,
-  multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
-  float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
-  dep.var.labels = NULL, column.sep.width = "1pt",
-  dep.var.labels.include = FALSE,
-  se = out2 %>%  map(.,"std.error"),
-  p = out2 %>% map(., "p.value"),
-  coef = out2 %>% map(., "coefficients"),
-  title = "Without place",
-  notes = c("Dependend variables are (1) mean extraction, (2) mean proportion of extraction, (3) median cooperation,",
-  "(4) variance of cooperation, (5) coordination, (6) variance of extraction, and",
-  "(7) variance of the proportion of extraction. Clustered robust standard errors reported."),
-  notes.append = TRUE, notes.align = "l")
-
-stargazer::stargazer(
-  out7,
-  type = "latex", font.size = "tiny", model.names = FALSE,
-  multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
-  float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
-  dep.var.labels = NULL, column.sep.width = "1pt",
-  dep.var.labels.include = FALSE,
-  se = out3 %>%  map(.,"std.error"),
-  p = out3 %>% map(., "p.value"),
-  coef = out3 %>% map(., "coefficients"),
-  title = "Only place",
-  notes = c("Dependend variables are (1) mean extraction, (2) mean proportion of extraction, (3) median cooperation,",
-  "(4) variance of cooperation, (5) coordination, (6) variance of extraction, and",
-  "(7) variance of the proportion of extraction. Clustered robust standard errors reported."),
-  notes.append = TRUE, notes.align = "l")
-
-stargazer::stargazer(
-  out8,
-  type = "latex", font.size = "tiny", model.names = FALSE,
-  multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
-  float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
-  dep.var.labels = NULL, column.sep.width = "1pt",
-  dep.var.labels.include = FALSE,
-  se = out4 %>%  map(.,"std.error"),
-  p = out4 %>% map(., "p.value"),
-  coef = out4 %>% map(., "coefficients"),
-  title = "Extra suggestions from LMS",
-  notes = c("Dependend variables are (1) mean extraction, (2) mean proportion of extraction, (3) median cooperation,",
-  "(4) variance of cooperation, (5) coordination, (6) variance of extraction, and",
-  "(7) variance of the proportion of extraction. Clustered robust standard errors reported."),
-  notes.append = TRUE, notes.align = "l")
-
-
-kable(df_rsqr, format = "latex", digits = 2, caption = "Comparison of adjusted R2" )
-
-```
-
-
-### Ideas
-
-regress the difference, not the variable in the second part. Plot Figure 2 again but instead of the raw variable in the second part, plot the vector of change before - after in the phase space.
-
-Order of models in tables is `r y_vars`
-
-
-```{r table4, results='asis', warning=FALSE, message=FALSE, include = TRUE, echo = FALSE}
-
-## Manual regressions to implement Caroline's suggestion of using part one as predictor of part 2.
-
-df_caro <- ind_coop %>%
-  select(-part) %>% ungroup() %>%
-  left_join(ind_coop1 %>% select(-Place))
-
-y_vars <- c("mean_extraction", "mean_prop_extr", "med_coop", "variance", "var_extraction", "var_prop_extr", "coordination")
-x_vars <- c("Treatment + Place + education_yr + BD_how_often + fishing_children  + Risk + Amb  + prop_ag")
-z_vars <- c("mean_extraction1", "mean_prop_extr1", "med_coop1", "variance1", "var_extraction1", "var_prop_extr1", "coordination1")
-
-rhs <- map2(.x = x_vars, .y = z_vars,
-  ~ paste(.x, .y, sep = " + "))
-
-
-out_caro <-  map2(rhs, y_vars,
-           ~ lm_robust(as.formula(paste(.y, "~", .x)),
-                data = df_caro  %>% ungroup(),
-                se_type = 'stata', cluster = group)
-    )
-
-
-out_caro2 <-  map2(rhs, y_vars,
-           ~ lm(as.formula(paste(.y, "~", .x)),
-                data = df_caro  %>% ungroup())
-    )
-
-stargazer::stargazer(
-  out_caro2,
+  out_lm2,
   type = "latex", font.size = "tiny", model.names = FALSE,
   multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
   float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
   dep.var.labels = NULL, 
-  se = out_caro %>%  map(.,"std.error"),
-  p = out_caro %>% map(., "p.value"),
-  coef = out_caro %>% map(., "coefficients"),
+  se = out %>%  map(.,"std.error"),
+  p = out %>% map(., "p.value"),
+  coef = out %>% map(., "coefficients"),
   dep.var.labels.include = FALSE,
-  title = "Original models with term from first round",
+  title = "Original regression models as shown in Fig 3",
   notes = c("Dependend variables are (1) mean extraction, (2) mean proportion of extraction, (3) median cooperation,",
   "(4) variance of cooperation,  (5) variance of extraction, (6) variance of the proportion of extraction,",
-  "and (7) coordination. Clustered robust standard errors reported."),
-  notes.append = TRUE, notes.align = "l"
+  "and (7) coordination. Clustered robust standard errors and confidence intervals were calculated with the CR2 estimator."),
+  notes.append = TRUE, notes.align = "l",
+  covariate.labels = c(
+    "Constant", "Treatment: Threshold", "Treatment: Risk", "Treatment: Uncertainty",
+    "Place: B", "Place: C", "Place: D", "Education", "Frequency of bad fishing days",
+    "Expectation of fishing children", "Fishing art sharing", "Group fishing",
+    "Risk aversion", "Ambiguity aversion", "Rounds with agreements", "Part 1 variable (1)",
+    "Part 1 variable (2)","Part 1 variable (3)","Part 1 variable (4)","Part 1 variable (5)",
+    "Part 1 variable (6)","Part 1 variable (7)"
   )
+  )
+
+## Without place
+stargazer::stargazer(
+  out_lm_noplace,
+  type = "latex", font.size = "tiny", model.names = FALSE,
+  multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
+  float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
+  dep.var.labels = NULL, 
+  se = out_lm_noplace %>%  map(.,"std.error"),
+  p = out_lm_noplace %>% map(., "p.value"),
+  coef = out_lm_noplace %>% map(., "coefficients"),
+  dep.var.labels.include = FALSE,
+  title = "Modified model without place terms",
+  notes = c("Dependend variables are (1) mean extraction, (2) mean proportion of extraction, (3) median cooperation,",
+  "(4) variance of cooperation,  (5) variance of extraction, (6) variance of the proportion of extraction,",
+  "and (7) coordination. Clustered robust standard errors and confidence intervals were calculated with the CR2 estimator."),
+  notes.append = TRUE, notes.align = "l",
+  covariate.labels = c(
+    "Constant", "Treatment: Threshold", "Treatment: Risk", "Treatment: Uncertainty",
+    "Education", "Frequency of bad fishing days",
+    "Expectation of fishing children", "Fishing art sharing", "Group fishing",
+    "Risk aversion", "Ambiguity aversion", "Rounds with agreements", "Part 1 variable (1)",
+    "Part 1 variable (2)","Part 1 variable (3)","Part 1 variable (4)","Part 1 variable (5)",
+    "Part 1 variable (6)","Part 1 variable (7)"
+  )
+  )
+
+## only place
+stargazer::stargazer(
+  out_lm_onlyplace,
+  type = "latex", font.size = "tiny", model.names = FALSE,
+  multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
+  float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
+  dep.var.labels = NULL, 
+  se = out_lm_onlyplace %>%  map(.,"std.error"),
+  p = out_lm_onlyplace %>% map(., "p.value"),
+  coef = out_lm_onlyplace %>% map(., "coefficients"),
+  dep.var.labels.include = FALSE,
+  title = "Modified model with only treatment and place",
+  notes = c("Dependend variables are (1) mean extraction, (2) mean proportion of extraction, (3) median cooperation,",
+  "(4) variance of cooperation,  (5) variance of extraction, (6) variance of the proportion of extraction,",
+  "and (7) coordination. Clustered robust standard errors and confidence intervals were calculated with the CR2 estimator."),
+  notes.append = TRUE, notes.align = "l",
+  covariate.labels = c(
+    "Constant", "Treatment: Threshold", "Treatment: Risk", "Treatment: Uncertainty",
+    "Place: B", "Place: C", "Place: D", "Part 1 variable (1)",
+    "Part 1 variable (2)","Part 1 variable (3)","Part 1 variable (4)","Part 1 variable (5)",
+    "Part 1 variable (6)","Part 1 variable (7)"
+  )
+  )
+
+
+kable(df_rsqr, format = "latex", digits = 2, caption = "Comparison of adjusted R2 between models" )
 
 ```
 
+
+```{r}
+# save.image(file = "Regressions_paper2_191107.RData", safe = TRUE)
+```
+
+
+
+
 ## Notes:
 
-something is wrong with sharing_art... make sure all is in order, update tables (with, whitout place) and graph for paper.
+Order of models in tables is `r y_vars`
