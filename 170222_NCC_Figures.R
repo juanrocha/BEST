@@ -700,7 +700,7 @@ by_group_catch <- group_by(filter(group_dat, part == T), Treatment, Place, group
   summarise(catch_st2 = mean(SumTotalCatch))
 
 by_group_below_t <- group_by(filter(group_dat, part == T), Treatment, Place, group) %>%
-  mutate(round_below = IntermediateStockSize < 28) %>%
+  mutate(round_below = IntermediateStockSize > 28) %>% ## It is above, not below threshold
   group_by(group, Treatment, Place) %>%
   #filter(round_below == T) %>%
   #summarize(round_min = min(Round))
@@ -709,7 +709,7 @@ by_group_below_t <- group_by(filter(group_dat, part == T), Treatment, Place, gro
 df <- left_join(stagewise, by_group_catch)
 df <- left_join(df, by_group_below_t)
 
-fit1 <- lm(median_st2 ~ gini_st1 + median_st1 + Place + Treatment, data = df )
+fit1 <- lm(median_st2 ~  median_st1 + Place + Treatment, data = df ) #gini_st1 +
 fit2 <- lm(catch_st2 ~ gini_st1 + median_st1 + Place + Treatment, data = df )
 fit3 <- lm(rounds_below ~ gini_st1 + median_st1 + Place + Treatment, data = df )
 summary(fit3)
@@ -719,10 +719,10 @@ df1$variable <- "Median stock size"
 #df2 <- tidy( coeftest(fit2, vcov = vcovHC(fit2, "HC3")) ) %>% mutate(hi = estimate + std.error, low = estimate - std.error)
 #df2$variable <- "Mean catch"
 df3 <- tidy( coeftest(fit3, vcov = vcovHC(fit3, "HC3")) ) %>% mutate(hi = estimate + std.error, low = estimate - std.error)
-df3$variable <- "% rounds below threshold"
+df3$variable <- "% rounds above threshold"
 
 df <- dplyr::bind_rows(df1,df3)
-df$variable <- factor(df$variable, levels = c("Median stock size","% rounds below threshold") )
+df$variable <- factor(df$variable, levels = c("Median stock size","% rounds above threshold") )
 
 df <- df %>%
   mutate(
@@ -732,7 +732,10 @@ df <- df %>%
     ) %>%
   mutate(
     term = str_remove(term, "Treatment"),
-    term = str_remove(term, "Place")
+    term = str_remove(term, "Place"), 
+    #term = str_replace_all(term, "(Intercept)", "Constant"),
+    term = str_replace_all(term, "median_st1", "Median St1"),
+    term = str_replace_all(term, "gini_st1", "Gini St1")
   )
 df$var_type <- factor(df$var_type, levels = c("Treatment", "Place", "Other"))
 
@@ -762,15 +765,15 @@ df <- left_join(stagewise, by_group_catch)
 df <- left_join(df, by_group_below_t)
 
 fit4 <- lm(median_st2 ~ gini_st1 + median_st1 + Place + Treatment, data = filter(df, Treatment != "Baseline"))
-fit5 <- lm(rounds_below ~ gini_st1 + median_st1 + Place + Treatment, data = filter(df, Treatment != "Baseline") )
+fit5 <- lm(rounds_below ~ gini_st1  + Place + Treatment, data = filter(df, Treatment != "Baseline") ) #+ median_st1
 
 df4 <- tidy( coeftest(fit4, vcov = vcovHC(fit4, "HC3")) ) %>% mutate(hi = estimate + std.error, low = estimate - std.error)
 df4$variable <- "Median stock size"
 df5 <- tidy( coeftest(fit5, vcov = vcovHC(fit5, "HC3")) ) %>% mutate(hi = estimate + std.error, low = estimate - std.error)
-df5$variable <- "% rounds below threshold"
+df5$variable <- "% rounds above threshold"
 
 df <- dplyr::bind_rows(df4,df5)
-df$variable <- factor(df$variable, levels = c("Median stock size","% rounds below threshold") )
+df$variable <- factor(df$variable, levels = c("Median stock size","% rounds above threshold") )
 df <- df %>%
   mutate(
     var_type = ifelse(
@@ -779,7 +782,9 @@ df <- df %>%
   ) %>%
   mutate(
     term = str_remove(term, "Treatment"),
-    term = str_remove(term, "Place")
+    term = str_remove(term, "Place"),
+    term = str_replace_all(term, "median_st1", "Median St1"),
+    term = str_replace_all(term, "gini_st1", "Gini St1")
   )
 df$var_type <- factor(df$var_type, levels = c("Treatment", "Place", "Other"))
 
@@ -808,7 +813,7 @@ source('~/Dropbox/Code/multiplot.R')
 layout <- matrix(c(1,2), 1,2, byrow = F)
 multiplot(plotlist = gg, layout = layout)
 
-quartz.save(file = 'Schill_Fig5_Regressions.png', type = 'png', dpi = 400, width = 6, height = 3)
+quartz.save(file = 'Schill_Fig5_Regressions_191126.png', type = 'png', dpi = 400, width = 6, height = 3)
 
 
 
