@@ -6,18 +6,24 @@
 rm(list=ls())
 
 # load libraries
-library (ggplot2)
-library (tidyr)
-library (dplyr)
+# library (ggplot2)
+# library (tidyr)
+# library (dplyr)
 
 # load data
 
 # survey <- read.xls(xls='~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_.xlsx', sheet=1)
-surv <- read.csv2(file='~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_ 160530.csv', 
-                  header=T, na.strings = '.', encoding = 'utf-8')
+surv <- read.csv2(
+  file='~/Dropbox/BEST/Colombia/Survey/Consolidado-Game_Survey_database_ 160530.csv', 
+  header=T, na.strings = '.', encoding = 'utf-8', stringsAsFactors = TRUE)
 
 ## # standardize with same levels as game data
-surv <- filter(surv, round >0) 
+surv <- filter(surv, round >0) %>% as_tibble()
+
+# surv <- surv %>%
+  # mutate(date = as.Date(date, format = "%d/%m/%Y"),
+  #        date = as.factor(date))
+
 levels(surv$date) <- as.factor(as.Date(levels(surv$date), format='%d/%m/%Y')[c(7,12:16,7,9,9,11,11, 12:16)])
 surv$Session <- as.factor (ifelse(surv$am == 1, 'am', 'pm'))
 levels(surv$treatmentName) <- c('Base line', 'Base line', 'Risk', 'Risk', 'Threshold', 'Threshold','Threshold', 'Uncertainty', 'Uncertainty') # unify spelling

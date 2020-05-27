@@ -261,12 +261,16 @@ g_diff <- diff_df4  %>%
     ifelse(p_value < 0.1, "< 0.1", "> 0.1")
   )) %>%
   ggplot(aes(time, estimate, group = type)) +
-  geom_point() +
+  geom_point(aes(color = p.value)) +
   geom_line(aes(linetype = type, color = p.value)) + 
+  scale_color_manual(values = c("dodgerblue", "orange", "purple")) +
   facet_grid(response ~ treatment, scales = "free_y" ) +
-  theme_light(base_size = 6) + theme(legend.position = "bottom") +
+  theme_light(base_size = 8) + 
+  theme(legend.position = "bottom",
+        legend.text = element_text(size = 6), 
+        legend.title = element_text(size = 6)) +
   labs()
 
-# ggsave(g_diff, filename = "diff-in-diff.png", device = "png", width = 4, height = 4, units = "in", dpi = 600 )
+# ggsave(g_diff, filename = "diff-in-diff.pdf", device = "pdf", width = 4, height = 4, units = "in", dpi = 800 )
 
 g_diff

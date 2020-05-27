@@ -8,7 +8,7 @@
 source('~/Documents/Projects/BEST - Beijer/BEST/160525_ErrorIdentificationSurvey.R')
 
 #key
-key <- read.csv2(file = '~/Dropbox/BEST/Colombia/Survey/key_consolidado_survey.csv', encoding = "Latin-1" )
+key <- read.csv2(file = '~/Dropbox/BEST/Colombia/Survey/key_consolidado_survey.csv', encoding = "Latin-1", stringsAsFactors = TRUE )
 key <- key [c(1:16,23:240),c(2:5)]
 key$Name.in.datasheet <- as.character(key$Name.in.datasheet)
 levels(key$Data.type)[3] <- "binary"
@@ -16,7 +16,7 @@ key <- droplevels(key)
 key$Column.datasheet <- seq(1:234)
 
 # load game data in long format, short format also available
-dat <- read.csv(file="~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv", row.names=1)
+dat <- read.csv(file="~/Dropbox/BEST/Colombia/0_Game data/160427_corrected_full_data_long.csv", row.names=1, stringsAsFactors = TRUE)
 
 # Create player ID's as in Surveys.R
 dat <- transform(dat, ID_player = interaction(Date, Treatment, Session, Player, drop = TRUE))
@@ -301,6 +301,8 @@ ind_coop <- ind_coop %>%
       )
     )
   )
+
+dat <- dat %>% mutate(prop = ind_extraction/StockSizeBegining)
 
 ## correct fishing_cfuture:
 ## Dropping fishing future, it has too many missing values:
