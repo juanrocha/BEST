@@ -1520,7 +1520,7 @@ multiplot(plotlist = g, layout = layout)
 Save work in an R object that can be loaded and used in paper
 
 ```{r}
-# save.image(file = "Regressions_paper2.RData", safe = TRUE)
+# save.image(file = "Regressions_paper2_200527.RData", safe = TRUE)
 ```
 
 
