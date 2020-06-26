@@ -1,0 +1,1033 @@
+---
+title: Cooperation in the face of thresholds, risk, and uncertainty
+author: |
+    | Juan Rocha^1,2^, Caroline Schill^1,2^, Lina M. Saavedra-Díaz^3^, Rocío del Pilar Moreno^4^,
+    | Jorge Higinio Maldonado^4^
+    | \small ^1^Stockholm Resilience Centre, Stockholm University, Kräftriket 2B, 10691 Stockholm
+    | \small ^2^Beijer Institute, Swedish Royal Academy of Sciences, Lilla Frescativägen 4A, 104 05 Stockholm
+    | \small ^3^Programa de Biología, Universidad del Magdalena, Carrera 32 No 22 − 08, Santa Marta, Colombia
+    | \small ^4^Facultad de Economía, Universidad de los Andes
+output:
+  word_document:
+    toc: no
+  pdf_document:
+    dev: pdf
+    keep_tex: no
+    toc: no
+    latex_engine: xelatex
+citecolor: blue
+documentclass: article
+font: Arial
+fontsize: 11pt
+keywords:
+- cooperation
+- thresholds
+- risk
+- uncertainty
+- regime shifts
+linkcolor: blue
+urlcolor: blue
+header-includes:
+- \usepackage{dcolumn, rotating, longtable, lineno, float, fontspec, array, tabularx}
+- \setmainfont{Arial}
+- \linenumbers
+- \renewcommand{\abstractname}{}
+- \graphicspath{{figures/}}
+- \usepackage[margin=2.5cm]{geometry}
+abstract: |
+  Cooperation is thought to be a necessary condition to solve collective dilemmas such as climate change or the sustainable use of common-pool resources. Yet, it is poorly understood how situations pervaded by thresholds shape the behaviour of people facing collective dilemmas. Here we provide empirical evidence that resource users facing thresholds maintain on average cooperative behaviours by maximising their individual earnings while ensuring future group opportunities. A dynamic game with 256 Colombian fishers helped us investigate behavioural responses to the existence of thresholds, risk and uncertainty. Uncertain thresholds made fishers maintain higher levels of cooperation than when the risk of thresholds is known, but risk had a stronger effect on reducing individual fishing effort. If cooperation increases in the face of thresholds, then communicating uncertainty is more policy-relevant than estimating precisely where tipping points lay in social-ecological systems.
+bibliography: Best_bibliography.bib
+csl: pnas.csl
+---
+
+```{r setup, include = FALSE}
+set.seed(12345)
+library(tidyverse)
+library(stringr)
+library(forcats)
+library(RColorBrewer)
+library(ggplot2)
+library(GGally)
+library(moments)
+library(broom)
+
+library(grid)
+library(gridExtra)
+library(plm)
+library(lmtest)
+library(splm)
+library(car)
+library(estimatr)
+library(kableExtra)
+
+# load("Regressions_paper2.RData")
+load("Regressions_paper2_200527.RData")
+```
+
+
+Sustainability challenges are often characterised by situations pervaded by thresholds [@Liu:2015go]. Achieving sustainable development goals such as eradicating poverty, dealing with climate change, and preventing the tragedy of the commons in using natural resources, require all cooperation to deal with situations characterised by non-linear dynamics with tipping points [@Vasconcelos:wz; @Rand:2013by; @Hauser:2014jg]. Under current development trajectories, ecosystems worldwide are at risk of undergoing more frequent and severe regime shifts --abrupt transitions in their function and structure-- changing the flow of ecosystem services on which societies rely upon, and the source of livelihoods for many communities [@IPCC:2013un; @Rocha:2018gn]. Examples include bush encroachment, a regime shift that reduces the ability of ranchers to maintain cattle; soil salinisation which compromises the ability of farmers to produce food; or the collapse of fisheries which could compromise the livelihoods of $\sim 51$ million people who today depend on them, most of them from developing countries [@FAO:2017ug]. Over 30 different types of regime shifts have been documented in social-ecological systems, and their frequency and intensity are expected to increase [@Rocha:2018gn; @Biggs:2018hx]. This rises the questions: how do people behave in situations pervaded by thresholds?  How does it affect their decisions regarding the extraction from a common-pool resource? Do people race to the bottom and collapse their resources, or do they find strategies for dealing with threshold uncertainty?
+
+Traditionally these questions have been studied from a rather theoretical point of view [@Crepin:ul; @Barrett:2012hm; @Milinski:2008ky; @Barrett:2013gc; @Polasky:2011p7155; @Hauser:2014jg] with a strong focus on public goods [@McBride:2006bs; @Dannenberg:2014ic]. Theoretical and empirical evidence suggests that the relationship between collective action and uncertainty is negative: the higher the uncertainty, the higher the likelihood of cooperation to break down [@Barrett:2012hm; @Dannenberg:2014ic; @Milinski:2008ky; @Gustafsson:1999ho; @Maldonado:2016ij]. Only under very specific circumstances in public good settings, uncertainty has predicted increases in cooperation on a modeling framework [@McBride:2006bs]. However, most of these empirical results have been largely obtained in lab settings with "weird" subjects: western, educated, industrialised, rich, and democratic [@Henrich:2010gn]. Whether these results hold when tested with people whose livelihoods depend on natural resources is still an open question.
+
+The purpose of this paper is to fill that gap by testing how individual resource users behave in situations pervaded by thresholds when facing collective dilemmas. To achieve that goal we designed an experimental dynamic game that we played with 256 fishers in 4 coastal communities of the Colombian Caribbean (see methods and appendix for instructions). The game was framed as a fishery with the likelihood of a climate event that abruptly reduced the recovery rate of the fish stock on which the fishers' earnings depended. In the game, fishers made individual decisions each round of how much they wanted to fish from a common pool resource. Communication was allowed and the social dilemma was faced in groups of 4. The game lasted 16 rounds (unknown to the players), of which the last 10 consisted of a treatment. 64 fishers played the _threshold_ treatment, in which in round 7 a climate event occurred reducing the recovery rate of the fish. This framing is similar to hypoxia events --low water oxygen-- which could follow times of drought or extreme rain, and have been recorded in the region for decades [@Breitburg:2018iz]. In times of hypoxia fish die creating death zones [@Diaz:2008p199]. The second treatment was _risk_,  where fishers (n = 64) knew that a climate event could occur reducing the fish stock's ability to reproduce with a 50% chance. In the _uncertainty_ treatment (n = 64) the same framing was used, but the probability of the climate event was between 0.1-0.9. Another treatment was the control group (_baseline_, n = 64), which continued playing as in the first rounds. The game was complemented with post-experimental surveys and a lottery activity to elucidate the risk and ambiguity preferences of our participants (See Methods).
+
+## Results
+
+### Treatment effects on individual extraction
+Fishers facing thresholds tend to fish less both in absolute terms as well as in proportion to the the availability of the resource. We studied the individual decisions of fishers by looking at their individual extraction $x_{i,t}$, and the proportion of the stock they appropriated per round ($x_{i,t}/S_t$). A difference-in-difference panel model with random effects reveals that treatment effects are in general significant and negative (Fig. \ref{fig:fig1}). The reduction of fishing effort is stronger for _risk_ than for _threshold_ or _uncertainty_ treatments. Our results are robust to different choices of clustering standard errors (See Tables \ref{TabS1}-\ref{TabS3}) which were clustered simultaneously around individuals, groups and time. While these results already contradict the premise that uncertainty breaks down cooperation, our response variables thus far do not allow us to investigate the context in which each decision was taken. For example, agreements or the emergence of rules are ignored, and an amount of fish caught worth the same in the above regression if they are caught before or after crossing potential thresholds. In the game and real life they are not the same thing. The same amount of fish extracted can have substantially different impacts on the stock size and the potential earnings of fishers if non-linear thresholds are crossed.
+
+### Individual behaviour in context
+To gain a better understanding of the interplay between group-level dynamics, and the context in which each individual decision was made, we designed two additional response variables: cooperation and coordination. Broadly speaking cooperation is working together towards a shared goal. Cooperation can also be defined as *"a form of working together in which one individual pays a cost (in terms of fitness, whether genetic or cultural) and another gains a benefit as a result"* [@Nowak:2013vr]. In the context of common pool dilemmas (and non-dyadic games) cooperation can also be interpreted as favouring the common good over individual benefits [@Poteete:2010ud; @Ostrom:1990ws]. An important distinction in the literature is that of cooperators versus defectors, while cooperators pay a cost for other(s) to benefit, defectors have no cost and do not deal out benefits [@Nowak:2006p6717; @Axelrod:2006fe]. Here we operationalise these definitions by measuring cooperation as the ratio of the individual decision $x_{i,t}$ with respect to the optimal level for the group. Cooperation $C$ is measured assuming fairness or equal sharing of the stock available for fishing $S_t$ above the threshold $\theta$ ($\theta =  28$ in treatments and $\theta = 20$ in _baseline_ ):
+
+\begin{align}
+C_{i,t} = \frac{x_{i,t}}{\frac{S_t - \theta}{N}}
+\end{align}
+
+where $N$ is the number of players in the group (always 4 in our experimental design). To avoid division by zero or negative values, if the denominator is < 1 and $x_{i,t} = 0$ cooperation is set to $C=1$ (212/4096 observations), and if the denominator is < 1 and $x_{i,t} > 0$ cooperation is set $C=1.5$ (17/4096 observations). Thus, cooperation is maximized when $C=1$ meaning that the individual took 100% of what was fair to take while avoiding crossing the threshold. If cooperation $C < 1$ the fisher did cooperate in order to avoid the threshold but was not efficient at maximising her/his personal utility; if $C > 1$ the fisher did not cooperate and preferred maximising her/his utility over the common good in the long run. If $C=2$ the individual took twice as much as it was fair to take, and by doing so the group could have crossed the threshold. Cooperation in this interpretation is not given by a point but by the distribution it forms over time. A person can take 1 or 2 extra fish by agreement (e.g. a rotation scheme), by having weak agreements that do not specify quotas (e.g. "let's fish less"), or by mistake. Crossing the threshold is however the aggregated effect of individual decisions. For that reason, we also introduced coordination as the average (Bray-Curtis) similarity distance to other group members decisions through the game. Thus, if coordination is close to one the individual extraction $x_{i,t}$ is very similar to other group members, while if coordination is close to zero, $x_{i,t}$ is very dissimilar to the rest of the group (Fig \ref{fig:fig2}).
+
+
+\begin{figure*}[h]
+\centering
+\includegraphics[width = 4in, height = 4in]{diff-in-diff}
+\caption{\textbf{Fishers fish less and cooperation does not break down} Treatment effects are explored with a difference-in-difference random effect model with respect to individual extraction, the proportion of the stock extracted, and cooperation. The joint differences between control and treatment groups are significant for individual extraction (F = 5.95, p $<<$ 0.05, df = 3), weakly significant for proportion of stock extracted (F = 2.23, p = 0.08, df = 3), and non-significant for cooperation (F = 0.3, p = 0.8, df = 3). When the difference were tested individually between each treatment and the contorl, in the case of proportion of stock extracted, the weakly significant treatment was risk ($p = 0.08$), while threshold and uncertainty were both significant ($p = 0.02, 0.01$ respectively). Tables \ref{TabS1}-\ref{TabS3} complement this figure with a sensitivity analysis of robust standard error estimation.}
+\label{fig:fig1}
+\end{figure*}
+
+To better understand what explains the behaviour of individuals in terms of cooperation and coordination, we regressed variables that summarizes individual behaviour from the second part of the game against explanatory variables that were individual attributes (See surveys in Method). As dependent variables we used median cooperation, coordination, the mean extraction, the mean proportion of the stock extracted, and their variances (Fig \ref{fig:fig2}). Decrease in variances and increase in coordination can be seen as empirical proxies of the emergence and compliance of agreements. As explanatory variables, we used our treatments, after controlling for socioeconomic variables (e.g. education, income), risk and ambiguity aversion (See Methods), the percentage of rounds that individual made agreements (a proxy of the intention but not necessarily of compliance), and place to account for fixed effects that were not necessarily controlled for with our socioeconomic terms. Since our experimental design focus on the impacts of tipping points in natural resource dynamics, we approximated income not as the amount of money people make per month, but rather as the frequency of bad days they return from a fishing trip without any earnings. The latter although collinear with reported income, is a better proxy of exposure to regime shifts. We also include a response variable about the expectation of children to depend of fishing as livelihood to deal with the long term perspective of sustaining the resource, as well as group fishing and sharing of fishing arts to control for aspects of the fishing activity that can prime individuals to be more cooperative.
+
+We find that all treatments significantly reduced the proportion of stock extracted, and decreased coordination among individuals who played the uncertainty treatment (Fig \ref{fig:fig3}). Yet, coordination increased in groups that communicated and reached agreements. Interestingly, the proportion of rounds with agreements (intentions) had a negative effect on the proportion of stock extracted, the variance of extraction, and the median and variance of cooperation suggesting that agreements were in average followed. Fishers who reached agreements were better at maximising their individual earnings while maintaining the stock on a longer term by avoiding crossing the threshold (Fig \ref{fig:fig2}). Cooperation, as measured here, was only affected by the number of rounds people reached agreements, showing that it responds more to in-group dynamics rather than treatments or socioeconomic effects. Yet, variance of cooperation and variance of individual extraction were both reduced in individuals who belong to a group where agreements emerged. We also found place effects that were not accounted by our socioeconomic controls, showing that place B had on average less coordination and higher variance of extraction, while place D had higher extraction and higher cooperation ($C \leq 1$). People with higher levels of education reduced their variance of extraction, while people with a higher frequency of zero income days tend to fish more, but these effects are relatively small. Controlling for fishing art sharing, risk or ambiguity aversion render weakly significant coefficients ($p < 0.1$) and their effect sizes are relatively small together with other socioeconomic controls. Controlling for individual behaviour in the first part of the game is significant for most of our response variables (except variances Fig \ref{fig:fig3}), suggesting that individuals bring cooperative preferences to the game that are independent of our treatments and other socio-economic factors. Some of our socio-economic factors are partially correlated with place (Fig \ref{fig:figS1}), thus tables \ref{TabS5} and \ref{TabS6} reproduce the regression without place and only place terms respectively.
+
+\begin{figure*}[h]
+\centering
+\includegraphics[width = 5in, height = 4in]{fig2_response_variables}
+\caption{\textbf{Response variables of individual behaviour.} A) shows the relationship between cooperation and coordination, B) shows the relationship of mean extraction and the mean proportion of the extraction. Each point represent an individual player (N=256) and the summary statistic calculated over the second part of the game (10 rounds, 2560 observations). The density for each variable is located parallel to each axis respectively, while the comparison of variances (except for coordination) is found on the lower left inset.}
+\label{fig:fig2}
+\end{figure*}
+
+
+\begin{figure*}[h]
+\centering
+\includegraphics[width = 5in, height = 3.5in]{fig3_regression_cooperation}
+\caption{\textbf{Individual behaviour as function of treatments and socioeconomic factors} The panel summarises results from an OLS regression for each of the response variables reported in Fig \ref{fig:fig2}. Treatment effects are shown after controlling for socioeconomic aspects and location. Table \ref{TabS4} complement this figure with precise estimates and summary statistics. Error bars denote 95\% confidence intervals calculated with a CR2 robust starndard errors estimator.}
+\label{fig:fig3}
+\end{figure*}
+
+
+## Discussion
+
+Fishers under uncertain thresholds maintained higher levels of cooperation than when the risk of thresholds was known, but risk had a stronger effect at reducing individual fishing effort than uncertainty. Our central result contradicts previous theoretical and empirical findings that predicted break down of cooperation under situations with uncertain thresholds [@Barrett:2012hm; @Dannenberg:2014ic; @Milinski:2008ky; @Maldonado:2016ij]. Our findings supports the hypothesis that uncertainty can increase cooperative behavior in public goods settings when the value of the public good is sufficiently high [@McBride:2006bs]. Our experiment is not a public good setting, but it can be translated to a common pool resource when the dependency of the resource is sufficiently high. Previous work has concentrated their effots on settings with western, educated, industrialized, rich and democratic individuals [@Henrich:2010gn]. Here we empirically show that the negative relationship between cooperation and uncertainty does not hold in situations with resource users whose livelihoods largely depend on natural resources. On the contrary, our study supports a small but growing body of empirical evidence suggesting that uncertainty can help protect the commons when ecosystems are susceptible to thresholds such as climate-induced regime shifts [@Schill:2019fa; @Finkbeiner:2018ds].
+
+One potential explanation for the deviation from theoretical expectations can be personality traits [@Ostrom:1998ve; @PoncelaCasasnovas:2016hs]. We expected that risk and ambiguity aversion were key personal traits affecting behaviour. Our results suggest however that group dynamics seems to override personal preferences regarding aversion. Some resource users tend to have pro-social and pro-enviromental behaviour, others have more individuallistic or short term preferences (Fig \ref{fig:fig2}); but as observed by a previous study in the same region, pro-social fishers are less likely of changing their behaviour than non-cooperators [@Maldonado:2016ij]. This in turn scale up at the group level, where groups with higher proportions of cooperative individuals maintain higher levels of fish stock despite an ocasional free-rider [@Maldonado:2016ij]. Our results suggest that fishers were responding more to in-group dynamics (e.g. increasing coordination) and personal preferences regarding pro-social behavior, rather than their risk or ambiguity aversion preferences.
+
+Our study shows that reaching agreements decrease fishing efforts and increase cooperation. It suggests that a common strategy that evolved in the game was approaching the threhsold wihtout crossing it, thus maximizing both social and individual benefits. By reducing fishing effort or keeping close to the social optimal people do cooperate. However, cooperation--as measured in our study--was not affected by our treatments. Cooperative behavior then seems to be driven more by personal preferences and group dynamics than levels of uncertainty. This observation agrees with previous experiments studying internal Nash solutions on common pool resources [@Maldonado:2016ij], and highlights the important and well established role of communication in providing groups an arena for agreement negotiations, rule making, social pressure, and coordinating actions [@Schill:2015kj; @Osborne:2019dd]. Previous participatory research in the communities studied supports with different methods our findings [@SaavedraDiaz:2016ig; @SaavedraDiaz:2015es]
+
+Fishers do reduce fishing in presence of thresholds, but the effect occurs to a lesser extent when uncertainty is high. This is partly due to our experimental desing where higher levels of uncertainty can mask free-riding behaviour and slow down the erosion of trust. In that sense, the uncertainty about thresholds also induces social uncertainty about adhering to agreements. An alternative explanation is that under higher levels of uncertainty fishers adopt a more exploratory mode (higher variance) with less strict agreements (Fig \ref{fig:fig2}). Reduced variance of decisions over time and incresed coordination across group members suggest that people with strong agreements (e.g. strict quotas) were more successful on maintaining the stock above the threshold than groups with soft agreements (e.g. "let's fish less"). Further research efforts could target dissentangling the effects of the different forms of uncertainty regarding the dynamics of the natural resources with pontential thresholds, the social uncertainty about free-riding, or the effects of norms ambiguity. As this type of experiments scale up to more realistic settings, noise induced by social network structures needs to be taken into consideration realizing that humans have limits to social interactions [@Dunbar:2003go], and that social relationships are heterogeneous in number and quality.
+
+If the existence of thresholds already triggers cooperative behavior in natural resource users, then communicating their potential effects on ecosystems and society is more important than quantifying the precise point at which ecosystems tip over. Tipping points are difficult to observe and quantify in nature, they are not unique and they are expected to interact with other tipping points [@Anonymous:2012ju; @Lenton:2019fv; @Rocha:2018gn], meaning that their exact points change over time. While precise measurements can be out of reach specially in settings where monitoring programs are weak or not in place (e.g. developing countries), knowledge about the circumstances under which an ecosystem can tip over can already trigger behavioral change for maintaining natural resources in configuration that provide crucial ecosystem services for livelihoods. In our case study, these circumstances are related with high concentrations of nutrients in water often correlated with use of fertalizers in agricultural activities, or periods of high sediment input following droughs and strong rainy seasons such as ENSO events [@Breitburg:2018iz; @Diaz:2008p199; @Vilardy:2011io]. Identifying such circumstances and communicating uncertain but potential regime shifts can mobilize social action towards sustainable behaviour in natural resource users.
+
+
+# Methods {#methods}
+The fishing game was part of a $~3$ hour workshop that were carried out in four Colombian fishing communities in the Caribbean coast in February 2016. Each workshop consisted of the fishing game, a post-experimental survey, and a risk/ambiguity elicitation task. Before starting, each participant signed a consent form committing to participate in all three activities and authorising us to use the anonymised data for research purposes.
+
+#### Fishing game
+Participants knew that the total duration of the workshop was $~3$hrs but they did not know how long the fishing game would last. This was to avoid last round effects -- people crashing the resource to maximise their individual earnings. The fishing game consisted in 2-3 practice rounds, 6 rounds playing the _baseline_ treatment, and 10 rounds with a treatment that was framed as a climate event. The climate event arrived with probability $p=1$ in the _threshold_ treatment, with $p=0.5$ in _risk_ treatment, and with $p = 0.1:0.9$ in the _uncertainty_ treatment. The event was meant to reduce the capacity of the fish stock to reproduce. On the _baseline_ the reproduction rate was 5 fish if the remaining fish stock was 5-19 or 35-45 fishes, and 10 fishes if the remaining fish stock was 20-34. If the climate event occurred in the game, the reproduction rate changed to 1 fish for remaining fish stock of 5-27, 10 fish for remaining fish stock of 28-34, and 5 fish for remaining fish stock of 35-45. The game started with a fish stock of 50 fish and in round 7 the fish stock was restored to 50 for all treatments. There was no reproduction in either treatment for fish stocks below 5 or above 45, which was justified in the game as Allee effects. In too low densities, or highly populated ponds, the fish finds harder to reproduce due to lack of partners or competition for resources. Once the climate event occurred, the reproduction rate changed for the rest of the game mimicking a long-lasting effect on the function and structure of the ecosystem -- a regime shift.
+
+We communicated _risk_ and _uncertainty_ with a ballot system to avoid deception. For _risk_, five green and five red stones were shown at the beginning of the round. We drew one stone in private. If it was red the climate event occurred and we calculated the reproduction rate at the end of the round accordingly. If the stone was green, we kept the reproduction scheme of the _baseline_. Thus, fishers could not know if the climate event happened if the remaining stock was above the threshold $\theta = 28$ since both reproduction schemes are identical for $S_{t} > 28$. For the _uncertainty_ treatment, we showed them ten red and ten green stones. We first took one stone of each colour and put them into an urn. The remaining 18 stones were mixed in another urn. Once mixed, 8 stones were moved to the first urn without revealing their colour, so neither experimenters or fishers knew the exact distributions of stones of the urn we later used to draw the climate event. All we knew was that the probability could be between 0.1 and 0.9 since for sure there was one green and one red stone in the urn. For the treatments _risk_ and _uncertainty_, we drew a stone every round regardless if the climate event occurred or not, and the stone was returned to the urn so each round had exactly the same odds.
+
+To make decisions in the game more realistic, each fisher earned \$COL500 (USD\$0.14) for each fish caught, in addition to a show-up fee (COL\$15000, USD\$4.3) meant to compensate for the time invested in the workshop. A day spent in the workshop meant for them a day without going fishing, so their average earnings were adjusted in a way that represented a typical working wage. The full instructions of the game (English version) are available in Appendix 1.
+
+#### Sample size and power analysis
+Our selection of sample in terms of the number of groups per treatment (64) was informed by a previous study with a similar experimental design performed in the lab with students at Stockholm University [@Schill:2015kj]. The within and between group variances, however, were higher in the field than expected, resulting on a slightly lower power (0.74) in our field data than initially planned (0.8).
+
+
+#### Surveys
+After the game, each fisher participated in a 56-question survey. The purpose of the survey was to better investigate the context of the fishing activities and to collect socioeconomic data important for helping to explain decisions in our regressions. The survey was divided into 5 sections. The first section was about the game and their perceptions on the activity, for example, whether they expected the game to end when it did. The second section was about their fishing habits: how much effort they put on fishing (time per day or year), how much earnings they get in a good or bad day, whether they own and share the fishing gear, whether they fish in groups, or what are the species targeted. The third section was about traditional ecological knowledge focused on questions about abrupt changes in their fishing grounds in the past and the type of strategies they have used to cope with it. The fourth section was about cooperative activities and associations in the community. The last section included questions about demographic socioeconomic data and sense of place. The full questionnaire is available in Appendix 2.
+
+#### Risk and ambiguity elicitation task
+After the survey fishers were asked to do a final game for risk and ambiguity elicitation [@Cardenas:2013km]. To measure risk and ambiguity aversion we asked fishers to choose between 6 binary lotteries: $13000|$13000; $10000|$19000; $7000|$25000; $4000|$31000; and $0|$38000. For risk the chances of getting the high payoff was 0.5, while for ambiguity it was a probability between 0.1-0.9 but unknown. Half of the people started with risk task and another half with ambiguity task in order to control for order effects. Their choices were transformed to a discrete variable used in our regressions that takes 1 if the fisher is risk or ambiguity averse (when the $13000|$13000 lottery was chosen), and 6 when the fisher is risk or ambiguity keen (when the $0|$38000 lottery was chosen). The risk and ambiguity elicitation task was paid to only one fisher per group.
+
+#### Regressions
+We fitted a random effects panel model to our full game dataset (N = 4096) to disentangle treatment effects with a difference-in-difference regression (Fig \ref{fig:fig1}). It follows the form:
+
+\begin{align}
+Y_{i,t,g} = \mu_{i,t,g} + \gamma G_{i,t,g} + \delta T_{i,t,g} + \tau G_{i,t,g}T_{i,t,g} + \epsilon_{i}+ \epsilon_{t}+ \epsilon_{g}
+\end{align}
+
+where $\gamma$ is the effect of being assigned to a group with a treatment, $\delta$ is the effect of the treatment (before-after), and $\tau$ is the interaction term that captures the average treatment effect on the treated. As response variables $Y_{i,t,g}$ we used individual extraction, proportion of stock extracted, and cooperation. The average treatment effect on the treated (ATT, Fig \ref{fig:fig1}) in the difference-in-difference framework was calculated according to the following definitions:
+
+|  Terms         | After ($T_i = 1$) | Before ($T_i = 0$) | After-Before |
+|:--------------:|:---------------:|:----------------:|:------------:|
+|Treated $G_i = 1$ | $\hat{\mu} + \hat{\gamma}+\hat{\delta}+\hat{\tau}$ | $\hat{\mu} + \hat{\gamma}$ | $\hat{\delta}+\hat{\tau}$  |
+|Control $G_i = 0$ | $\hat{\mu} + \hat{\delta}$ | $\hat{\mu}$ | $\hat{\delta}$ |
+|Treated-Control | $\hat{\gamma}+\hat{\tau}$ | $\hat{\gamma}$ | $\hat{\tau}$ |
+
+
+A Hausman test suggests that our choice for random effects is preferred for the proportion of stock available and cooperation ($p>0.05$), but it supports fixed effects for individual extraction ($p<0.05$). Since our panel is nested, we fitted a random-effects model clustered around individuals, groups, and time following our hierarchical design. A fixed-effects model would have not allowed us to control for the different levels of nestedness. A Breusch-Pagan Lagrange multiplier test further supported our choice of a random model when compared with a pooled regression with any of the response variables ($p<<0.05$).
+
+Given the nested structure of our design and that decisions in the past affect the stock size in the future, we expected that our dynamic game data presented cross-sectional dependence. We confirmed these expectations with a Breusch-Pagan LM test for cross-sectional dependence ($p<<0.05$ for all response variables) and a Breusch-Godfrey/Wooldridge test for serial correlation ($p<<0.05$ for all response variables). In addition, a Breusch-Pagan test reveals that our models are heteroskedastic ($p<0.05$), meaning that the variances change over time. To correct for heteroskedasticity, cross-sectional correlation, and serial correlation, we calculated robust standard errors by estimating the variance-covariance matrix with heteroskedasticity and autocorrelation consistent estimators (Tables \ref{TabS1}-\ref{TabS3}). We also performed a F-test to the joint linear hypothesis $H_0: \gamma+\tau = 0$, this is that the difference in the coefficients before and after treatments (_threshold_, _risk_, and _uncertainty_) are indeed different from zero. We found that our differences are significant for individual extraction ($F = 5.95, p$ $<<$ $0.05, df = 3$), weakly significant for proportion of stock extracted ($F = 2.23, p = 0.08$), and non-significant for cooperation ($F = 0.3, p = 0.8$). When tested individually for each treatment in the case of proportion of stock extracted, the weakly significant treatment was _risk_ ($p = 0.08$), while _threshold_ and _uncertainty_ were both significant ($p = 0.02, 0.01$ respectively; Fig \ref{fig:fig1}).
+
+We further explored what influences individual behaviour with an ordinary least squares approximation. As response variables we used summary statistics for the second part of the game (10 rounds), namely coordination, median cooperation, mean extraction, mean proportion of stock available extracted, and their variances (see Fig \ref{fig:figS1} for correlations between response variables). As regressors we used some socioeconomic variables from the survey, the proportion of rounds that groups reached agreements, a place term to account for place differences that were not accounted by socioeconomic factors, and the treatments.
+
+## Acknowledgements
+We would like to thank the fisher communities that participated in our experiments. This work received valuable feedback on early stages of its design by Anne-Sophie Crépin, Therese Lindahl, Juan Camilo Cárdenas, Maria Alejandra Velez, and Sandra Vilardy. The field work would have not been possible without the support of Nidia Vanegas, Alisson Soche, Darlin Botto, María de los Ángeles González, Cristhian Marrugo, Gloria de León, Jaime González, and Jesús Jiménez. The research was supported by Formas grant 211-2013-1120 and 942-2015-731.
+
+
+## Data availability
+We will make annonymized data and code available upon publication in public repository servers (e.g. figshare, github). The development version of the code is available at https://github.com/juanrocha/BEST. Our study design followed the ethical regulation of Stockholm University and the Royal Swedish Academy of Sciences.
+
+# References
+
+<div id="refs"></div>
+
+\pagebreak
+
+# Supplementary Material {#sec:SM}
+
+\renewcommand\thefigure{S\arabic{figure}}
+\renewcommand\thetable{S\arabic{table}}
+\setcounter{table}{0}
+\setcounter{figure}{0}
+
+## Appendix 1. Game instructions
+
+
+\begin{center}
+\fbox{\begin{minipage}{30em}\begin{center}
+    Normal text: read out loud to the participants\newline
+    \textcolor{blue}{\textit{<Italics: Actions to take by experimenters and assistants>}}\newline
+    “------“ means: take a short break while talking\newline
+    \underline{Something underlined} needs to be emphasized\newline
+\end{center}
+\end{minipage}}
+\end{center}
+
+Welcome and thank you for coming and participating in this activity! You have been invited to participate in this activity as part of a study about natural resource management. In this study, the participation of people like you is very important, because of your work and daily experience managing fishing resources. We are a group of researcher from the Beijer Institute of Ecological Economics and Magdalena University. My name is Juan Carlos Rocha and all members of our team have their name written on their nametag. Thanks to your participation we all can learn from this study. During this activity, we will play a decisions game. And after the game, we will interview each of you. In total, the whole activity will take approximately 3 hours of your time.
+
+As announced earlier, you will receive a minimum of $\$15.000$ pesos by taking part in this activity. This means, no matter the result of the game, you will receive $\$15.000$ Pesos. Depending on the decisions you make in the game, you can earn extra money. You will receive the money at the end of the activity – after you have been interviewed – and paid in private.
+
+You might ask: Why do we use money? -- We do NOT see the money you earn as a payment for taking part in this activity, nor the reason for you to be here. --- We use money because the exercise requires that you make decisions that have \underline{economic consequences}. It is to make the game realistic. Please note that if you have participated in any other economic game in the past, the game we will play today is completely different.
+
+Before we start, we would like you to sign a consent form. -- The consent form is a payment authorization that states that you are here voluntarily. Next, I will read the consent form out loud in case anyone forgot his/her glasses or have difficulties reading. \textcolor{blue}{<read consent form>}. In summary, the consent form states that you are here voluntarily. Please note that the consent form is also an agreement between you and us that you will participate in the whole activity. If you or one of the members of your group leaves before the end, neither you or your group members can finalize the activity and –  therefore – won’t receive any money. Please sing up the consent form now and the assistants will pass collecting them.
+
+### Explain common access to a fishing ground
+
+In this game, we want you to imagine that you – as a group – have common access to a fishing ground.
+
+\begin{center}
+{\textcolor{blue}{<Point to the bowl on the table in front of them with something in that represents fish>}}
+\end{center}
+
+Although in reality it is impossible to know exactly how much fish there is in a given fishing ground -- in this game, we ask you to pretend that we \underline{can} know exactly how much fish there is. We also assume that there is only one fish species in the fishing ground. And each of you can catch this fish from this common fishing ground.
+
+#### Explaining decision-making
+The game has two stages, each stage will last several rounds, and in each round you will take an \underline{individual} decision of how much fish to catch. We will take care that the other members of your group wont see your decisions. This means that you can talk about whatever you want, even about how much you want to fish.
+\begin{center}
+\textcolor{blue}{<\textit{Introduce and show the decision cards. Explain what to write where on the card. Show them the decision cards and explain:} >}
+\end{center}
+Each round in the game is equivalent to a day of fishing. On the left column “Individual fish catch” \textcolor{blue}{<point it out>} you indicate how much fish you want to catch. Our assistants are here to help you if you need it, in case you have difficulties writing, reading, or if you have any questions about the game. In each round you can chose \underline{the amount of fish available or not fish at all, which is zero}. Bear in mind that your decision affect your individual benefits as well as the benefits of the community.
+
+For each fish you catch, you get 500 Pesos. So -- for example -- if you catch 10 fish, you will earn 10 * 500 = 5.000 Pesos. (Additional to the 15.000 Pesos you already earned by participating in this activity). You can track your individual earnings on the second column of your decision card coloured in gray \textcolor{blue}{\textit{<point it out>}}. We will give you calculators and if you need any help please do not hesitate on contact any of our assistants to help you out with the accounting.
+
+Once you have made your decision, we will collect your decision cards at the end of each round. – Please close your decision card when you hand it out to the assistant. We will help you to keep the privacy of your decisions and your group partners.
+
+Once we have collected your decision cards, we will calculate how much fish there will be available for your group in the next round and then inform you about it by telling you and by writing it here \textcolor{blue}{\textit{<point it out>}} on the board.
+
+Apart from your decisions of you and your group members on how much to fish in each round, the fish stock is also affected by reproduction.
+
+#### Explain that the fish stock replenishes depending on the stock size
+
+Now I will explain how the fish stock reproduces, using the illustration here \textcolor{blue}{<textit{point to illustration with the fish}>} . The fish stock grows (or not) between each round of the game. How much the fish stock grows depends on how much fish there is – it is the population size or fish bank. We start with 50 fish in the first round. And you see here that…
+\begin{center}
+\textcolor{blue}{<\textit{Walk them though the illustration.}>}
+\end{center}
+
+-- If there are 46-50 fish, there is no fish population growth. The fish stock available is in that case in fact the same in the next round. \textcolor{orange}{\textit{<If participants ask why, answer: there is too high competition for food. They are too many in relation to the size of the fishing ground.>}}
+
+-- If there is 35-45 fish, there will be 5 more fish in the next round. \textcolor{orange}{\textit{<If participants ask why, answer: there is some competition for food, as they are so many in relation to the size of the fishing ground. This results in that the fish stock does not grow as much as between 24 and 34>}}
+
+-- If there is 20-34 fish, there will be 10 more fish in the next round. \textcolor{orange}{\textit{<If participants ask why, answer: There is enough fish so that they can find mating partners and not too much fish so they do not have to compete for food and space>}}
+
+-- If there is 5-19 fish, there will be 5 more fish in the next round. \textcolor{orange}{\textit{<If participants ask why, answer: There is very little fish so to find mating partners is difficult>}}
+
+-- If there is less than 5 fish, the fish stock doesn’t grow either (as for stock size between 46-50). \textcolor{orange}{\textit{<If participants ask why, answer: there is too little fish so they cannot find mating partners>}}
+
+As I said before, this game lasts several rounds and has two stages. We will tell you when the first stage finishes and explain what happen on the second stage. -- We will \underline{not} tell you the exact number of rounds that you will play in each stage. However, you know that we will play a maximum of 2 hours. – Remember: if there is no more fish, the game stage ends and \underline{you will not earn any more money}. As far as there is fish stock to fish, \underline{the game stage continues and you will be able to make some money}. Also remember: your decisions affect your individual earnings but also affect the benefits of the group with whom you share the fish stock.
+
+ Do you have any questions so far before we go through an example?
+\begin{center}
+\textcolor{orange}{\textit{<If someone asks about how to share a harvest that is larger than the stock, answer: we will share proportionally according to your catch claim>}}
+\end{center}
+
+### Examples
+
+\begin{center}
+\textcolor{blue}{<\textit{Use the bowl on the table for it, i.e., take out and put in fish accordingly when describing the example. Also actively engage the participants in the example, i.e., ask them about what they think the reproduction is in the given examples}>}
+\end{center}
+There are 50 fish in the beginning of the game. Now - let’s say - you catch together in the first round 12 fish (for example: you take 4, you 3, you also take 3 and you 2). \textcolor{blue}{<\textit{take 12 fish out of the bowl}>} So now there are then 38 fish remaining, that is 50 fish minus 12. Now we can check here on the board \textcolor{blue}{<\textit{point to illustration}>} the reproduction of a fish stock with size 38. How much do you think fish will reproduce? \textcolor{blue}{<\textit{ask the participants}>} - Yes! Exactly, it is 5 more. \textcolor{blue}{<\textit{add the five fish}>} So in the next round the fish stock will be then 43 fish (50 – 12 + 5) and this number we will then communicate to you out loud and write up here \textcolor{blue}{<\textit{point to where the stock size is displayed for each round}>}.
+
+Let’s do another example…
+So now there is 43 fish in the bowl \textcolor{blue}{<\textit{Ask a fishermen to be the assistant}>}. If you then catch 13 fish in total \textcolor{blue}{<\textit{take out 13 fish}>}, there are then 30 fish left and the stock will then grow with how much more fish for next round? \textcolor{blue}{<\textit{ask participants}>} Exactly! 10 fish more. \textcolor{blue}{<\textit{add the 10 fish}>} so then at the beginning of the next round you would start with 40 fish.
+
+If your group catch is in any round bigger than the available catch, the game stage ends, as there is no more fish to catch. In that case, the share of fish will be divided proportionally.
+\begin{center}
+\textcolor{orange}{<\textit{Example if they ask: For example, if there is only 10 fish on the fishing ground but your collective catch is 100 fish (let’s say 30, 20, 30, 20), the remaining 10 fishes will be divided proportionally to your intended catch. So if you intended to take 30 out of 100 as a group (30\%), then you get 30\% of the actually fish available, this is 3}>}
+\end{center}
+
+-- So now you know how to indicate your catch decisions on your decision card in each round or fishing day -- and you also know how to calculate the size of the fish stock for the next round: you subtract the sum of your individual catch decisions from the current fish stock and then you add reproduction accordingly. Remember, we do the calculations for you but we also want you to understand how it works. Any questions so far?
+
+Now let’s get to the third column on the decision card. The first and second column correspond to individual fishing and earnings \textcolor{blue}{<\textit{point them out}>}. We want you to note down there what you think the size of the fish stock will be in the next round – what you think we will write on the board to start the next round. You decide how much to fish in each round, make your accounting of individual earnings or ask an assistant to help you with the accounting, and also speculate about what will happen with the stock size for next round. Then we also make the accounting and communicate publically what happen with the collective resource but we wont reveal who fished what, only what happen at the level of the group. Thus, you can compare what you expected to happen (the third column) with what it really happens (the public table with the fish stock state).
+
+#### Communication
+
+… throughout the whole game and from the very beginning, you are allowed to talk to each other. This means that you can talk about whatever you want, about your decisions, about the rules of the game, strategies and even how much you want to fish. You cannot make any threats or arrangements for side-payments during or after this activity. You have \underline{two minutes} in between rounds \underline{to discuss with other members of your group how much you want to fish}, after the two minutes you can write your individual decision. We keep the account of time and will inform you when you need to hand out your decision cards.
+
+Do you have any questions?
+--- Please also remember, -- in case you have any questions during the game, please don’t hesitate on asking any of us. We will clarify your doubts.
+
+#### Group division
+You will now be divided into groups of 4 people.
+
+\begin{center}
+\textcolor{orange}{<\textit{Make group division. Ask assistants to distribute the player number tags. Each subject randomly picks a name tag, which tells which group (color assigned) he will be assigned to and which number (1-4) he is in that group. So, for example, if we have three groups playing at the same time we could have something like Blue (1,2,3,4); Green (1,2,3,4) and Yellow (1,2,3,4). Keep in mind that people from the same household (e.g., siblings, cousins) or close friends should participate in different groups if possible}>}
+\end{center}
+
+Now that the groups are formed, could you please raise your hand if any member of your household or close friend is on the same group as you?
+\begin{center}
+\textcolor{blue}{<\textit{From now on each group works with their own experimental leader. Each leader summarizes the rules of the game before starting the practice rounds}>}
+\end{center}
+
+\begin{center}
+\line(1,0){250}
+\end{center}
+
+\textcolor{gray}{On a different room:}
+
+Good morning / afternoon. My name is \textcolor{blue}{<\textit{your name here}>} and our assistant is \textcolor{blue}{<\textit{assistant name}>} and we will guide you throughout the game. Now you are a group of 4 fishermen who \underline{share the same fishing ground} with 50 fish. In front of you, you will find a folder with your decision cards, calculators and a pen. If you need help writing or keeping the count, please let us know, our assistant and me are here to help you.
+
+#### Practice rounds
+
+Before we start the first stage of the game we are going to do some practice rounds to make sure we all have understood the instructions. Please note: \underline{you do not earn any money during the practice rounds}. During the practice rounds we do not reveal who took what, only what “someone took” and we will do the calculation of the stock size openly together so that everyone can follow it. Now you have two minutes that you can use to discuss your decisions, after that time you must write your decision and we will gather the decision folders.
+
+\textcolor{blue}{<\textit{We pick up the decision cards and bring them to Caroline. She will return a paper with the individual catch on a random order so you can read it publically. Use the bowl with the fake fish on the table, i.e., take out fish and then add fish to the bowl accordingly}>}
+
+Okay, during this practice some one caught \textcolor{blue}{<\textit{take out fish from the bowl as you read}>}, another person caught…, the third person… and the last one…. \textcolor{blue}{<\textit{make sure to count how many fish is left in the bowl afterwards with the fishermen}>}. Therefore, the fish stock is left with \textcolor{blue}{XX} fish. So, how many fish will reproduce for the next round?
+
+\begin{center}
+\textcolor{blue}{<\textit{Let them answer. Once they had calculated the new stock size write it down on the poster in front of round P1 (practice round 1). Repeat the practice round 2 or 3 times and make sure everyone has understood the dynamics of the game}>}
+\end{center}
+Any questions?
+
+If not, let’s start the first stage of the game.
+-- This means that from now on \underline{you will earn some money according to the decisions you make}. In case you listen to other groups playing, you should know that what happens in other groups is not related to what happen in our group game. Maybe they finish earlier, but that does not mean that the game you are participating will also end. Before we start the first stage of the game for real, here is a short summary of the rules of the game:
+
+\begin{itemize}
+\item The four of you share together a fishing ground.
+\item In each round, you will take an \underline{individual} and private decision of how many fish to catch. You can choose to fish as much fish as there is available or not fishing at all (zero). For each fish you capture you earn 500 pesos. You will also guess how many fish will be left in the stock for the next round.
+\item Your decisions affect your individual earnings but also the resource of the community.
+\item As long as there is fish left, this stage of the game continues and you can keep earning money.
+\item If the resource collapses, this stage of the game ends.
+\item We do not tell you how many rounds you will play.
+\item The fish reproduction depends on how much fish there is left on the fish stock \textcolor{blue}{<\textit{point to illustration and remind them of the tables they got}>}
+\item You are not allowed to show each other what you write down on your decision cards.
+\item Remember, you are allowed to talk in the game. This means you can talk about whatever you want even of how much you want to fish for a maximum of 2 minutes time between rounds. After the 2 minutes, you need to write down your decision.
+\end{itemize}
+Do you have any questions?
+
+\begin{center}
+---- end of practice rounds, start of the game ----
+\end{center}
+
+The fish stock starts with 50 fish, now you have two minutes that you could use to discuss your decisions. After that time you need to write your decision and we will pick up the decision folders.
+
+\begin{center}
+\textcolor{blue}{<\textit{After each round you announce the new stock size}>}
+\end{center}
+
+The new stock size is […]
+
+\textcolor{blue}{<\textit{The group assistant adjust the stock size in the bowl accordingly – Bear in mind that you only need to update the stock size, do not reveal the individual catch when you put or add fish tokens}>}
+
+\textcolor{orange}{<\textit{Example if they ask: For example, if there is only 10 fish on the fishing ground but your collective catch is 100 fish (let’s say 30, 20, 30, 20), the remaining 10 fishes will be divided proportionally to your intended catch. So if you intended to take 30 out of 100 as a group (30\%), then you get 30\% of the actually fish available, this is 3}>}
+
+\begin{center}
+\line(1,0){250}
+\end{center}
+
+### Introducing the treatments
+
+#### Threshold treatment
+
+\textcolor{blue}{<\textit{after 6 rounds}>}
+
+Now we are going to play the second stage of the game. In this round, we want to inform you about the new stock size, which is […\textcolor{blue}{<\textit{write down the stock size for next round}>}]. We also want to inform you that a climate event -- with \underline{long lasting} and \underline{negative} consequences for the fishing ground you manage in common might occur.
+
+The climate event will affect the fish reproduction rate, it will decrease below fish stock size of 28 fish. As you can see here \textcolor{blue}{<\textit{point out the new illustration with threshold dynamics}>}, the reproduction will only be of a fish for stock size between 2 and 27 fish. For any other stock size, the reproduction rate will be the same, between 28-34 it will be 10 fish, between 35-45 it will be 5 fish, as you can see here\textcolor{blue}{<\textit{point out}>}. The stock size between 0-4 and between 45-50 wont reproduce extra fish.
+
+Thus, the climate event brings an abrupt reduction on the fish growth if the population size is 28 fish or less. \textcolor{orange}{<\textit{if participants ask why: the climate event can reduce rain showers, increase water temperature and the risk of droughts. These events impact nutrient availability for fish and the fish reproduction as well as other species in the ecosystem on which fish depends}>}
+
+The assistant will hand out a new table showing the relationship between population size and the reproduction after the climate event \textcolor{blue}{<\textit{hand out}>}. From this round on and to the end of the game the climate event occurs and it affects the resource’s reproduction.
+
+With this new information, we will also reestablish the population size back to 50 fish \textcolor{blue}{<\textit{here please strikethrough the number of fish left last round of the first stage and clarify that the stock size starts again with 50 fish}>}, just as the beginning of the game. All other rules remain the same:
+
+\begin{itemize}
+\item The four of you share together a fishing ground.
+\item In each round, you will take an \underline{individual} and \underline{private} decision of how many fish to catch. You can choose to fish as much fish as there is available or not fishing at all (zero). For each fish you capture you earn 500 pesos. You will also guess how many fish will be left in the stock for the next round.
+\item Your decisions affect your individual earnings but also the resource of the community.
+\item As long as there is fish left, this stage of the game continues and you can keep earning money. If the resource collapses, this stage of the game ends.
+\item We do not tell you how many rounds you will play.
+\item The fish reproduction depends on how much fish there is left on the fish stock and if the climate event occurs or not \textcolor{blue}{<\textit{point to illustration and remind them of the tables they got}>}
+\item You are not allowed to show each other what you write down on your decision cards.
+\item Remember, you are allowed to talk in the game. This means you can talk about whatever you want even of how much you want to fish for a maximum of 2 minutes time between rounds. After the 2 minutes, you need to write down your decision.
+\end{itemize}
+The only difference is that – a climate event did happen and from now on the resource reproduction is lower if the population size is below 28 fish.
+
+Any questions?
+
+If not, let’s keep playing. The fishing ground restarts with 50 fish, now you have 2 minutes that you \underline{could} use to discuss your decisions. After that time you need to write your decision and we will pick up the decision folders.
+
+#### Uncertainty treatment
+\begin{center}
+\textcolor{blue}{<\textit{after 6 rounds}>}
+\end{center}
+
+Now we are going to play the second stage of the game. In this round, we want to inform you about the new stock size, which is […\textcolor{blue}{<\textit{write down the stock size for next round}>}]. We also want to inform you that a climate event -- with \underline{long lasting} and \underline{negative }consequences for the fishing ground you manage in common might occur.
+
+These kinds of climate events are highly unpredictable. This means that you do not know \underline{whether and when} this event will happen. It could happen in the next round, in four rounds, -- or never…
+
+In case the event does happen, -- the reproduction of fish will reduce below a stock size of 28, -- as you can see here \textcolor{blue}{<\textit{put up visualization of threshold stock dynamics}>} reproduction will be only \underline{1} for stock sizes between 2-27. Reproduction stays the same for stock sizes between 28 and 34 (it will be 10) and between 35 and 45 (it will be 5), as you can see here \textcolor{blue}{<\textit{point to it}>}. And for stock sizes between 0-4 and 45-50, do not reproduce.
+
+Thus, the climate event brings an abrupt reduction on the fish growth if the population size is 28 fish or less. \textcolor{orange}{<\textit{if participants ask why: the climate event can reduce rain showers, increase water temperature and the risk of droughts. These events impact nutrient availability for fish and the fish reproduction as well as other species in the ecosystem on which fish depends}>}
+
+The assistant will hand out a new table showing the relationship between population size and the reproduction after the climate event \textcolor{blue}{<\textit{hand out}>}.
+
+We also \underline{do not know whether and when this event might happen}. I will now tell you how we will determine in which round the event will happen:
+
+We have here two bowls – one with 5 green and the other one with 5 red \textcolor{blue}{<\textit{point out}>} balls in it. The red ball represents the climate event, the green one means nothing changes -- reproduction stays the same. We will now take 1 white and 1 red balls \textcolor{blue}{<\textit{mix in the third non-transparent urn}>} and then \textcolor{blue}{[\textit{name of person}]} will take out 8 of the remaining balls from this bowl, in which we mixed the remaining green and red balls. However, (s)he will do this under the cover of a cloth – so we all won’t know the amount of white and red balls among the four balls that (s)he picks. \textcolor{blue}{<\textit{ hold a cloth over both urns so that everyone can see that (s)he takes out balls and also how many but neither we nor the participants can see the color}>}. So now we have here an urn with 10 balls with 1 white, 1 red and 8 balls of which color is uncertain both for you and us.
+
+At the beginning of each new round – before you make your decisions – \underline{from now on}, \textcolor{blue}{[\textit{assistant name}]} will draw a ball – but without any of you seeing the color of the ball (s)he draws -- If (s)he draws a green ball, nothing will change in that round. But if (s)he will draw the \underline{red} ball, the climate event \underline{will} happen. This means we would then calculate the stock size according to the new relation between stock size and reproduction \textcolor{blue}{<\textit{point to the table again}>}.
+
+As I mentioned before, the event is \underline{long lasting}. This means, once we drew a red ball, the new relation between stock size and reproduction will apply until the end of the game. Please note, however, that regardless whether we draw a red ball or not, we will continue drawing. Remember -- the occurrence of the event is unpredictable and we also do not know whether and when it will happen.
+
+With the introduction of this information, we will also reset the stock size to 50 \textcolor{blue}{<\textit{here please strikethrough the number of fish left last round of the first stage and clarify that the stock size starts again with 50 fish}>}, like in the beginning of the game. All other rules remain exactly the same:
+\begin{itemize}
+\item The four of you share together a fishing ground.
+\item In each round, you will take an \underline{individual} and \underline{private} decision of how many fish to catch. \item You can choose to fish as much fish as there is available or not fishing at all (zero). For each fish you capture you earn 500 pesos. You will also guess how many fish will be left in the stock for the next round.
+\item Your decisions affect your individual earnings but also the resource of the community.
+\item As long as there is fish left, this stage of the game continues and you can keep earning money. If the resource collapses, this stage of the game ends.
+\item We do not tell you how many rounds you will play.
+\item The fish reproduction depends on how much fish there is left on the fish stock and if the climate event occurs or not \textcolor{blue}{<\textit{point to illustration and remind them of the tables they got}>}
+\item You are not allowed to show each other what you write down on your decision cards.
+\item Remember, you are allowed to talk in the game. This means you can talk about whatever you want even of how much you want to fish for a maximum of 2 minutes time between rounds. After the 2 minutes, you need to write down your decision.
+\end{itemize}
+
+The only difference is that – a climate event could happen in the following rounds.
+
+Do you have any questions?
+
+If not, let’s keep playing. The fishing ground restarts with 50 fish, now you have 2 minutes that you \underline{could} use to discuss your decisions. After that time you need to write your decision and we will pick up the decision folders.
+
+\textcolor{orange}{<\textit{Example if they ask: For example, if there is only 10 fish on the fishing ground but your collective catch is 100 fish (let’s say 30, 20, 30, 20), the remaining 10 fishes will be divided proportionally to your intended catch. So if you intended to take 30 out of 100 as a group (30\%), then you get 30\% of the actually fish available, this is 3}>}
+
+#### Risk treatment
+
+\begin{center}
+\textcolor{blue}{<\textit{after 6 rounds}>}
+\end{center}
+
+Now we are going to play the second stage of the game. In this round, we want to inform you about the new stock size, which is […]\textcolor{blue}{<\textit{write down the stock size for next round}>}. We also want to inform you that a climate event -- with \underline{long lasting} and \underline{negative} consequences for the fishing ground you manage in common can occur.
+
+These kinds of climate events are highly unpredictable. This means that you do not know \underline{whether and when} this event will happen. It could happen in the next round, in four rounds, -- or never…
+
+In case the event does happen, -- the reproduction of fish will reduce below a stock size of 28 fish, -- as you can see here \textcolor{blue}{<\textit{put up visualization of threshold stock dynamics}>} reproduction will be only 1 for stock sizes between 2-27. Reproduction stays the same for stock sizes between 28 and 34 (it will be 10) and between 35 and 45 (it will be 5), as you can see here <point to it>. And for stock sizes between 0-4 and 45-50, do not reproduce.
+
+Thus, the climate event brings an abrupt reduction on the fish growth if the population size is 28 fish or less. \textcolor{orange}{<\textit{if participants ask why: the climate event can reduce rain showers, increase water temperature and the risk of droughts. These events impact nutrient availability for fish and the fish reproduction as well as other species in the ecosystem on which fish depends}>}
+
+The assistant will hand out a new table showing the relationship between population size and the reproduction after the climate event \textcolor{blue}{<\textit{hand out}>}.
+
+We also \underline{do not know whether and when this event might happen}. I will now tell you how we will determine in which round the event will happen:
+
+We have here two bowls – one with 5 green and the other one with 5 red \textcolor{blue}{<\textit{point out}>} balls in it. The red ball represents the climate event, the green one means nothing changes -- reproduction stays the same. \textcolor{blue}{[\textit{Name of person}]} will take the 10 balls (5 green and 5 red) and mix them on the bowl. At the beginning of each new round – before you make your decisions – \underline{from now on}, \textcolor{blue}{[\textit{assistant name}]} will draw a ball – but without any of you seeing the color of the ball (s)he draws -- If (s)he draws a green ball, nothing will change in that round. But if (s)he will draw the red ball, the climate event will happen. This means we would then calculate the stock size according to the new relation between stock size and reproduction \textcolor{blue}{<\textit{point to the table again}>}.
+
+As I mentioned before, the event is \underline{long lasting}. This means, once we drew a red ball, the new relation between stock size and reproduction will apply until the end of the game. Please note, however, that regardless whether we draw a red ball or not, we will continue drawing. Remember -- the occurrence of the event is unpredictable and we also do not know whether and when it will happen. But we both know the probability is 50-50.
+
+With this new information, we will also \underline{reset} the stock size to 50 \textcolor{blue}{<\textit{here please strikethrough the number of fish left last round of the first stage and clarify that the stock size starts again with 50 fish}>}, like in the beginning of the game. All other rules remain exactly the same:
+
+\begin{itemize}
+\item The four of you share together a fishing ground.
+\item In each round, you will take an \underline{individual} and \underline{private} decision of how many fish to catch. You can choose to fish as much fish as there is available or not fishing at all (zero). For each fish you capture you earn 500 pesos. You will also guess how many fish will be left in the stock for the next round.
+\item Your decisions affect your individual earnings but also the resource of the community.
+\item As long as there is fish left, this stage of the game continues and you can keep earning money. If the resource collapses, this stage of the game ends.
+\item We do not tell you how many rounds you will play.
+\item The fish reproduction depends on how much fish there is left on the fish stock and if the climate event occurs or not \textcolor{blue}{<\textit{point to illustration and remind them of the tables they got}>}
+\item You are not allowed to show each other what you write down on your decision cards.
+\item Remember, you are allowed to talk in the game. This means you can talk about whatever you want even of how much you want to fish for a maximum of 2 minutes time between rounds. After the 2 minutes, you need to write down your decision.
+\end{itemize}
+
+The only difference is that – a climate event could happen in the following rounds.
+
+Do you have any questions?
+
+If not, let’s keep playing. The fishing ground restarts with 50 fish, now you have 2 minutes that you could use to discuss your decisions. After that time you need to write your decision and we will pick up the decision folders.
+
+\textcolor{orange}{<\textit{Example if they ask: For example, if there is only 10 fish on the fishing ground but your collective catch is 100 fish (let’s say 30, 20, 30, 20), the remaining 10 fishes will be divided proportionally to your intended catch. So if you intended to take 30 out of 100 as a group (30\%), then you get 30\% of the actually fish available, this is 3}>}
+
+
+#### Base line
+
+\begin{center}
+\textcolor{blue}{<\textit{after 6 rounds}>}
+\end{center}
+
+Now we are going to play the second stage of the game. In this round, we want to inform you about the new stock size, which is […]\textcolor{blue}{<\textit{write down the stock size for next round}>}. We also want to inform you that this has been a really good year and the fish stock recover more than normal. The stock size is 50 fish \textcolor{blue}{<\textit{here please strikethrough the number of fish left last round of the first stage and clarify that the stock size starts again with 50 fish}>}, like in the beginning of the game. All other rules remain exactly the same:
+\begin{itemize}
+\item The four of you share together a fishing ground.
+\item In each round, you will take an \underline{individual} and \underline{private} decision of how many fish to catch. You can choose to fish as much fish as there is available or not fishing at all (zero). For each fish you capture you earn 500 pesos. You will also guess how many fish will be left in the stock for the next round.
+\item Your decisions affect your individual earnings but also the resource of the community.
+\item As long as there is fish left, this stage of the game continues and you can keep earning money. If the resource collapses, this stage of the game ends.
+\item We do not tell you how many rounds you will play.
+\item The fish reproduction depends on how much fish there is left on the fish stock \textcolor{blue}{<\textit{point to illustration and remind them of the tables they got}>}
+\item You are not allowed to show each other what you write down on your decision cards.
+\item Remember, you are allowed to talk in the game. This means you can talk about whatever you want even of how much you want to fish for a maximum of 2 minutes time between rounds. After the 2 minutes, you need to write down your decision.
+\end{itemize}
+The only difference is that – a positive event made that the stock size grew more than normal and we start with 50 fish again.
+
+Do you have any questions?
+If not, let’s keep playing. The fishing ground restarts with 50 fish, now you have 2 minutes that you could use to discuss your decisions. After that time you need to write your decision and we will pick up the decision folders.
+
+
+\textcolor{orange}{<\textit{Example if they ask: For example, if there is only 10 fish on the fishing ground but your collective catch is 100 fish (let’s say 30, 20, 30, 20), the remaining 10 fishes will be divided proportionally to your intended catch. So if you intended to take 30 out of 100 as a group (30\%), then you get 30\% of the actually fish available, this is 3}>}
+
+
+## Appendix 2. Questionaire
+
+\begin{center}
+\fbox{\begin{minipage}{30em}\begin{center}
+Information for surveyers: \newline
+    \textcolor{blue}{\textit{<Text in italics should not be read outloud, it is recommendations about how to ask or how to guide the fisher in certain questions>}}\newline
+    “------“ means: take a short break while talking\newline
+    \underline{Something underlined} needs to be emphasized\newline
+\end{center}
+\end{minipage}}
+\end{center}
+
+\begin{center}
+\begin{tabular}{ |m{3cm}  m{2cm} m{6cm} m{3cm}| }
+\hline
+Place:    & Date:  & Interviewer:     & Participant no:  \\
+          &        & Group color:     & Time:            \\
+\hline
+\end{tabular}
+\end{center}
+
+
+We remind you that the same as your decisions in the experiment, the information of this survey is completely confidential (besides the researchers, no one else will have access to your answers) and the data is for only for research purposes.
+\begin{center}
+\textcolor{blue}{<\textit{First introduce yourself and ask the interviewee name to make the exercise more personal}>}
+\end{center}
+
+1. What is your name? __________________________________
+2. How satisfied are you with your life? \newline
+Very satisfied (1)  Satisfied (2) Disatisfied (3) Very disatisfied (4)
+
+### Questions about the game:
+Now we will start with some questions related to the game you participated on:
+
+3. Have you participated before in an economic game? Yes __ (1) No __ (0)
+4. In the game we did just now - - was someone in your group you usually go out fishing with?   Yes __ (1)     No __ (0)
+5. Were you surprised when the game finished? Yes __ (1) No __ (0)
+6. \textcolor{blue}{<\textit{If yes}>} How many more rounds did you expect that you would played? \newline
+No more rounds __ less than 5 rounds __ more than 5 rounds __
+
+    6.1. Any other comments about the game? \textcolor{blue}{<\textit{Capture any relevant experience that the participant wants to share about the game}>}____________________________
+
+### Description of fishing activities
+
+7. How old were you when you started fishing? __
+8. Have you been fishing ever since \textcolor{blue}{<\textit{repeat year or age from question above}>} (for most of the time)? Yes __ (1) No __ (0)
+9. Have you been fishing here \textcolor{blue}{<\textit{community name}>} ever since (or at least mos of the time) you started fishing? Yes __ (1) No __ (0)
+10. \textcolor{blue}{<\textit{If not}>} Where have you fished before? ____
+11. During the last 12 months, were there any months when you did not fish? Yes __ (1) No __ (0)
+
+12. \textcolor{blue}{<\textit{If yes}>} In whcih months did you \underline{not} fish? \newline
+    Jan__ Feb__ Mar__ Apr__ May__ Jun__ Jul__  Aug__  Sep__  Oct__  Nov__  Dec__
+
+13. What do you do in the months you are not fishing? ________________
+
+In the months you fish...\newline
+
+14. How many days do you go fishing in a normal week? __
+
+15. How many hours do you fish on an average day? __
+
+16. How much fish (in Kg) and how much money (in pesos) do you make at the end of normal, a good and a bad day? \newline
+
+    a) Normal day: __ Kg __ pesos \newline
+    b) Good day: __ Kg __ pesos \newline
+    c) Bad day: __ Kg __ pesos \newline
+
+
+17. In the case of a bad day with no catch or earnings at all, how often does that happen? \newline
+    Once a year __ Once a month __ Once a week __ Several times a week __
+
+#### Fishing styles and gears
+
+Now let's talk about how you go fishing...
+
+18. Do you at times fish with other people? Yes __ (1) No __ (0)
+
+    18.1. \textcolor{blue}{<\textit{If yes}>} How often do you fish with others? \newline
+Rarely __ Half of the times __ Most of the time __ Always __
+
+    18.2. How many is the crew? __
+
+    18.3. Is it always the same crew? Yes __ (1) No __ (0)
+
+    18.4. \textcolor{blue}{<\textit{If yes}>} Who in the crew decide when to go fishin? Me __ Other person __ [If so, who? ___________ ]
+
+19. Do you use a boat or a vessel? Yes __ (1) No __ (0)
+
+    19.1. \textcolor{blue}{<\textit{If yes}>} Are you the captain? Yes __ (1) No __ (0)
+
+    19.2 \textcolor{blue}{<\textit{If yes}>} Do you own the boat? Yes __ (1) No __ (0)
+
+20. Do you always go to the same fishing place? Yes __ (1) No __ (0)
+
+21. \textcolor{blue}{<\textit{If yes}>} Where do you go? ________________
+
+22. What are the most important species you fish over the year? How do you capture them? What is the one you fish the most? Which one leaves better profits?
+
+\begin{center}
+\begin{tabular}{ | m{3cm} | m{3cm} | m{3cm} | m{3cm} | m{3cm} | }
+\hline
+22.1 What are the species you fish the most? & 22.2 What arts do you use?  & 22.3 From what do you fish them?   & 22.4 From 1-4, which do you fish the most (Kg) & 22.5 From 1-4, which leaves better prifts (pesos)  \\
+\hline
+  &     &     &      &     \\
+\hline
+  &     &     &      &     \\
+\hline
+  &     &     &      &     \\
+\hline
+  &     &     &      &     \\
+\hline
+\end{tabular}
+\end{center}
+
+
+    22.6 Is the fishing art that you uses the most own by yourself? Yes __ (1) No __ (0)
+
+#### Decision-making
+
+How much of your share of the daily catch...
+
+23. ... do you consume yourself (your household including what you eat right away and what you keep for storing) \newline
+    None __ Some __ Half __ More than half __ All __
+
+24. How much do you sell? \newline
+    None __ Some __ Half __ More than half __ All __
+
+    24.1 Who do you sell to? ________________
+
+25. How much do you give away? (e.g. neighbours, friends) \newline
+    None __ Some __ Half __ More than half __ All __
+
+#### Future
+
+26. Do you think you will continue being a fisher, let’s say, in the next 10 years? \newline
+    Absolutely yes __   Yes __   Absolutely no __   No __  I do not know/no opinion __
+
+27. \textcolor{blue}{<\textit{If no}>} Why? _______________________________
+
+28. Do you think your children would like to become fishers in the future?\newline
+Absolutely yes __   Yes __   Absolutely no __   No __  I do not know/no opinion __
+
+29. \textcolor{blue}{<\textit{If no}>} Why? _______________________________
+
+### Changes in fish abundance, shocks, knowledge and attitudes
+
+30. Have you been landing the same types of species since you started fishing here \textcolor{blue}{<\textit{name of place}>}? Yes __   No ___
+
+31. \textcolor{blue}{<\textit{If no}>} How did it change? __________________
+
+32. Is there a certain type of species that you cannot get enough of today in comparison to the past? Yes __   No __
+
+33.  \textcolor{blue}{<\textit{If yes}>} Which ones?_____________________________
+
+34. Have you ever experienced a sudden (more dramatic) change in fish abundance? This would be something more dramatic then a seasonal variation, where you really noticed that a particular species seems to have disappeared for a longer time period.     Yes __     No __
+
+35. \textcolor{blue}{<\textit{If yes}>} Please describe how did you noticed that change: what has happened? (which species disappeared, for example), when that was (approx. year) and for how long or ongoing, what you think caused the change:
+
+\begin{center}
+\begin{tabular}{ | m{3cm} | m{3cm} | m{3cm} | m{3cm} | m{3cm} | }
+\hline
+35.1 What happened? (which fish species) & 35.2 When?  & 35.3 For how long? still ongoing?  & 35.4 Causes?  & 35.5 How did it affect you? what was your reaction (e.g. change gear, fishing spots?)  \\
+\hline
+  &     &     &      &     \\
+\hline
+  &     &     &      &     \\
+\hline
+  &     &     &      &     \\
+\hline
+  &     &     &      &     \\
+\hline
+\end{tabular}
+\end{center}
+\textcolor{blue}{<\textit{Possible causes include: over fishing, pollution, weather or climate events, destructive fishing arts such as dinamite, industrial fishing, increase on number of fishers, infrastructure developments such as roads, pipelines; and invasive species}>}
+
+
+\textcolor{blue}{<\textit{Questions 36-40 are to be asked only in case that abrupt events have been reported}>}
+
+36. Since the occurrence of the event, have you changed your fishing practice? Yes __ No __
+
+    36.1 \textcolor{blue}{<\textit{If yes}>} How did it change? ________________
+
+    36.2 Since the event, do you spend more, less or the same time fishing? More __ Less __ The same __
+
+    36.3 Since the event, did you change your fishing area? Yes __  No __
+
+#### Future
+
+37. Do you expect more sudden (more dramatic) changes in fish abundance in the future, or other aspects of the ecosystem such as mangroves and birds? Yes __ No __
+
+38. In your opinion, what will be the main cause of future sudden (more dramatic) changes in fish abundance? ________________________________
+
+39. Please imagine that the amount of fish decreases and you can only fish half of what you fish today. What would you do? \textcolor{blue}{<\textit{Do not read the options first, just listen to the interviewee. If the person do not propose any options, read the options then:}>}
+
+    39.1 \textcolor{blue}{<\textit{Mark if you had to read the options}>} __
+
+    39.2 Would you continue fishing? Yes __ No __
+
+    39.2.1 Why? _________________________________
+
+    39.3 Would you increase fishing effort to increase catch? Yes __ No __
+
+    39.3.1 How? _______________________________
+
+    39.4 Would you fish less? Yes __ No __
+
+    39.4.1 What would you do besides fishing? ___________________________
+
+    39.5 Would you change the fishing area where you go fishing? Yes __ No __
+
+    39.5.1 Where would you fish instead? ______________________________
+
+    39.6 Would you change your fishing art?
+
+    39.6.1 Which one would you use? ___________________________________
+
+    39.7 Would you stop fishing? Yes __ No __
+
+    39.7.1 What would you do instead of fishing? ___________________________
+
+    39.8 Other? Which one: _______________________________
+
+### Cooperation and communication
+
+Now let's talk about your connection or relation with other fishers... \newline
+
+40. Do you lend each other gear? Yes __   No __
+
+41. If you have a problem with, for example, your boat engine or fish traders, who do you ask for help? __________________________________
+
+#### Fishing cooperatives and formal organizations
+
+42. Are you part of a fishing cooperative or similar organization? Yes __ No __
+
+    42.1 Which one? _____________________________
+
+    42.2 How often do you meet? \newline
+Once a year __ Twice a year __ Every month __ Every week __
+
+    42.3 When was the last time you meet? _____ (year)
+
+    42.4 What is your role in this organization? \newline
+Legal representative __ President __ Secretary __ Treasurer __ Active member __
+
+    42.4.1 Other? _____________________________
+
+    42.5 How do you benefit from being part of this organization? \textcolor{blue}{<\textit{Do not read the options first, just listen to the interviewee. If the person do not propose any options, read the options then:}>}
+
+    42.5.0 \textcolor{blue}{<\textit{Mark if you had to read the options}>} __
+
+    42.5.1 Better prices __
+
+    42.5.2 Conservation of fishing resources __
+
+    42.5.3 Support in times of low income __
+
+    42.5.4 Being respected and recognized as a member of the organization __
+
+    42.5.5 Pushed / forced of being a member by the government, local leaders, friends or family __
+
+    42.5.6 Social aspects (making friends, working with other fishers, fear of being excluded) __
+
+    42.5.7 More fishing and income __
+
+    42.5.8 Better quality of the fishing products
+
+    42.5.9 Other, which? ____________________________
+
+
+### Demographic and household information
+
+43. Gender: Male __ Female __
+
+44. Marital status:\newline
+Single __ Married __ co-habitation __ Divorced / widow __
+
+45. Age: ___ years old
+
+46. Education: How many years of formal education have you completed?\newline
+No formal education __ Elementary school __ Secondary school __ Higher education __ (Please specify) ___
+
+47. Where you born here, in \textcolor{blue}{<\textit{name of community}>}? Yes __ No __
+
+48. \textcolor{blue}{<\textit{If not}>} Where were you born? _______________
+
+49. \textcolor{blue}{<\textit{If not}>} When did you move here? ______ (year)
+
+50. \textcolor{blue}{<\textit{If yes}>} Have you always lived here? Yes __ No __
+
+51. \textcolor{blue}{<\textit{If no}>} How long have you lived here? ______ (years / months) \textcolor{blue}{<\textit{If the person mentioned being forcely displaced, ask how long did he/she lived elsewhere}>} ____________
+
+52. Now we will talk about ho do you feel today in \textcolor{blue}{<\textit{name of place}>}. I will reed a few options and ask you how in agreement or disagreemnt you are with the following sentences:
+
+    52.1 I miss \textcolor{blue}{<\textit{name of place}>} when I'm away \newline
+Strongly agree __ Agree __ Disagree __ Strongly disagree __
+
+    52.2 I don't feel that I belong to \textcolor{blue}{<\textit{name of place}>}.\newline
+Strongly agree __ Agree __ Disagree __ Strongly disagree __
+
+
+    52.3 I feel safe when I am in \textcolor{blue}{<\textit{name of place}>}.\newline
+Strongly agree __ Agree __ Disagree __ Strongly disagree __
+
+
+    52.4 I am proud when I am in \textcolor{blue}{<\textit{name of place}>}.\newline
+Strongly agree __ Agree __ Disagree __ Strongly disagree __
+
+
+    52.5 \textcolor{blue}{<\textit{name of place}>} is part of myself.\newline
+Strongly agree __ Agree __ Disagree __ Strongly disagree __
+
+
+    52.6 I would like to leave \textcolor{blue}{<\textit{name of place}>}.\newline
+Strongly agree __ Agree __ Disagree __ Strongly disagree __
+
+
+    52.7 I would like to be more committed with \textcolor{blue}{<\textit{name of place}>}.\newline
+Strongly agree __ Agree __ Disagree __ Strongly disagree __
+
+
+    52.8 My roots are in \textcolor{blue}{<\textit{name of place}>}.\newline
+Strongly agree __ Agree __ Disagree __ Strongly disagree __
+
+
+    52.9 I would like that my family and friends stay in \textcolor{blue}{<\textit{name of place}>} in the future. \newline
+Strongly agree __ Agree __ Disagree __ Strongly disagree __
+
+
+#### Household composition:
+
+53. Please list below the people who live with you in your house \textcolor{blue}{<\textit{live under the same roof and eat from the same kitchen}>} and their relationship with you:
+
+\textcolor{blue}{<\textit{* Please mark the ranking according to their contribution to the household income. Listen carefully and take note if people also work in fish processing or commercialization}>}
+
+\begin{center}
+\begin{tabular}{ | m{4cm} | m{2cm} | m{5cm} | m{3cm} | }
+\hline
+53.1  Relationship? & 53.2 Age  & 53.3 Job  & 53.4 Earnings rank* \\
+\hline
+Yourself  &     &     & [1, 2, 3, 4] \\
+\hline
+  &     &     & [1, 2, 3, 4]  \\
+\hline
+  &     &     & [1, 2, 3, 4]  \\
+\hline
+  &     &     & [1, 2, 3, 4] \\
+\hline
+\end{tabular}
+\end{center}
+
+54. If any of your relatives is gravely sick and needs an expensive treatment, how would you rise the necessary money? \textcolor{blue}{<\textit{Example answers: selling something, bank loan, loan with friend, family or neighbour}>} ____________________________________________________
+
+
+55. \textcolor{blue}{<\textit{if savings are not mentioned}>} Do you have the possibility of requesting a loan? Yes __ No __
+
+56. Do you have any additional comment (e.g. about fishing, the experiment, or any recommendation for your grandchildren) _______________________________
+
+
+
+
+```{r SMtables1, results='asis', include=TRUE, echo=FALSE, warning=FALSE, message=FALSE}
+
+## Ind extraction:
+stargazer::stargazer(
+  # clustered and robust:
+  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group")),
+  # clustered and robust:
+  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC2", cluster = "group")),
+  # clustered and robust:
+  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC3", cluster = "group")),
+  # clustered and robust:
+  coeftest(p4, vcov.=function(x) vcovHC(x, method="white2", type="HC4", cluster = "group")),
+  # last model with NW and HC4, more strict
+  coeftest(p4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")),
+  type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE,
+  model.names= FALSE, font.size = "small", digits = 2,
+  float = TRUE, no.space = TRUE, single.row = FALSE, align = TRUE,
+  dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE,
+  table.placement = "p", label = "TabS1",
+  title = "Clustered and robust standard errors estimation for individual extraction with White method and (1) HC1, (2) HC2, (3) HC3, (4) HC4 weighting schemes, and (5) Newey and West method with HC4 scheme.",
+  covariate.labels = c(
+    "Constant", "Treatment: Threshold", "Treatment: Risk", "Treatment: Uncertainty",
+    "Part", "Round", "Stock size", "Threshold * part", "Risk * part", "Uncertainty * part"
+  )
+  )
+
+## Proportion of stock
+stargazer::stargazer(
+  # clustered and robust:
+  coeftest(q4, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group")),
+  # clustered and robust:
+  coeftest(q4, vcov.=function(x) vcovHC(x, method="white2", type="HC2", cluster = "group")),
+  # clustered and robust:
+  coeftest(q4, vcov.=function(x) vcovHC(x, method="white2", type="HC3", cluster = "group")),
+  # clustered and robust:
+  coeftest(q4, vcov.=function(x) vcovHC(x, method="white2", type="HC4", cluster = "group")),
+  # last model with NW and HC4, more strict
+  coeftest(q4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")),
+  type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE,
+  model.names= FALSE, font.size = "small", digits = 2,
+  float = TRUE, no.space = TRUE, single.row = FALSE, align = TRUE,
+  dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE,
+  table.placement = "p",label = "TabS2",
+  title = "Clustered and robust standard errors estimation for proportion of available stock with White method and (1) HC1, (2) HC2, (3) HC3, (4) HC4 weighting schemes, and (5) Newey and West method with HC4 scheme.",
+  covariate.labels = c(
+    "Constant", "Treatment: Threshold", "Treatment: Risk", "Treatment: Uncertainty",
+    "Part", "Round",  "Threshold * part", "Risk * part", "Uncertainty * part"
+  )
+  )
+
+stargazer::stargazer(
+  # clustered and robust:
+  coeftest(c4, vcov.=function(x) vcovHC(x, method="white2", type="HC1", cluster = "group")),
+  # clustered and robust:
+  coeftest(c4, vcov.=function(x) vcovHC(x, method="white2", type="HC2", cluster = "group")),
+  # clustered and robust:
+  coeftest(c4, vcov.=function(x) vcovHC(x, method="white2", type="HC3", cluster = "group")),
+  # clustered and robust:
+  coeftest(c4, vcov.=function(x) vcovHC(x, method="white2", type="HC4", cluster = "group")),
+  # last model with NW and HC4, more strict
+  coeftest(c4, vcov.=function(x) vcovNW(x,  type="HC4", cluster = "group")),
+  type = "latex", multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE,
+  model.names= FALSE, font.size = "small", digits = 2,
+  float = TRUE, no.space = TRUE, single.row = FALSE, align = TRUE,
+  dep.var.caption = "", dep.var.labels.include = FALSE, df = FALSE,
+  table.placement = "p", label = "TabS3",
+  title = "Clustered and robust standard errors estimation for cooperation with White method and (1) HC1, (2) HC2, (3) HC3, (4) HC4 weighting schemes, and (5) Newey and West method with HC4 scheme.",
+  covariate.labels = c(
+    "Constant", "Treatment: Threshold", "Treatment: Risk", "Treatment: Uncertainty",
+    "Part", "Round", "Threshold * part", "Risk * part", "Uncertainty * part"
+  )
+  )
+
+```
+
+
+\begin{figure*}[h!]
+\centering
+\includegraphics[width = 5in, height = 5in]{correlations}
+\caption{\textbf{Correlations between response variables.} Correlation coefficients are calculated by variable and by treatment.}
+\label{fig:figS1}
+\end{figure*}
+
+
+```{r table3, results='asis', warning=FALSE, message=FALSE, include = TRUE, echo = FALSE}
+
+## Original model
+stargazer::stargazer(
+  out_lm2,
+  type = "latex", font.size = "tiny", model.names = FALSE, label = "TabS4",
+  multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
+  float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
+  dep.var.labels = NULL,
+  se = out %>%  map(.,"std.error"),
+  p = out %>% map(., "p.value"),
+  coef = out %>% map(., "coefficients"),
+  dep.var.labels.include = FALSE,
+  title = "Original regression models as shown in Fig 3. Dependend variables are (1) mean extraction,
+  (2) mean proportion of extraction, (3) median cooperation, (4) variance of cooperation,
+  (5) variance of extraction, (6) variance of the proportion of extraction, and (7) coordination.",
+  notes = c("Clustered robust standard errors and confidence intervals were calculated with the CR2 estimator"),
+  notes.append = TRUE, notes.align = "l",
+  covariate.labels = c(
+    "Constant", "Treatment: Threshold", "Treatment: Risk", "Treatment: Uncertainty",
+    "Place: B", "Place: C", "Place: D", "Education", "Frequency of bad fishing days",
+    "Expectation of fishing children", "Fishing art sharing", "Group fishing",
+    "Risk aversion", "Ambiguity aversion", "Rounds with agreements", "Part 1 variable (1)",
+    "Part 1 variable (2)","Part 1 variable (3)","Part 1 variable (4)","Part 1 variable (5)",
+    "Part 1 variable (6)","Part 1 variable (7)"
+  )
+  )
+
+
+
+```
+
+
+```{r table4, results='asis', warning=FALSE, message=FALSE, include = TRUE, echo = FALSE}
+
+## Without place
+stargazer::stargazer(
+  out_lm_noplace,
+  type = "latex", font.size = "tiny", model.names = FALSE,label = "TabS5",
+  multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
+  float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
+  dep.var.labels = NULL,
+  se = out_lm_noplace %>%  map(.,"std.error"),
+  p = out_lm_noplace %>% map(., "p.value"),
+  coef = out_lm_noplace %>% map(., "coefficients"),
+  dep.var.labels.include = FALSE,
+  title = "Modified model without place terms. Dependend variables are (1) mean extraction, (2) mean proportion of extraction, (3) median cooperation, (4) variance of cooperation,  (5) variance of extraction, (6) variance of the proportion of extraction, and (7) coordination." ,
+  notes = c("Clustered robust standard errors and confidence intervals were calculated with the CR2 estimator."),
+  notes.append = TRUE, notes.align = "l",
+  covariate.labels = c(
+    "Constant", "Treatment: Threshold", "Treatment: Risk", "Treatment: Uncertainty",
+    "Education", "Frequency of bad fishing days",
+    "Expectation of fishing children", "Fishing art sharing", "Group fishing",
+    "Risk aversion", "Ambiguity aversion", "Rounds with agreements", "Part 1 variable (1)",
+    "Part 1 variable (2)","Part 1 variable (3)","Part 1 variable (4)","Part 1 variable (5)",
+    "Part 1 variable (6)","Part 1 variable (7)"
+  )
+  )
+
+
+
+```
+
+```{r table5, results='asis', warning=FALSE, message=FALSE, include = TRUE, echo = FALSE}
+
+## only place
+stargazer::stargazer(
+  out_lm_onlyplace,
+  type = "latex", font.size = "tiny", model.names = FALSE, label = "TabS6",
+  multicolumn = FALSE, header = FALSE, intercept.bottom = FALSE, digits = 2,
+  float = TRUE, no.space = TRUE, single.row = FALSE, df = FALSE, align = TRUE,
+  dep.var.labels = NULL,
+  se = out_lm_onlyplace %>%  map(.,"std.error"),
+  p = out_lm_onlyplace %>% map(., "p.value"),
+  coef = out_lm_onlyplace %>% map(., "coefficients"),
+  dep.var.labels.include = FALSE,
+  title = "Modified model with only treatment and place. Dependend variables are (1) mean extraction, (2) mean proportion of extraction, (3) median cooperation, (4) variance of cooperation,  (5) variance of extraction, (6) variance of the proportion of extraction, and (7) coordination.",
+  notes = c("Clustered robust standard errors and confidence intervals were calculated with the CR2 estimator."),
+  notes.append = TRUE, notes.align = "l",
+  covariate.labels = c(
+    "Constant", "Treatment: Threshold", "Treatment: Risk", "Treatment: Uncertainty",
+    "Place: B", "Place: C", "Place: D", "Part 1 variable (1)",
+    "Part 1 variable (2)","Part 1 variable (3)","Part 1 variable (4)","Part 1 variable (5)",
+    "Part 1 variable (6)","Part 1 variable (7)"
+  )
+  )
+
+
+```
