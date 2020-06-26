@@ -16,3 +16,5 @@
 *.bib
 *.RData
 *.csv
+*.tiff
+*.eps
