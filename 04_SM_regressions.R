@@ -286,3 +286,12 @@ df_rsqr <- tibble(
 
 
 # save.image(file = "Regressions_paper2_200527.RData", safe = TRUE)
+
+
+#J200908: regression suggested by reviewer2:
+
+edu <- lm_robust(
+  prop_ag ~ Treatment + Place + education_yr + BD_how_often + fishing_children 
+  + Risk + Amb,
+  data = ind_coop %>% filter(part == T) %>% ungroup(),
+  se_type = 'stata', cluster = group) 

@@ -163,7 +163,7 @@ diff_df <- diff_df %>%
     ifelse(str_detect(treatment, "-counter"), "counterfactual", "observed"))) %>%
   mutate(treatment = str_remove(treatment, "-Baseline"),
          treatment = str_remove(treatment, "-counter")) %>%
-  gather(key = time, value = estimate, before, after) %>%
+  pivot_longer(cols = after:before, names_to = "time", values_to = "estimate") %>%
   mutate(time = as_factor(time), type = as_factor(type), treatment = as_factor(treatment)) %>%
   filter(type != "first_difference")
 
@@ -174,7 +174,7 @@ diff_df2 <- diff_df2 %>%
     ifelse(str_detect(treatment, "-counter"), "counterfactual", "observed"))) %>%
   mutate(treatment = str_remove(treatment, "-Baseline"),
          treatment = str_remove(treatment, "-counter")) %>%
-  gather(key = time, value = estimate, before, after) %>%
+  pivot_longer(cols = after:before, names_to = "time", values_to = "estimate") %>%
   mutate(time = as_factor(time), type = as_factor(type), treatment = as_factor(treatment)) %>%
   filter(type != "first_difference")
 
@@ -186,7 +186,7 @@ diff_df3 <- diff_df3 %>%
     ifelse(str_detect(treatment, "-counter"), "counterfactual", "observed"))) %>%
   mutate(treatment = str_remove(treatment, "-Baseline"),
          treatment = str_remove(treatment, "-counter")) %>%
-  gather(key = time, value = estimate, before, after) %>%
+  pivot_longer(cols = after:before, names_to = "time", values_to = "estimate") %>%
   mutate(time = as_factor(time), type = as_factor(type), treatment = as_factor(treatment)) %>%
   filter(type != "first_difference")
 
@@ -194,7 +194,9 @@ diff_df3 <- diff_df3 %>%
 diff_df4 <- bind_rows(
   diff_df, diff_df2, diff_df3) %>%
   mutate(response = as_factor(response),
-         response = fct_relevel(response, "individual extraction", "proportion stock", "cooperation")) # j190929: this stopped working, the ordering of factors
+         response = fct_relevel(
+           response, "individual extraction", "proportion stock", "cooperation"),
+         time = fct_relevel(time, "before", 'after')) # j190929: this stopped working, the ordering of factors
 
 
 ## Linear hypotheses:
@@ -250,27 +252,28 @@ df_int <- df_int %>%
   rename(response = model, treatment = hyp) %>%
   mutate(treatment = str_to_title(treatment)) %>%
   mutate(response = as_factor(response),
-         response = fct_relevel(response, "individual extraction", "proportion stock", "cooperation"))
+         response = fct_relevel(response, "individual extraction", "proportion stock", "cooperation")) %>%
+  mutate(treatment = fct_relevel(treatment, "Baseline", "Threshold", "Risk", "Uncertainty"))
 
 # ### Figure 1
 # ### 
-# g_diff <- diff_df4  %>% 
-#   left_join(df_int) %>% 
-#   mutate(p.value = ifelse(
-#     p_value < 0.05, "< 0.05" ,
-#     ifelse(p_value < 0.1, "< 0.1", "> 0.1")
-#   )) %>%
-#   ggplot(aes(time, estimate, group = type)) +
-#   geom_point(aes(color = p.value)) +
-#   geom_line(aes(linetype = type, color = p.value)) + 
-#   scale_color_manual(values = c("dodgerblue", "orange", "purple")) +
-#   facet_grid(response ~ treatment, scales = "free_y" ) +
-#   theme_light(base_size = 8) + 
-#   theme(legend.position = "bottom",
-#         legend.text = element_text(size = 6), 
-#         legend.title = element_text(size = 6)) +
-#   labs()
-# 
-# # ggsave(g_diff, filename = "diff-in-diff.eps", device = "eps", width = 4, height = 4, units = "in", dpi = 800 )
+g_diff <- diff_df4  %>%
+  left_join(df_int) %>%
+  mutate(p.value = ifelse(
+    p_value < 0.05, "< 0.05" ,
+    ifelse(p_value < 0.1, "< 0.1", "> 0.1")
+  )) %>%
+  ggplot(aes(time, estimate, group = type)) +
+  geom_point(aes(color = p.value)) +
+  geom_line(aes(linetype = type, color = p.value)) +
+  scale_color_manual(values = c("dodgerblue", "orange", "purple")) +
+  facet_grid(response ~ treatment, scales = "free_y" ) +
+  theme_light(base_size = 8) +
+  theme(legend.position = "bottom",
+        legend.text = element_text(size = 6),
+        legend.title = element_text(size = 6)) +
+  labs()
+
+# ggsave(g_diff, filename = "diff-in-diff_200908.eps", device = "eps", width = 4, height = 4, units = "in", dpi = 800 )
 # 
 # g_diff

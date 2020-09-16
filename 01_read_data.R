@@ -73,7 +73,7 @@ dist_group <- function(x, datos){ # x will be the character identifier for each 
   z <- vegan::vegdist(y[-1], "bray", na.rm = TRUE) # Bray-curtis is bounded 0:1 with zero absolute similarity and 1 complete different
   player <- substr(x, start = nchar(x), stop = nchar(x)) # the player is the last number of the string
   mean_dist <- colSums(as.matrix(z))[as.numeric(player)] / 3 # divided by the other 3 players. Note the dist to self is 0
-  df <- data_frame(ID_player = x, mean_dist = mean_dist)
+  df <- tibble(ID_player = x, mean_dist = mean_dist)
   return(df)
 }
 
@@ -246,7 +246,8 @@ n <- dim(ind_coop2)[2]
 ind_coop <- left_join(ind_coop2, surv, by = "ID_player") %>%  ## Now drop the columns that are not useful for now in the regression
   select( c(1:n,
             life_satisfaction = 19+n, EE_before = 20+n, partner_in_group = 21+n,
-            fishing_age=25+n,fishing_last_yr = 29+n, week_days = 43+n, ND_hrs = 44+n, ND_kg = 45+n, ND_pesos =46+n,
+            fishing_age=25+n,fishing_last_yr = 29+n, week_days = 43+n, 
+            ND_hrs = 44+n, ND_kg = 45+n, ND_pesos =46+n,
             BD_kg = 49+n, BD_pesos = 50+n, BD_how_often = 51+n, group_fishing = 52+n, boat = 58+n,
             take_home= 84+n, sale= 85+n, give_away = 87+n,
             fishing_future = 88+n, fishing_children=90+n, history_rs = 96+n,  sharing_art=137+n,
@@ -263,8 +264,6 @@ ind_coop <- left_join(ind_coop, x, by = "ID_player")
 
 ind_coop <- left_join(ind_coop, select(risk, 1,2), by = "ID_player")
 
-
-### here is the error now
 ind_coop <- left_join(ind_coop, select(amb, 1,2), by = "ID_player")
 
 ## log-transform money related variables
