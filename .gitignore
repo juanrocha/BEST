@@ -18,3 +18,5 @@
 *.csv
 *.tiff
 *.eps
+*.aux
+*.out
