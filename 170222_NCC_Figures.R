@@ -10,8 +10,7 @@
 # juan.rocha@su.se
 # version 170222
 
-# clean and load weapons:
-rm(list=ls())
+# load packages
 
 library(ggplot2)
 # library(network)
@@ -110,18 +109,38 @@ dat <- dat.noNA
 # str(full)
 
 ## change names of places and reorder levels
-levels(dat$Place) <- c("D", "B", "A", 'C')
-dat$Place <- factor(dat$Place, levels(dat$Place)[c(3,2,4,1)])
-levels(dat$Place)
+## Update: a bit more elegant and explicit way of reordering and renaming factors
+dat <- as_tibble(dat)
+dat <- dat |> 
+  mutate(Place = case_when(
+    Place == "Taganga" ~ "A",
+    Place == "Las Flores" ~ "B",
+    Place == "Tasajera" ~ "C",
+    Place == "Buenavista" ~ "D"),
+    Treatment = case_when(
+      Treatment == "Base line" ~ "Baseline",
+      Treatment == "Uncertainty" ~ "Ambiguity",
+      TRUE ~ Treatment
+    )) |> 
+  mutate(Place = forcats::as_factor(Place), 
+         Treatment = forcats::as_factor(Treatment)) |> 
+  mutate(Place = forcats::fct_relevel(Place, "A", "B", "C", "D"),
+         Treatment = forcats::fct_relevel(
+           Treatment, "Baseline", "Threshold", "Risk", "Ambiguity")) |> 
+  mutate(Treatment = forcats::as_factor(Treatment)) #|> pull(Treatment) |>  levels()
+
+# levels(dat$Place) <- c("D", "B", "A", 'C')
+# dat$Place <- factor(dat$Place, levels(dat$Place)[c(3,2,4,1)])
+# levels(dat$Place)
 
 str(dat)
-levels(dat$Treatment)[1] <- "Baseline"
-levels(dat$Treatment)[4] <- "Ambiguity"
-
-## reorder the treatment levels
-str(dat)
-dat$Treatment <- factor(dat$Treatment, levels(dat$Treatment)[c(1,3,2,4)])
-levels(dat$Treatment)
+# levels(dat$Treatment)[1] <- "Baseline"
+# levels(dat$Treatment)[4] <- "Ambiguity"
+# 
+# ## reorder the treatment levels
+# str(dat)
+# dat$Treatment <- factor(dat$Treatment, levels(dat$Treatment)[c(1,3,2,4)])
+# levels(dat$Treatment)
 
 
 ### Group level data
@@ -262,13 +281,14 @@ by_group_treat <- group_by(filter(group_dat, part == T), Treatment, Place, group
 # quartz.save(file = '170311_Schill_NCC_Fig1.png', type = 'png', dpi = 1000,
 #             pointsize = 5, family = "helvetica", width = 6, height = 2)
 
-f1a <- ggplot(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Threshold") %>% ungroup(),
-              aes(mean_st2)) +
+f1a <- ggplot(
+  data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Threshold") %>% ungroup(),
+              aes(median_st2)) +
   geom_density(aes(fill = Treatment)) +
   scale_fill_manual(values = alpha(c('gold', 'blue'), 0.5)) + scale_color_manual(values = alpha(c('gold', 'blue'), 1)) +
   geom_vline(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Threshold") %>%
                group_by(Treatment) %>%
-               summarise(m = median(mean_st2)),
+               summarise(m = median(median_st2)),
     mapping = aes(xintercept = m, color = Treatment), show.legend = F)+
   geom_vline(xintercept = c(28), color = c('red'), show.legend = F)+
   ggtitle(label = 'a)') + theme_minimal(base_size = 5) +
@@ -276,12 +296,12 @@ f1a <- ggplot(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment
   xlab('Median stock size')  + ylim (c(0,0.1)) + xlim (c(0,50))
 
 f1b <- ggplot(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Risk") %>% ungroup(),
-              aes(mean_st2)) +
+              aes(median_st2)) +
   geom_density(aes(fill = Treatment)) +
   scale_fill_manual(values = alpha(c('gold', 'blue'), 0.5)) + scale_color_manual(values = alpha(c('gold', 'blue'), 1)) +
   geom_vline(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Risk") %>%
                group_by(Treatment) %>%
-               summarise(m = median(mean_st2)),
+               summarise(m = median(median_st2)),
              mapping = aes(xintercept = m, color = Treatment), show.legend = F)+
   geom_vline(xintercept = c(28), color = c('red'), show.legend = F)+
   ggtitle(label = 'b)') + theme_minimal(base_size = 5) +
@@ -289,12 +309,12 @@ f1b <- ggplot(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment
   xlab('Median stock size') + ylim (c(0,0.1)) + xlim (c(0,50))
 
 f1c <- ggplot(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Ambiguity") %>% ungroup(),
-              aes(mean_st2)) +
+              aes(median_st2)) +
   geom_density(aes(fill = Treatment)) +
   scale_fill_manual(values = alpha(c('gold', 'blue'), 0.5)) + scale_color_manual(values = alpha(c('gold', 'blue'), 1)) +
   geom_vline(data = filter(by_group_treat2, Treatment == "Baseline" | Treatment == "Ambiguity") %>%
                group_by(Treatment) %>%
-               summarise(m = median(mean_st2)),
+               summarise(m = median(median_st2)),
              mapping = aes(xintercept = m, color = Treatment), show.legend = F)+
   geom_vline(xintercept = c(28), color = c('red'), show.legend = F)+
   ggtitle(label = 'c)') + theme_minimal(base_size = 5) +
@@ -342,14 +362,18 @@ f1f <- ggplot(data = filter(by_group_catch, Treatment == "Baseline" | Treatment 
 ## Combine the figure
 g <- list ( f1a, f1b, f1c )#, f1d, f1e, f1f)
 
-source('~/Dropbox/Code/multiplot.R')
-layout <- matrix(c(1:3), ncol = 3, nrow = 1)
-quartz(width = 5, height = 2.5)
+library(patchwork)
+f1a +f1b+ f1c
 
-multiplot(plotlist = g, layout = layout)
 
-quartz.save(file = 'Schill_NCC_Fig1.png', type = 'png', dpi = 300,
-            pointsize = 5, family = "helvetica", width = 5, height = 2)
+# source('~/Dropbox/Code/multiplot.R')
+# layout <- matrix(c(1:3), ncol = 3, nrow = 1)
+# quartz(width = 5, height = 2.5)
+# 
+# multiplot(plotlist = g, layout = layout)
+# 
+# quartz.save(file = 'Schill_NCC_Fig1.png', type = 'png', dpi = 300,
+#             pointsize = 5, family = "helvetica", width = 5, height = 2)
 
 # ggsave( filename = 'Schill_NCC_Fig1.png', device = 'png', dpi = 300,
 #        width = 5, height = 2.5, units = 'in')
@@ -500,22 +524,31 @@ quartz.save(file = '170319_Schill_NCC_Fig4_median.png', type = 'png', dpi = 600,
 #   geom_density_2d(aes(color=part)) + facet_grid( Treatment ~ Place)
 # c
 
-f3b <-  ggplot(data = filter(group_dat, part == TRUE), aes(StockSizeBegining, IntermediateStockSize)) +
+f3b <-  ggplot(
+  data = filter(group_dat, part == TRUE), 
+  aes(StockSizeBegining, IntermediateStockSize)) +
   geom_point(aes(color = group_color), show.legend = F, size = 0.6) +
   geom_density_2d(aes(color = group_color), show.legend = F,  n=100, h=15, alpha = 0.4) +
   #scale_color_gradient(low = "#0000FFCC", high = "#FF0000CC") +
   # scale_color_manual(values = rep(brewer.pal(n = 4, "Set1"), 16)) +
-  facet_grid(Treatment ~ Place)  + ylab("Intermediate Stock Size") + xlab('Stock Size Begining') +
-  ggtitle('b)') + theme_gray(base_size = 8)
+  facet_grid(Treatment ~ Place)  + 
+  labs(y = "Intermediate Stock Size", x ='Stock Size Begining', tag = 'b)') + 
+  theme_light(base_size = 8)
 
 
 
-f3a <- ggplot(data = filter(group_dat, part == T), aes(y =IntermediateStockSize, x= Round, group = group)) +
+f3a <- ggplot(
+  data = filter(group_dat, part == T), 
+  aes(y =IntermediateStockSize, x= Round - 6, group = group)) +
   geom_hline(yintercept = 28, color = 'pink') +
-  geom_line(aes(color = gini_st2), show.legend = T) + geom_point(aes(color = gini_st2), show.legend = T, size = 0.5) +
-  scale_color_gradient(low = "#0000FFCC", high = "#FF0000CC") +
-  facet_grid(Treatment ~ Place) + ylab("Intermediate Stock Size") +
-  ggtitle('a)') + theme_gray(base_size = 8)
+  geom_line(aes(color = gini_st2), show.legend = T) + 
+  geom_point(aes(color = gini_st2), show.legend = T, size = 0.5) +
+  scale_color_gradient("Gini",low = "#0000FFCC", high = "#FF0000CC") +
+  scale_x_continuous(breaks = c(0,5,10)) +
+  facet_grid(Treatment ~ Place) +
+  labs(y = "Stock Size", x = "Round") +
+  theme_light(base_size = 8) +
+  theme(legend.key.width = unit(2, "mm"), legend.key.height = unit(10, "mm"))
 
 
 
@@ -525,6 +558,8 @@ f3a <- ggplot(data = filter(group_dat, part == T), aes(y =IntermediateStockSize,
 #               mapping=aes(color= Place, alpha=0.5), title='Treatment effects')
 
 ## Combine the figure
+f3a + f3b
+
 g <- list (f3a, f3b)
 
 source('~/Dropbox/Code/multiplot.R')
@@ -533,7 +568,10 @@ multiplot(plotlist = g, layout = layout)
 
 # quartz.save(file = '170512_Happy_Birthday_Caroline.pdf', type = 'pdf', dpi = 1200, width = 8, height = 4)
 
-ggsave(filename = '170512_Happy_Birthday_Caroline.pdf', device = 'pdf', dpi = 1200, width = 8, height = 4, plot = multiplot(plotlist = g, layout = layout))
+ggsave(
+  plot = f3a,
+  filename = 'fig5_paper1.png', device = 'png', dpi = 400, 
+  width = 4, height = 4, bg = "white")
 
 
 ### check the agreements on survey data
@@ -665,8 +703,11 @@ f1b <- ggplot(data = by_group_treat, aes(mean_group, group = Treatment))+
 
 ## Time series of Stage 2 of mean stock size per treatment plus standard deviation. So 4 lines in one graph
 
-f3a <- ggplot(data = filter(group_dat, part == T, gini_st2 > 0.015), aes(y =IntermediateStockSize, x= Round, group = Treatment)) +
-  geom_hline(yintercept = 28, color = 'pink') + geom_smooth(stat='smooth', aes(fill=Treatment, color = Treatment, group=Treatment)) +
+f3a <- ggplot(
+  data = filter(group_dat, part == T, gini_st2 > 0.015), 
+  aes(y =IntermediateStockSize, x= Round, group = Treatment)) +
+  geom_hline(yintercept = 28, color = 'pink') + 
+  geom_smooth(stat='smooth', aes(fill=Treatment, color = Treatment, group=Treatment)) +
   ggtitle('Gini on stage 2 was > 0.015')
 
 
@@ -693,6 +734,27 @@ f3a <- ggplot(data = group_dat, aes(y =IntermediateStockSize, x= Round, group = 
 
 
 ggsave(filename = "Schill_Fig4.png", device = "png", width = 4, height = 4, dpi = 300)
+
+### New figure for reviewers:
+
+group_dat |> 
+  filter(part == TRUE) |> 
+  ggplot(aes(Round-6, IntermediateStockSize)) +
+  geom_line(aes(group = group), size = 0.25) +
+  geom_smooth() +
+  geom_hline(data = tibble(y = c(NA,28,28,28), Treatment = c("Baseline", "Threshold", "Risk", "Ambiguity")) |> mutate(Treatment = forcats::as_factor(Treatment)),
+             aes(yintercept = y), color = "red", alpha = 0.5, linetype = 2) +
+  facet_wrap(~Treatment, ncol = 4) +
+  labs(x = "Round", y = "Stock size") +
+  scale_x_continuous(breaks = c(0, 5, 10)) +
+  theme_light(base_size = 8)
+
+ggsave(
+  plot = last_plot(),
+  path = "/Users/juanrocha/Documents/Projects/BEST - Beijer/Figs & results",
+  file = "stock_size_treatments.png", device = "png", dpi = 500, 
+  width = 7, height = 2, bg = "white"
+)
 
 ####### Figure with model
 

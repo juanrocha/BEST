@@ -1,0 +1,227 @@
+---
+title: "Cooperation in the face of thresholds, risk, and uncertainty\textcolor{red}{: experimental evidence in fisher communities from Colombia}"
+author:
+  - name: Juan C. Rocha
+    email: juan.rocha@su.se
+    affiliation: 
+        - Stockholm Resilience Centre, Stockholm University
+        - Beijer Institute
+        - SARAS
+        - Future Earth
+    corresponding: juan.rocha@su.se
+  - name: Caroline Schill
+    email: caroline.schill@beijer.kva.se
+    affiliation: Beijer Institute
+  - name: Lina M. Saavedra-Díaz
+    email: lsaavedra@unimagdalena.edu.co
+    affiliation: Universidad del Magdalena
+  - name: Rocío del Pilar Moreno
+    email: romoreno@uniandes.edu.co
+    affiliation: Universidad de Los Andes
+  - name: Jorge Higinio Maldonado
+    email: jmaldona@uniandes.edu.co
+    affiliation: Universidad de Los Andes
+address:
+  - code: Stockholm University
+    address: Stockholm Resilience Centre, Stockholm University, Kräftriket 2B, 10691 Stockholm
+  - code: Beijer Institute
+    address: Beijer Institute, Swedish Royal Academy of Sciences, Lilla Frescativägen 4A, 104 05 Stockholm
+  - code: SARAS
+    address: South American Institute for Resilience and Sustainability Studies, Maldonado, Uruguay
+  - code: Universidad del Magdalena
+    address: Programa de Biología, Universidad del Magdalena, Carrera 32 No 22 − 08, Santa Marta, Colombia
+  - code: Universidad de Los Andes
+    address: Facultad de Economía, Universidad de Los Andes, Cra. 1 No 18a 12, Bogotá, Cundinamarca, Colombia
+abstract: |
+  Cooperation is thought to be a necessary condition to solve collective dilemmas such as climate change or the sustainable use of common-pool resources. Yet, it is poorly understood how situations pervaded by thresholds shape the behaviour of people facing collective dilemmas. Here we provide empirical evidence that resource users facing thresholds maintain on average cooperative behaviours by maximising their individual earnings while ensuring future group opportunities. A dynamic game with 256 Colombian fishers helped us investigate behavioural responses to the existence of thresholds, risk and uncertainty. Uncertain thresholds made fishers maintain higher levels of cooperation than when the risk of thresholds is known, but risk had a stronger effect on reducing individual fishing effort. If cooperation increases in the face of thresholds, then communicating uncertainty is more policy-relevant than estimating precisely where tipping points lay in social-ecological systems.
+  
+
+bibliography: Best_bibliography.bib
+output: rticles::plos_article
+csl: plos.csl
+style: plost2015.bst
+
+header-includes:
+- \usepackage{dcolumn, rotating, longtable, lineno, float, array, tabularx}
+- \linenumbers
+
+---
+
+
+```{r setup, include = FALSE}
+set.seed(12345)
+library(tidyverse)
+library(stringr)
+library(forcats)
+library(RColorBrewer)
+library(ggplot2)
+library(GGally)
+library(moments)
+library(broom)
+
+library(grid)
+library(gridExtra)
+library(plm)
+library(lmtest)
+library(splm)
+library(car)
+library(estimatr)
+library(kableExtra)
+
+# load("Regressions_paper2_200527.RData")
+# to solve the multiple affiliation problem, replace the name of my name on the tex file for:
+# Juan C. Rocha\textsuperscript{\getAff{Stockholm University}}\textsuperscript{\getAff{Beijer Institute}}\textsuperscript{\getAff{SARAS}}\textsuperscript{*},
+```
+
+
+# Introduction
+
+Sustainability challenges are often characterised by situations pervaded by thresholds [@Liu:2015go]. Achieving sustainable development goals such as eradicating poverty, dealing with climate change, and preventing the tragedy of the commons in using natural resources, require all cooperation to deal with situations characterised by non-linear dynamics with tipping points [@Vasconcelos:wz; @Rand:2013by; @Hauser:2014jg]. Under current development trajectories, ecosystems worldwide are at risk of undergoing more frequent and severe regime shifts --abrupt transitions in their function and structure-- changing the flow of ecosystem services on which societies rely upon, and the source of livelihoods for many communities [@IPCC:2013un; @Rocha:2018gn]. Examples include bush encroachment, a regime shift that reduces the ability of ranchers to maintain cattle; soil salinisation which compromises the ability of farmers to produce food; or the collapse of fisheries which could compromise the livelihoods of $\sim 51$ million people who today depend on them, most of them from developing countries [@FAO:2017ug]. Over 30 different types of regime shifts have been documented in social-ecological systems, and their frequency and intensity are expected to increase [@Rocha:2018gn; @Biggs:2018hx]. This rises the questions: how do people behave in situations pervaded by thresholds?  How does it affect their decisions regarding the extraction from a common-pool resource? Do people race to the bottom and collapse their resources, or do they find strategies for dealing with threshold uncertainty?
+
+Traditionally these questions have been studied from a rather theoretical point of view [@Crepin:ul; @Barrett:2012hm; @Milinski:2008ky; @Barrett:2013gc; @Polasky:2011p7155; @Hauser:2014jg] with a strong focus on public goods [@McBride:2006bs; @Dannenberg:2014ic]. Theoretical and empirical evidence suggests that the relationship between collective action and uncertainty is negative: the higher the uncertainty, the higher the likelihood of cooperation to break down [@Barrett:2012hm; @Dannenberg:2014ic; @Milinski:2008ky; @Gustafsson:1999ho; @Maldonado:2016ij]. Only under very specific circumstances in public good settings, uncertainty has predicted increases in cooperation on a modeling framework [@McBride:2006bs]. However, most of these empirical results have been largely obtained in lab settings with "weird" subjects: western, educated, industrialised, rich, and democratic [@Henrich:2010gn]. Whether these results hold when tested with people whose livelihoods depend on natural resources is still an open question.
+
+The purpose of this paper is to fill that gap by testing how individual resource users behave in situations pervaded by thresholds when facing collective dilemmas. To achieve that goal we designed an experimental dynamic game that we played with 256 fishers in 4 coastal communities of the Colombian Caribbean (see methods and \nameref{S1_Appendix} for instructions). The game was framed as a fishery with the likelihood of a climate event that abruptly reduced the recovery rate of the fish stock on which the fishers' earnings depended. In the game, fishers made individual decisions each round of how much they wanted to fish from a common pool resource. Communication was allowed and the social dilemma was faced in groups of 4. The game lasted 16 rounds (unknown to the players), of which the last 10 consisted of a treatment. 64 fishers played the _threshold_ treatment, in which in round 7 a climate event occurred reducing the recovery rate of the fish. This framing is similar to hypoxia events --low water oxygen-- which could follow times of drought or extreme rain, and have been recorded in the region for decades [@Breitburg:2018iz]. In times of hypoxia fish die creating death zones [@Diaz:2008p199]. The second treatment was _risk_,  where fishers (n = 64) knew that a climate event could occur reducing the fish stock's ability to reproduce with a 50% chance. In the _uncertainty_ treatment (n = 64) the same framing was used, but the probability of the climate event was between 0.1-0.9. Another treatment was the control group (_baseline_, n = 64), which continued playing as in the first rounds. The game was complemented with post-experimental surveys and a lottery activity to elucidate the risk and ambiguity preferences of our participants (See Methods).
+
+# Results
+
+### Treatment effects on individual extraction
+Fishers facing thresholds tend to fish less \textcolor{red}{compared to the baseline} both in absolute terms as well as in proportion to the the availability of the resource. We studied the individual decisions of fishers by looking at their individual extraction $x_{i,t}$, and the proportion of the stock they appropriated per round ($x_{i,t}/S_t$). A difference-in-difference panel model with random effects reveals that treatment effects are in general significant and negative (Fig.\ref{fig:fig1}). The reduction of fishing effort is stronger for _risk_ than for _threshold_ or _uncertainty_ treatments. Our results are robust to different choices of clustering standard errors (See \nameref{S1_Table}-\nameref{S3_Table}) which were clustered simultaneously around individuals, groups and time. While these results already contradict the premise that uncertainty breaks down cooperation, our response variables thus far do not allow us to investigate the context in which each decision was taken. For example, agreements or the emergence of rules are ignored, and an amount of fish caught worth the same in the above regression if they are caught before or after crossing potential thresholds. In the game and real life they are not the same thing. The same amount of fish extracted can have substantially different impacts on the stock size and the potential earnings of fishers if non-linear thresholds are crossed.
+
+### Individual behaviour in context
+To gain a better understanding of the interplay between group-level dynamics, and the context in which each individual decision was made, we designed two additional response variables: cooperation and coordination. Broadly speaking cooperation is working together towards a shared goal. Cooperation can also be defined as *"a form of working together in which one individual pays a cost (in terms of fitness, whether genetic or cultural) and another gains a benefit as a result"* [@Nowak:2013vr]. In the context of common pool dilemmas (and non-dyadic games) cooperation can also be interpreted as favouring the common good over individual benefits [@Poteete:2010ud; @Ostrom:1990ws]. An important distinction in the literature is that of cooperators versus defectors, while cooperators pay a cost for other(s) to benefit, defectors have no cost and do not deal out benefits [@Nowak:2006p6717; @Axelrod:2006fe]. Here we operationalise these definitions by measuring cooperation as the ratio of the individual decision $x_{i,t}$ with respect to the optimal level for the group. \textcolor{red}{Thus, cooperation happens when (i) individuals take a number of fishes that maintain the fish stock above the threshold, or (ii) take no fishes when the fish stock is below the threshold}.Cooperation $C$ is measured assuming fairness or equal sharing of the stock available for fishing $S_t$ above the threshold $\theta$ ($\theta =  28$ in treatments and $\theta = 20$ in _baseline_ ):
+
+\begin{align}
+C_{i,t} = \frac{x_{i,t}}{\frac{S_t - \theta}{N}}
+\end{align}
+
+where $N$ is the number of players in the group (always 4 in our experimental design). To avoid division by zero or negative values, \textcolor{blue}{if the denominator is < 1 and $x_{i,t} = 0$ cooperation is set} when the fish stock is below the threshold (denominator < 1) and fishers do not take any fish (x_{i,t} = 0), we consider that they cooperate $C = 1$ (212/4096 observations), and if the denominator is zero and they take one fish ($x_{i,t} = 1$) cooperation is set $C=1.5$ (17/4096 observations). Thus, cooperation \textcolor{red}{is at its maximum when} $C = 1$ meaning that the individual took 100% of what was fair to take while avoiding crossing the threshold. If cooperation $C < 1$ the fisher did cooperate in order to avoid the threshold but was not efficient at maximising her/his personal utility; if $C > 1$ the fisher did not cooperate and preferred maximising her/his utility over the common good in the long run. If $C=2$ the individual took twice as much as it was fair to take, and by doing so the group could have crossed the threshold. Cooperation in this interpretation is not given by a point but by the distribution it forms over time. A person can take 1 or 2 extra fish by agreement (e.g. a rotation scheme), by having weak agreements that do not specify quotas (e.g. "let's fish less"), or by mistake. Crossing the threshold is however the aggregated effect of individual decisions. For that reason, we also introduced coordination as the average (Bray-Curtis) similarity distance to other group members decisions through the game. Thus, if coordination is close to one the individual extraction $x_{i,t}$ is very similar to other group members, while if coordination is close to zero, $x_{i,t}$ is very dissimilar to the rest of the group (Fig \ref{fig:fig2}).
+
+
+\begin{figure*}
+\centering
+\caption{\textbf{Fishers fish less and cooperation does not break down} Treatment effects are explored with a difference-in-difference random effect model with respect to individual extraction, the proportion of the stock extracted, and cooperation. The joint differences between control and treatment groups are significant for individual extraction (F = 5.95, p $<<$ 0.05, df = 3), weakly significant for proportion of stock extracted (F = 2.23, p = 0.08, df = 3), and non-significant for cooperation (F = 0.3, p = 0.8, df = 3). When the difference \textcolor{red}{was} tested individually between each treatment and the \textcolor{red}{control}, in the case of proportion of stock extracted, the weakly significant treatment was risk ($p = 0.08$), while threshold and uncertainty were both significant ($p = 0.02, 0.01$ respectively). The counterfactual is the expected response of people in the treatment if they would have played the baseline instead (see methods for mathematical definitions). \nameref{S1_Table}-\nameref{S3_Table} complement this figure with a sensitivity analysis of robust standard error estimation.}
+\label{fig:fig1}
+\end{figure*}
+
+\textcolor{red}{Besides the effects of treatments on the reduction of fishing effort, we find that cooperation does not break down (Fig.\ref{fig:fig1}). We find differences in cooperation but they are not significantly different from the baseline.} To better understand what explains the behaviour of individuals in terms of cooperation and coordination, we regressed variables that \textcolor{red}{summarize} individual behaviour from the second part of the game against explanatory variables that were individual attributes (See surveys in Method). As dependent variables we used median cooperation, coordination, the mean extraction, the mean proportion of the stock extracted, and their variances (Fig \ref{fig:fig2}). Decrease in variances and increase in coordination can be seen as empirical proxies of the emergence and compliance of agreements. As explanatory variables, we used our treatments, after controlling for socioeconomic variables (e.g. education, income), risk and ambiguity aversion (See Methods), the percentage of rounds that individual made agreements (a proxy of the intention but not necessarily of compliance), and place to account for fixed effects that were not necessarily controlled for with our socioeconomic terms. Since our experimental design focus on the impacts of tipping points in natural resource dynamics, we approximated income not as the amount of money people make per month, but rather as the frequency of bad days they return from a fishing trip without any earnings. The latter although collinear with reported income, is a better proxy of exposure to regime shifts. We also include a response variable about the expectation of children to depend of fishing as livelihood to deal with the long term perspective of sustaining the resource, as well as group fishing and sharing of fishing arts to control for aspects of the fishing activity that can prime individuals to be more cooperative.
+
+We find that all treatments significantly reduced the proportion of stock extracted \texcolor{red}{(Fig \ref{fig:fig3}). Individuals who played the uncertainty treatment and decreased coordination,} yet coordination increased in groups that communicated and reached agreements. Interestingly, the proportion of rounds with agreements (intentions) had a negative effect on the proportion of stock extracted, the variance of extraction, and the median and variance of cooperation suggesting that agreements were in average followed. Fishers who reached agreements were better at maximising their individual earnings while maintaining the stock on a longer term by avoiding crossing the threshold (Fig \ref{fig:fig2}). Cooperation, as measured here, was only affected by the number of rounds people reached agreements, showing that it responds more to in-group dynamics rather than treatments or socioeconomic effects. Yet, variance of cooperation and variance of individual extraction were both reduced in individuals who belong to a group where agreements emerged. We also found place effects that were not accounted by our socioeconomic controls, showing that place B had on average less coordination and higher variance of extraction, while place D had higher extraction and higher cooperation ($C \leq 1$). People with higher levels of education reduced their variance of extraction, while people with a higher frequency of zero income days tend to fish more, but these effects are relatively small. Controlling for fishing art sharing, risk or ambiguity aversion render weakly significant coefficients ($p < 0.1$) and their effect sizes are relatively small together with other socioeconomic controls. Controlling for individual behaviour in the first part of the game is significant for most of our response variables (except variances Fig \ref{fig:fig3}), suggesting that individuals bring cooperative preferences to the game that are independent of our treatments and other socio-economic factors. Some of our socio-economic factors are partially correlated with place (\nameref{S1_Fig}), thus \nameref{S5_Table} and \nameref{S6_Table} reproduce the regression without place and only place terms respectively.
+
+\begin{figure*}
+\centering
+\caption{\textbf{Response variables of individual behaviour.} Figure A) shows the relationship between cooperation and coordination, figure B) shows the relationship of mean extraction and the mean proportion of the extraction. Each point represent an individual player (N=256) and the summary statistic calculated over the second part of the game (10 rounds, 2560 observations). The density for each variable is located parallel to each axis respectively, while the comparison of variances (except for coordination) is found on the lower left inset.}
+\label{fig:fig2}
+\end{figure*}
+
+
+\begin{figure*}
+\centering
+\caption{\textbf{Individual behaviour as function of treatments and socioeconomic factors} The panel summarises results from an OLS regression for each of the response variables reported in Fig \ref{fig:fig2}. Treatment effects are shown after controlling for socioeconomic aspects and location. \nameref{S4_Table} complement this figure with precise estimates and summary statistics. Error bars denote 95\% confidence intervals calculated with a CR2 robust \textcolor{red}{standard} errors estimator.}
+\label{fig:fig3}
+\end{figure*}
+
+
+# Discussion
+
+\textcolor{red}{Fishers under uncertain thresholds showed lower levels of extraction than when the threshold was known. Risk had a stronger effect at reducing individual fishing effort than uncertainty.} Our central result contradicts previous theoretical and empirical findings that predicted break down of cooperation under situations with uncertain thresholds [@Barrett:2012hm; @Dannenberg:2014ic; @Milinski:2008ky; @Maldonado:2016ij]. Our findings \textcolor{red}{support} the hypothesis that uncertainty can increase cooperative behavior in public goods settings when the value of the public good is sufficiently high [@McBride:2006bs]. Our experiment is not a public good setting, but it can be translated to a common pool resource when the dependency of the resource is sufficiently high. Previous work has concentrated their efforts on settings with western, educated, industrialized, rich and democratic individuals [@Henrich:2010gn]. Here we empirically show that the negative relationship between cooperation and uncertainty does not hold in situations with resource users whose livelihoods largely depend on natural resources. On the contrary, our study supports a small but growing body of empirical evidence suggesting that uncertainty can help protect the commons when ecosystems are susceptible to thresholds such as climate-induced regime shifts [@Schill:2019fa; @Finkbeiner:2018ds].
+
+One potential explanation for the deviation from theoretical expectations can be personality traits [@Ostrom:1998ve; @PoncelaCasasnovas:2016hs]. We expected that risk and ambiguity aversion were key personal traits affecting behaviour. Our results suggest however that group dynamics seems to override personal preferences regarding aversion. Some resource users tend to have pro-social and pro-enviromental behaviour, others have more individuallistic or short term preferences (Fig \ref{fig:fig2}); but as observed by a previous study in the same region, pro-social fishers are less likely of changing their behaviour than non-cooperators [@Maldonado:2016ij]. This in turn scale up at the group level, where groups with higher proportions of cooperative individuals maintain higher levels of fish stock despite an ocasional free-rider [@Maldonado:2016ij]. Our results suggest that fishers were responding more to in-group dynamics (e.g. increasing coordination) and personal preferences regarding pro-social behavior, rather than their risk or ambiguity aversion preferences.
+
+Our study shows that reaching agreements decrease fishing efforts and increase cooperation. It suggests that a common strategy that evolved in the game was approaching the threhsold \textcolor{red}{without} crossing it, thus maximizing both social and individual benefits. By reducing fishing effort or keeping close to the social optimal people do cooperate. However, cooperation--as measured in our study--was not affected by our treatments. Cooperative behavior then seems to be driven more by personal preferences and group dynamics than levels of uncertainty. This observation agrees with previous experiments studying internal Nash solutions on common pool resources [@Maldonado:2016ij], and highlights the important and well established role of communication in providing groups an arena for agreement negotiations, rule making, social pressure, and coordinating actions [@Schill:2015kj; @Osborne:2019dd]. Previous participatory research in the communities studied supports with different methods our findings [@SaavedraDiaz:2016ig; @SaavedraDiaz:2015es]
+
+Fishers do reduce fishing in presence of thresholds, but the effect occurs to a lesser extent when uncertainty is high. This is partly due to our experimental desing where higher levels of uncertainty can mask free-riding behaviour and slow down the erosion of trust. In that sense, the uncertainty about thresholds also induces social uncertainty about adhering to agreements. An alternative explanation is that under higher levels of uncertainty fishers adopt a more exploratory mode (higher variance) with less strict agreements (Fig \ref{fig:fig2}). Reduced variance of decisions over time and incresed coordination across group members suggest that people with strong agreements (e.g. strict quotas) were more successful on maintaining the stock above the threshold than groups with soft agreements (e.g. "let's fish less"). Further research efforts could target dissentangling the effects of the different forms of uncertainty regarding the dynamics of the natural resources with pontential thresholds, the social uncertainty about free-riding, or the effects of norms ambiguity. As this type of experiments scale up to more realistic settings, noise induced by social network structures needs to be taken into consideration realizing that humans have limits to social interactions [@Dunbar:2003go], and that social relationships are heterogeneous in number and quality.
+
+If the existence of thresholds already triggers cooperative behavior in natural resource users, then communicating their potential effects on ecosystems and society is more important than quantifying the precise point at which ecosystems tip over. Tipping points are difficult to observe and quantify in nature, they are not unique and they are expected to interact with other tipping points [@Anonymous:2012ju; @Lenton:2019fv; @Rocha:2018gn], meaning that their exact points change over time. While precise measurements can be out of reach specially in settings where monitoring programs are weak or not in place (e.g. developing countries), knowledge about the circumstances under which an ecosystem can tip over can already trigger behavioral change for maintaining natural resources in configuration that provide crucial ecosystem services for livelihoods. In our case study, these circumstances are related with high concentrations of nutrients in water often correlated with use of fertalizers in agricultural activities, or periods of high sediment input following droughs and strong rainy seasons such as ENSO events [@Breitburg:2018iz; @Diaz:2008p199; @Vilardy:2011io]. Identifying such circumstances and communicating uncertain but potential regime shifts can mobilize social action towards sustainable behaviour in natural resource users.
+
+
+# Methods {#methods}
+The fishing game was part of a $~3$ hour workshop that were carried out in four Colombian fishing communities in the Caribbean coast in February 2016. Each workshop consisted of the fishing game, a post-experimental survey, and a risk/ambiguity elicitation task. Before starting, each participant signed a consent form committing to participate in all three activities and authorising us to use the anonymised data for research purposes.
+
+#### Fishing game
+Participants knew that the total duration of the workshop was $~3$hrs but they did not know how long the fishing game would last. This was to avoid last round effects -- people crashing the resource to maximise their individual earnings. The fishing game consisted in 2-3 practice rounds, 6 rounds playing the _baseline_ treatment, and 10 rounds with a treatment that was framed as a climate event. The climate event arrived with probability $p=1$ in the _threshold_ treatment, with $p=0.5$ in _risk_ treatment, and with $0.1 < p <0.9$ in the _uncertainty_ treatment. The event \textcolor{blue}{was meant to} \textcolor{red}{reduces} the capacity of the fish stock to reproduce. On the _baseline_ the reproduction rate was 5 fish if the remaining fish stock was 5-19 or 35-45 fishes, and 10 fishes if the remaining fish stock was 20-34. \textcolor{red}{There was no reproduction in either treatment for fish stocks below 5 or above 45, which was justified in the game as Allee effects. In too low densities, or highly populated ponds, the fish finds harder to reproduce due to lack of partners or competition for resources.}If the climate event occurred in the game, the reproduction rate changed to 1 fish for remaining fish stock of 5-27, 10 fish for remaining fish stock of 28-34, and 5 fish for remaining fish stock of 35-45. The game started with a fish stock of 50 fish and in round 7 the fish stock was restored to 50 for all treatments. \textcolor{blue}{There was no reproduction in either treatment for fish stocks below 5 or above 45, which was justified in the game as Allee effects. In too low densities, or highly populated ponds, the fish finds harder to reproduce due to lack of partners or competition for resources.} Once the climate event occurred, the reproduction rate changed for the rest of the game mimicking a long-lasting effect on the function and structure of the ecosystem -- a regime shift.
+
+We communicated _risk_ and _uncertainty_ with a ballot system to avoid deception. For _risk_, five green and five red stones were shown at the beginning of the round. We drew one stone in private. If it was red the climate event occurred and we calculated the reproduction rate at the end of the round accordingly. If the stone was green, we kept the reproduction scheme of the _baseline_. Thus, fishers could not know if the climate event happened if the remaining stock was above the threshold $\theta = 28$ since both reproduction schemes are identical for $S_{t} > 28$. For the _uncertainty_ treatment, we showed them ten red and ten green stones. We first took one stone of each colour and put them into an urn. The remaining 18 stones were mixed in another urn. Once mixed, 8 stones were moved to the first urn without revealing their colour, so neither experimenters or fishers knew the exact distributions of stones of the urn we later used to draw the climate event. All we knew was that the probability could be between 0.1 and 0.9 since for sure there was one green and one red stone in the urn. For the treatments _risk_ and _uncertainty_, we drew a stone every round regardless if the climate event occurred or not, and the stone was returned to the urn so each round had exactly the same odds.
+
+To make decisions in the game more realistic, each fisher earned \$COL500 (USD\$0.14) for each fish caught, in addition to a show-up fee (COL\$15000, USD\$4.3) meant to compensate for the time invested in the workshop. A day spent in the workshop meant for them a day without going fishing, so their average earnings were adjusted in a way that represented a typical working wage. The full instructions of the game (English version) are available in \nameref{S1_Appendix}.
+
+#### Sample size and power analysis
+Our selection of sample in terms of the number of groups per treatment (64) was informed by a previous study with a similar experimental design performed in the lab with students at Stockholm University [@Schill:2015kj]. The within and between group variances, however, were higher in the field \textcolor{blue}{than expected}, resulting on a slightly lower power (0.74) in our field data \textcolor{blue}{than initially planned} (0.8).
+
+
+#### Surveys
+After the game, each fisher participated in a 56-question survey. The purpose of the survey was to better investigate the context of the fishing activities and to collect socioeconomic data important for helping to explain decisions in our regressions. The survey was divided into 5 sections. The first section was about the game and their perceptions on the activity, for example, whether they expected the game to end when it did. The second section was about their fishing habits: how much effort they put on fishing (time per day or year), how much earnings they get in a good or bad day, whether they own and share the fishing gear, whether they fish in groups, or what are the species targeted. The third section was about traditional ecological knowledge focused on questions about abrupt changes in their fishing grounds in the past and the type of strategies they have used to cope with it. The fourth section was about cooperative activities and associations in the community. The last section included questions about demographic socioeconomic data and sense of place. The full questionnaire is available in \nameref{S2_Appendix}.
+
+#### Risk and ambiguity elicitation task
+After the survey fishers were asked to do a final game for risk and ambiguity elicitation [@Cardenas:2013km]. To measure risk and ambiguity aversion we asked fishers to choose between 6 binary lotteries: $13000|$13000; $10000|$19000; $7000|$25000; $4000|$31000; and $0|$38000. For risk, the chances of getting the high payoff was 0.5, while for ambiguity it was a probability between 0.1-0.9 but unknown. Half of the people started with risk task and another half with ambiguity task in order to control for order effects. Their choices were transformed to a discrete variable used in our regressions that takes 1 if the fisher is risk or ambiguity averse (when the $13000|$13000 lottery was chosen), and 6 when the fisher is risk or ambiguity keen (when the $0|$38000 lottery was chosen). The risk and ambiguity elicitation task was paid to only one fisher per group.
+
+#### Regressions
+We fitted a random effects panel model to our full game dataset (N = 4096) to disentangle treatment effects with a difference-in-difference regression (Fig \ref{fig:fig1}). It follows the form:
+
+\begin{align}
+Y_{i,t,g} = \mu_{i,t,g} + \gamma G_{i,t,g} + \delta T_{i,t,g} + \tau G_{i,t,g}T_{i,t,g} + \epsilon_{i}+ \epsilon_{t}+ \epsilon_{g}
+\end{align}
+
+where $\gamma$ is the effect of being assigned to a group with a treatment, $\delta$ is the effect of the treatment (before-after), and $\tau$ is the interaction term that captures the average treatment effect on the treated. As response variables $Y_{i,t,g}$ we used individual extraction, proportion of stock extracted, and cooperation. The average treatment effect on the treated (ATT, Fig \ref{fig:fig1}) in the difference-in-difference framework was calculated according to the following definitions:
+
+|  Terms         | After ($T_i = 1$) | Before ($T_i = 0$) | After-Before |
+|:--------------:|:---------------:|:----------------:|:------------:|
+|Treated $G_i = 1$ | $\hat{\mu} + \hat{\gamma}+\hat{\delta}+\hat{\tau}$ | $\hat{\mu} + \hat{\gamma}$ | $\hat{\delta}+\hat{\tau}$  |
+|Control $G_i = 0$ | $\hat{\mu} + \hat{\delta}$ | $\hat{\mu}$ | $\hat{\delta}$ |
+|Treated-Control | $\hat{\gamma}+\hat{\tau}$ | $\hat{\gamma}$ | $\hat{\tau}$ |
+
+
+A Hausman test suggests that our choice for random effects is preferred for the proportion of stock available and cooperation ($p>0.05$), but it supports fixed effects for individual extraction ($p<0.05$). Since our panel is nested, we fitted a random-effects model clustered around individuals, groups, and time following our hierarchical design. A fixed-effects model would have not allowed us to control for the different levels of nestedness. A Breusch-Pagan Lagrange multiplier test further supported our choice of a random model when compared with a pooled regression with any of the response variables ($p<<0.05$).
+
+Given the nested structure of our design and that decisions in the past affect the stock size in the future, we expected that our dynamic game data presented cross-sectional dependence. We confirmed these expectations with a Breusch-Pagan LM test for cross-sectional dependence ($p<<0.05$ for all response variables) and a Breusch-Godfrey/Wooldridge test for serial correlation ($p<<0.05$ for all response variables). In addition, a Breusch-Pagan test reveals that our models are heteroskedastic ($p<0.05$), meaning that the variances change over time. To correct for heteroskedasticity, cross-sectional correlation, and serial correlation, we calculated robust standard errors by estimating the variance-covariance matrix with heteroskedasticity and autocorrelation consistent estimators (\nameref{S1_Table}-\nameref{S3_Table}). We also performed a F-test to the joint linear hypothesis $H_0: \gamma+\tau = 0$, this is that the difference in the coefficients before and after treatments (_threshold_, _risk_, and _uncertainty_) are indeed different from zero. We found that our differences are significant for individual extraction ($F = 5.95, p$ $<<$ $0.05, df = 3$), weakly significant for proportion of stock extracted ($F = 2.23, p = 0.08$), and non-significant for cooperation ($F = 0.3, p = 0.8$). When tested individually for each treatment in the case of proportion of stock extracted, the weakly significant treatment was _risk_ ($p = 0.08$), while _threshold_ and _uncertainty_ were both significant ($p = 0.02, 0.01$ respectively; Fig \ref{fig:fig1}).
+
+We further explored what influences individual behaviour with an ordinary least squares approximation. As response variables, we used summary statistics for the second part of the game (10 rounds), namely coordination, median cooperation, mean extraction, mean proportion of stock available extracted, and their variances (see \nameref{S1_Fig} for correlations between response variables). As regressors, we used some socioeconomic variables from the survey, the proportion of rounds that groups reached agreements, a place term to account for place differences that were not accounted by socioeconomic factors, and the treatments.
+
+## Supporting information
+
+\paragraph*{S1 Appendix.}
+\label{S1_Appendix}
+\textbf{Game instructions.}
+
+\paragraph*{S2 Appendix.}
+\label{S2_Appendix}
+\textbf{Questionnaire.} 
+Post-experimental survey.
+
+\paragraph*{S1 Table.}
+\label{S1_Table}
+\textbf{Treatment effects on individual extraction.}  
+Clustered and robust standard errors estimation for individual extraction with White method and (1) HC1, (2) HC2, (3) HC3, (4) HC4 weighting schemes, and (5) Newey and West method with HC4 scheme.
+
+\paragraph*{S2 Table.}
+\label{S2_Table}
+\textbf{Treatment effects on proportion of available stock.}  Clustered and robust standard errors estimation for proportion of available stock with White method and (1) HC1, (2) HC2, (3) HC3, (4) HC4 weighting schemes, and (5) Newey and West method with HC4 scheme.
+
+\paragraph*{S3 Table.}
+\label{S3_Table}
+\textbf {Treatment effects on cooperation.}  Clustered and robust standard errors estimation for cooperation with White method and (1) HC1, (2) HC2, (3) HC3, (4) HC4 weighting schemes, and (5) Newey and West method with HC4 scheme.
+
+\paragraph*{S1 Figure.}
+\label{S1_Fig}
+\textbf{Correlations between response variables.}  Correlation coefficients are calculated by variable and by treatment.
+
+\paragraph*{S4 Table.}
+\label{S4_Table}
+\textbf{Original regression models as shown in Fig 3.} Dependend variables are (1) mean extraction,
+  (2) mean proportion of extraction, (3) median cooperation, (4) variance of cooperation,
+  (5) variance of extraction, (6) variance of the proportion of extraction, and (7) coordination.
+
+\paragraph*{S5 Table.}
+\label{S5_Table}
+\textbf{Modified model without place terms.} Dependend variables are (1) mean extraction, (2) mean proportion of extraction, (3) median cooperation, (4) variance of cooperation,  (5) variance of extraction, (6) variance of the proportion of extraction, and (7) coordination.
+
+
+\paragraph*{S6 Table.}
+\label{S6_Table}
+\textbf{Modified model with only treatment and place.} Dependend variables are (1) mean extraction, (2) mean proportion of extraction, (3) median cooperation, (4) variance of cooperation,  (5) variance of extraction, (6) variance of the proportion of extraction, and (7) coordination.
+
+## Acknowledgements
+We would like to thank the fisher communities that participated in our experiments. This work received valuable feedback on early stages of its design by Anne-Sophie Crépin, Therese Lindahl, Juan Camilo Cárdenas, Maria Alejandra Velez, and Sandra Vilardy. The field work would have not been possible without the support of Nidia Vanegas, Alisson Soche, Darlin Botto, María de los Ángeles González, Cristhian Marrugo, Gloria de León, Jaime González, and Jesús Jiménez. The research was supported by Formas grant 211-2013-1120 and 942-2015-731.
+
+
+
+# References {#references .unnumbered}
